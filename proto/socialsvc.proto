@@ -1,0 +1,426 @@
+// In general, while you can use proto2 (the current default protocol buffers
+// version), we recommend that you use proto3 with gRPC as it lets you use the
+// full range of gRPC-supported languages, as well as avoiding compatibility
+// issues with proto2 clients talking to proto3 servers and vice versa.
+syntax = "proto3";
+
+// The package name determines the name of the directories that truss creates
+// for `package echo;` truss will create the directory "echo-service".
+package socialsvc;
+
+import "github.com/metaverse/truss/deftree/googlethirdparty/annotations.proto";
+
+service Social {
+  // SignIn verify the user auth and return a jwt
+  rpc SignIn (SignInRequest) returns (SignInResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/signin"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/signin/"
+      }
+    };
+  }
+
+  //Find a user info by uid
+  rpc FindUser (FindUserRequest) returns (FindUserResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/user"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/user/"
+      }
+    };
+  }
+
+  //update user info
+  rpc UpdateUserProfile (UpdateUserProfileRequest) returns (UpdateUserResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/user/profile"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/user/profile/"
+        body: "*"
+      }
+    };
+  }
+
+  //update user avatar
+  rpc UpdateUserAvatar (UpdateUserAvatarRequest) returns (UpdateUserResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/user/avatar"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/user/avatar/"
+        body: "*"
+      }
+    };
+  }
+
+  //update user username
+  rpc UpdateUserName (UpdateUserNameRequest) returns (UpdateUserResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/user/username"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/user/username/"
+        body: "*"
+      }
+    };
+  }
+
+  //create new status
+  rpc CreateStatus (CreateStatusRequest) returns (CreateStatusResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/status/create"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/status/create/"
+        body: "*"
+      }
+    };
+  }
+
+  //delete a status
+  rpc DeleteStatus (DeleteStatusRequest) returns (SimpleResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/status/delete"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/status/delete/"
+        body: "*"
+      }
+    };
+  }
+
+  //like a status
+  rpc LikeStatus (LikeStatusRequest) returns (SimpleResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/status/like"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/status/like/"
+        body: "*"
+      }
+    };
+  }
+
+  //unlike a status
+  rpc UnLikeStatus (UnLikeStatusRequest) returns (SimpleResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/status/unlike"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/status/unlike/"
+        body: "*"
+      }
+    };
+  }
+
+
+  //query single status
+  rpc GetStatus (GetStatusRequest) returns (GetStatusResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/status"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/status/"
+      }
+    };
+  }
+
+  //query batch status
+  rpc ListStatus (ListStatusRequest) returns (ListStatusResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/status/list"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/status/list/"
+      }
+    };
+  }
+
+  //query recommended status
+  rpc ListRecommended (ListStatusRequest) returns (ListStatusResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/status/recommended"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/status/recommended/"
+      }
+    };
+  }
+
+
+  //query time line
+  rpc ListUserTimeline (ListStatusRequest) returns (ListStatusResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/status/timeline"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/status/timeline/"
+      }
+    };
+  }
+
+
+
+
+  //query related users
+  rpc ListRelationship (ListRelationshipRequest) returns (ListRelationshipResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/relation/list"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/relation/list/"
+      }
+    };
+  }
+
+
+  //like a status
+  rpc Follow (FollowRequest) returns (SimpleResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/relation/follow"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/relation/follow/"
+        body: "*"
+      }
+    };
+  }
+
+  //unlike a status
+  rpc UnFollow (UnFollowRequest) returns (SimpleResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/relation/unfollow"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/relation/unfollow/"
+        body: "*"
+      }
+    };
+  }
+
+  
+}
+
+
+message SignInRequest {
+  string auth = 1;
+}
+
+message SignInResponse {
+  uint64 code = 1;
+  string jwt = 2;
+}
+
+message UserInfo {
+  uint64 uid = 1;
+  string username = 2;
+  string misesid = 3;
+  string gender = 4;
+  string mobile = 5;
+  string email = 6;
+  string address = 7;
+  string avatar = 8;
+}
+message FindUserRequest {
+  uint64 uid = 1;
+}
+
+message FindUserResponse {
+  uint64 code = 1;
+  UserInfo user = 2;
+  bool is_followed = 3;
+}
+
+
+message UpdateUserProfileRequest {
+  uint64 uid = 1;
+  string gender = 2;
+  string mobile = 3;
+  string email = 4;
+  string address = 5;
+}
+
+message UpdateUserAvatarRequest {
+  uint64 uid = 1;
+  uint64 attachment_id = 2;
+}
+
+message UpdateUserNameRequest {
+  uint64 uid = 1;
+  string username = 2;
+}
+
+message UpdateUserResponse {
+  uint64 code = 1;
+  UserInfo user = 2;
+}
+
+message LinkMetaInfo {
+  string title = 1;
+  string host = 2;
+  string link = 3;
+  uint64 attachment_id = 4;
+  string attachment_url = 5;
+}
+
+
+message StatusInfo {
+  string id = 1;
+  UserInfo user = 2;
+  string content = 3;
+  string from_type = 4;
+  string status_type = 5;
+  StatusInfo parent = 6;
+  StatusInfo origin = 7;
+  uint64 comment_count = 8;
+  uint64 like_count = 9;
+  uint64 forward_count = 10;
+  bool is_liked = 11;
+  LinkMetaInfo link_meta = 12;
+  uint64 created_at = 13;
+}
+
+
+
+message GetStatusRequest {
+  uint64 current_uid = 1;
+  string statusid = 2;
+}
+
+message GetStatusResponse {
+  uint64 code = 1;
+  StatusInfo status = 2;
+}
+
+
+message PageQuick {
+  uint64 limit = 1;
+  string next_id = 2;
+}
+
+message ListStatusRequest {
+  uint64 current_uid = 1;
+  uint64 target_uid = 2;
+  string parrent_id = 3;
+  repeated string from_types = 4;
+  PageQuick paginator = 5;
+}
+
+message ListStatusResponse {
+  uint64 code = 1;
+  repeated StatusInfo statuses = 2;
+  PageQuick paginator = 3;
+}
+
+
+
+message CreateStatusRequest {
+  uint64 current_uid = 1;
+	string status_type = 2;
+	string parent_id = 3;
+	string content = 4;
+	string meta = 5;
+	string from_type = 6;
+}
+
+message CreateStatusResponse {
+  uint64 code = 1;
+  StatusInfo status = 2;
+}
+
+
+
+message DeleteStatusRequest {
+  uint64 current_uid = 1;
+  string statusid = 2;
+}
+
+message SimpleResponse {
+  uint64 code = 1;
+}
+
+
+message LikeStatusRequest {
+  uint64 current_uid = 1;
+  string statusid = 2;
+}
+
+
+
+message UnLikeStatusRequest {
+  uint64 current_uid = 1;
+  string statusid = 2;
+}
+
+message FollowRequest {
+  uint64 current_uid = 1;
+  uint64 target_uid = 2;
+}
+
+message UnFollowRequest {
+  uint64 current_uid = 1;
+  uint64 target_uid = 2;
+}
+
+message RelationInfo {
+  UserInfo user = 1;
+	string relation_type = 2;
+	uint64 created_at = 3;
+}
+
+message ListRelationshipRequest {
+  uint64 current_uid = 1;
+  string relation_type = 2;
+  PageQuick paginator = 3;
+}
+
+message ListRelationshipResponse {
+  uint64 code = 1;
+  repeated RelationInfo relations = 2;
+  PageQuick paginator = 3;
+}
