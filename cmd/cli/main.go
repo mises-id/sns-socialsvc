@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 
 	"context"
 	"time"
@@ -21,6 +22,7 @@ func main() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 	defer cancel()
+	fmt.Println("setup mongo...")
 	db.SetupMongo(ctx)
 	models.EnsureIndex()
 

@@ -1,8 +1,17 @@
 package handlers
 
 import (
+	"context"
+	"log"
+	"net/http"
+
+	"github.com/go-kit/kit/endpoint"
+	"github.com/mises-id/socialsvc/lib/codes"
 	pb "github.com/mises-id/socialsvc/proto"
 	"github.com/mises-id/socialsvc/svc"
+	"go.mongodb.org/mongo-driver/mongo"
+	grpccodes "google.golang.org/grpc/codes"
+	grpcstatus "google.golang.org/grpc/status"
 )
 
 // WrapEndpoints accepts the service's entire collection of endpoints, so that a
@@ -28,9 +37,56 @@ func WrapEndpoints(in svc.Endpoints) svc.Endpoints {
 	// How to apply a middleware to a single endpoint.
 	// in.ExampleEndpoint = authMiddleware(in.ExampleEndpoint)
 
+	in.WrapAllExcept(logAllRequest())
+	in.WrapAllExcept(convertError())
 	return in
 }
 
 func WrapService(in pb.SocialServer) pb.SocialServer {
 	return in
+}
+
+func logAllRequest() endpoint.Middleware {
+	return func(next endpoint.Endpoint) endpoint.Endpoint {
+		return func(ctx context.Context, request interface{}) (interface{}, error) {
+			log.Println("request", request)
+			response, err := next(ctx, request)
+			if err != nil {
+				log.Println("response", "error", err)
+			} else {
+				log.Println("response", response)
+			}
+			return response, err
+		}
+	}
+}
+
+func convertError() endpoint.Middleware {
+	return func(next endpoint.Endpoint) endpoint.Endpoint {
+		return func(ctx context.Context, request interface{}) (interface{}, error) {
+
+			ret, err := next(ctx, request)
+			if err != nil {
+				switch err {
+				case mongo.ErrNoDocuments:
+					err = grpcstatus.Errorf(grpccodes.NotFound, err.Error())
+
+				}
+				code, ok := err.(codes.Code)
+				if ok {
+					grpccode := grpccodes.Unknown
+					switch code.HTTPStatus {
+					case http.StatusUnauthorized:
+						grpccode = grpccodes.Unauthenticated
+					case http.StatusUnprocessableEntity:
+						grpccode = grpccodes.AlreadyExists
+					case http.StatusForbidden:
+						grpccode = grpccodes.PermissionDenied
+					}
+					err = grpcstatus.Errorf(grpccode, code.Msg)
+				}
+			}
+			return ret, err
+		}
+	}
 }

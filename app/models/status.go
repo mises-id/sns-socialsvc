@@ -294,9 +294,12 @@ func preloadAttachment(ctx context.Context, statuses ...*Status) error {
 		if err != nil {
 			return err
 		}
-		linkMeta := metaData.(*meta.LinkMeta)
-		attachmentIDs = append(attachmentIDs, linkMeta.AttachmentID)
-		linkMetas = append(linkMetas, linkMeta)
+		if metaData != nil {
+			linkMeta := metaData.(*meta.LinkMeta)
+			attachmentIDs = append(attachmentIDs, linkMeta.AttachmentID)
+			linkMetas = append(linkMetas, linkMeta)
+		}
+
 	}
 	attachments := make([]*Attachment, 0)
 	err := db.ODM(ctx).Where(bson.M{"_id": bson.M{"$in": attachmentIDs}}).Find(&attachments).Error

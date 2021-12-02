@@ -7,6 +7,10 @@ import (
 )
 
 func NewUserInfo(user *models.User) *UserInfo {
+	var avatarUrl = ""
+	if user.Avatar != nil {
+		avatarUrl = user.Avatar.FileUrl()
+	}
 	userinfo := UserInfo{
 		Uid:      user.UID,
 		Username: user.Username,
@@ -15,7 +19,7 @@ func NewUserInfo(user *models.User) *UserInfo {
 		Mobile:   user.Mobile,
 		Email:    user.Email,
 		Address:  user.Address,
-		Avatar:   user.Avatar.FileUrl(),
+		Avatar:   avatarUrl,
 	}
 	return &userinfo
 }
@@ -59,8 +63,10 @@ func NewStatusInfo(status *models.Status) *StatusInfo {
 	}
 	switch status.StatusType {
 	case enum.LinkStatus:
-		linkMeta := metaData.(*meta.LinkMeta)
-		statusinfo.LinkMeta = NewLinkMetaInfo(linkMeta)
+		if metaData != nil {
+			linkMeta := metaData.(*meta.LinkMeta)
+			statusinfo.LinkMeta = NewLinkMetaInfo(linkMeta)
+		}
 	}
 	return &statusinfo
 }
