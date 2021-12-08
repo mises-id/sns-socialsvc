@@ -22,4 +22,4 @@ require (
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 )
 
-replace github.com/metaverse/truss => ../truss
+replace github.com/metaverse/truss => github.com/mises-id/truss v0.3.2-0.20211126092701-5f7d5bf015f1

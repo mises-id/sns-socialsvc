@@ -372,6 +372,8 @@ github.com/minio/highwayhash v1.0.1/go.mod h1:BQskDq+xkJ12lmlUUi7U0M5Swg3EWR+dLT
 github.com/minio/highwayhash v1.0.2/go.mod h1:BQskDq+xkJ12lmlUUi7U0M5Swg3EWR+dLTk+kldvVxY=
 github.com/mises-id/sdk v0.0.0-20211111082026-f85731f62ba7 h1:wsy6fimpmIYn7fNKxIsuesmCm+lqBJwR8MSu8E2PxZ4=
 github.com/mises-id/sdk v0.0.0-20211111082026-f85731f62ba7/go.mod h1:4Hy4y3XxZJLS/2vehd0ABdivo2jrHhn5NhkiNfdPCgw=
+github.com/mises-id/truss v0.3.2-0.20211126092701-5f7d5bf015f1 h1:QOtmsNeGMoLzJmoGh0prN7LYa03aOIeUc/zNYEmoe9o=
+github.com/mises-id/truss v0.3.2-0.20211126092701-5f7d5bf015f1/go.mod h1:KPQEkfuqlZNl2qFtUL/3FUYX/4M2cmqH6F2akeSgbeM=
 github.com/mitchellh/cli v1.0.0/go.mod h1:hNIlj7HEI86fIcpObd7a0FcrxTWetlwJDGcceTlRvqc=
 github.com/mitchellh/cli v1.1.0/go.mod h1:xcISNoH86gajksDmfB23e/pu+B+GeFRMYmoHXxx3xhI=
 github.com/mitchellh/go-homedir v1.0.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
