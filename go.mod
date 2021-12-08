@@ -1,4 +1,4 @@
-module github.com/mises-id/socialsvc
+module github.com/mises-id/sns-socialsvc
 
 go 1.16
 

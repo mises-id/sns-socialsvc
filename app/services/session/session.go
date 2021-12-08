@@ -5,10 +5,10 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/mises-id/socialsvc/app/models"
-	"github.com/mises-id/socialsvc/config/env"
-	"github.com/mises-id/socialsvc/lib/codes"
-	"github.com/mises-id/socialsvc/lib/mises"
+	"github.com/mises-id/sns-socialsvc/app/models"
+	"github.com/mises-id/sns-socialsvc/config/env"
+	"github.com/mises-id/sns-socialsvc/lib/codes"
+	"github.com/mises-id/sns-socialsvc/lib/mises"
 	"github.com/sirupsen/logrus"
 )
 

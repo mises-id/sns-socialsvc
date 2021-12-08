@@ -17,7 +17,7 @@ import (
 	grpctransport "github.com/go-kit/kit/transport/grpc"
 
 	// This Service
-	pb "github.com/mises-id/socialsvc/proto"
+	pb "github.com/mises-id/sns-socialsvc/proto"
 )
 
 // MakeGRPCServer makes a set of endpoints available as a gRPC SocialServer.

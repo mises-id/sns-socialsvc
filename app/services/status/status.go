@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/mises-id/socialsvc/app/models"
-	"github.com/mises-id/socialsvc/app/models/enum"
-	"github.com/mises-id/socialsvc/app/models/meta"
-	"github.com/mises-id/socialsvc/lib/codes"
-	"github.com/mises-id/socialsvc/lib/pagination"
+	"github.com/mises-id/sns-socialsvc/app/models"
+	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/meta"
+	"github.com/mises-id/sns-socialsvc/lib/codes"
+	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )

@@ -1,9 +1,9 @@
 package socialsvc
 
 import (
-	"github.com/mises-id/socialsvc/app/models"
-	"github.com/mises-id/socialsvc/app/models/enum"
-	"github.com/mises-id/socialsvc/app/models/meta"
+	"github.com/mises-id/sns-socialsvc/app/models"
+	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/meta"
 )
 
 func NewUserInfo(user *models.User) *UserInfo {

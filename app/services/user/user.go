@@ -3,9 +3,9 @@ package user
 import (
 	"context"
 
-	"github.com/mises-id/socialsvc/app/models"
-	"github.com/mises-id/socialsvc/app/models/enum"
-	"github.com/mises-id/socialsvc/lib/codes"
+	"github.com/mises-id/sns-socialsvc/app/models"
+	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/lib/codes"
 )
 
 type UserProfileParams struct {

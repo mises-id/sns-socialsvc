@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/go-kit/kit/endpoint"
-	"github.com/mises-id/socialsvc/lib/codes"
-	pb "github.com/mises-id/socialsvc/proto"
-	"github.com/mises-id/socialsvc/svc"
+	"github.com/mises-id/sns-socialsvc/lib/codes"
+	pb "github.com/mises-id/sns-socialsvc/proto"
+	"github.com/mises-id/sns-socialsvc/svc"
 	"go.mongodb.org/mongo-driver/mongo"
 	grpccodes "google.golang.org/grpc/codes"
 	grpcstatus "google.golang.org/grpc/status"

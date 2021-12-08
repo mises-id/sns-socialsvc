@@ -4,7 +4,7 @@ import (
 	"context"
 	"path"
 
-	"github.com/mises-id/socialsvc/config/env"
+	"github.com/mises-id/sns-socialsvc/config/env"
 )
 
 var (

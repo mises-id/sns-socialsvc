@@ -28,7 +28,7 @@ import (
 	"github.com/pkg/errors"
 
 	// This service
-	pb "github.com/mises-id/socialsvc/proto"
+	pb "github.com/mises-id/sns-socialsvc/proto"
 )
 
 const contentType = "application/json; charset=utf-8"

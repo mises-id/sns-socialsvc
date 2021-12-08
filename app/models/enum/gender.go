@@ -1,7 +1,7 @@
 package enum
 
 import (
-	"github.com/mises-id/socialsvc/lib/codes"
+	"github.com/mises-id/sns-socialsvc/lib/codes"
 )
 
 type Gender uint8

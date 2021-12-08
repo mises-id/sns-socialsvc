@@ -7,7 +7,7 @@ import (
 	"github.com/mises-id/sdk"
 	"github.com/mises-id/sdk/types"
 	"github.com/mises-id/sdk/user"
-	"github.com/mises-id/socialsvc/config/env"
+	"github.com/mises-id/sns-socialsvc/config/env"
 )
 
 func init() {

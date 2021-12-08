@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/mises-id/socialsvc/lib/db"
+	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"

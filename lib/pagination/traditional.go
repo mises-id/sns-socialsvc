@@ -1,7 +1,7 @@
 package pagination
 
 import (
-	"github.com/mises-id/socialsvc/lib/db/odm"
+	"github.com/mises-id/sns-socialsvc/lib/db/odm"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

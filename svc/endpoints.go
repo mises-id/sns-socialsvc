@@ -16,7 +16,7 @@ import (
 
 	"github.com/go-kit/kit/endpoint"
 
-	pb "github.com/mises-id/socialsvc/proto"
+	pb "github.com/mises-id/sns-socialsvc/proto"
 )
 
 // Endpoints collects all of the endpoints that compose an add service. It's

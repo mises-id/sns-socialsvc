@@ -3,14 +3,14 @@ package handlers
 import (
 	"context"
 
-	"github.com/mises-id/socialsvc/app/models/enum"
-	friendshipSVC "github.com/mises-id/socialsvc/app/services/follow"
-	sessionSVC "github.com/mises-id/socialsvc/app/services/session"
-	statusSVC "github.com/mises-id/socialsvc/app/services/status"
-	userSVC "github.com/mises-id/socialsvc/app/services/user"
-	"github.com/mises-id/socialsvc/lib/codes"
-	"github.com/mises-id/socialsvc/lib/pagination"
-	pb "github.com/mises-id/socialsvc/proto"
+	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
+	sessionSVC "github.com/mises-id/sns-socialsvc/app/services/session"
+	statusSVC "github.com/mises-id/sns-socialsvc/app/services/status"
+	userSVC "github.com/mises-id/sns-socialsvc/app/services/user"
+	"github.com/mises-id/sns-socialsvc/lib/codes"
+	"github.com/mises-id/sns-socialsvc/lib/pagination"
+	pb "github.com/mises-id/sns-socialsvc/proto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

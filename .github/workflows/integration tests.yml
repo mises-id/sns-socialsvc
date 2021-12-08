@@ -1,0 +1,40 @@
+name: Integration Tests
+on: [push]
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo
+        ports:
+          - 27017:27017
+    steps:
+      - name: Set up Go 1.16
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+        id: go
+
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+
+      - uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: run tests
+        run: APP_ENV=test go test -coverprofile coverage.out -v ./...
+        env:
+          APP_ENV: test
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: comment coverage
+        if: success()
+        run: go run tests/coverage/main.go
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COVERAGE_OUTPUT_PATH: coverage.out

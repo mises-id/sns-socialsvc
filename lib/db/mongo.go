@@ -3,8 +3,8 @@ package db
 import (
 	"context"
 
-	"github.com/mises-id/socialsvc/config/env"
-	"github.com/mises-id/socialsvc/lib/db/odm"
+	"github.com/mises-id/sns-socialsvc/config/env"
+	"github.com/mises-id/sns-socialsvc/lib/db/odm"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )

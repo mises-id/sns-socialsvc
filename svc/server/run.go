@@ -18,9 +18,9 @@ import (
 	"google.golang.org/grpc"
 
 	// This Service
-	"github.com/mises-id/socialsvc/handlers"
-	pb "github.com/mises-id/socialsvc/proto"
-	"github.com/mises-id/socialsvc/svc"
+	"github.com/mises-id/sns-socialsvc/handlers"
+	pb "github.com/mises-id/sns-socialsvc/proto"
+	"github.com/mises-id/sns-socialsvc/svc"
 )
 
 var DefaultConfig svc.Config

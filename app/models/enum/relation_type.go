@@ -1,6 +1,6 @@
 package enum
 
-import "github.com/mises-id/socialsvc/lib/codes"
+import "github.com/mises-id/sns-socialsvc/lib/codes"
 
 type RelationType uint32
 

@@ -7,13 +7,13 @@ import (
 	"context"
 	"time"
 
-	"github.com/mises-id/socialsvc/app/models"
-	"github.com/mises-id/socialsvc/lib/db"
-	_ "github.com/mises-id/socialsvc/lib/mises"
+	"github.com/mises-id/sns-socialsvc/app/models"
+	"github.com/mises-id/sns-socialsvc/lib/db"
+	_ "github.com/mises-id/sns-socialsvc/lib/mises"
 
 	// This Service
-	"github.com/mises-id/socialsvc/handlers"
-	"github.com/mises-id/socialsvc/svc/server"
+	"github.com/mises-id/sns-socialsvc/handlers"
+	"github.com/mises-id/sns-socialsvc/svc/server"
 )
 
 func main() {

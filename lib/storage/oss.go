@@ -3,7 +3,7 @@ package storage
 import (
 	"context"
 
-	"github.com/mises-id/socialsvc/lib/codes"
+	"github.com/mises-id/sns-socialsvc/lib/codes"
 )
 
 type OSSStorage struct{}

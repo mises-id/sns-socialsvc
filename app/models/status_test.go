@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/mises-id/socialsvc/lib/db"
+	"github.com/mises-id/sns-socialsvc/lib/db"
 )
 
 func TestCreateStatus(t *testing.T) {

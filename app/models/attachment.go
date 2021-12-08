@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mises-id/socialsvc/app/models/enum"
-	"github.com/mises-id/socialsvc/config/env"
-	"github.com/mises-id/socialsvc/lib/db"
-	"github.com/mises-id/socialsvc/lib/storage"
+	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/config/env"
+	"github.com/mises-id/sns-socialsvc/lib/db"
+	"github.com/mises-id/sns-socialsvc/lib/storage"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

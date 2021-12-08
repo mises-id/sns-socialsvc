@@ -5,9 +5,9 @@ import (
 	"mime/multipart"
 	"strings"
 
-	"github.com/mises-id/socialsvc/app/models"
+	"github.com/mises-id/sns-socialsvc/app/models"
 
-	"github.com/mises-id/socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/enum"
 )
 
 func CreateAttachment(ctx context.Context, fileType, filename string, file multipart.File) (*models.Attachment, error) {

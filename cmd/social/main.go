@@ -9,8 +9,8 @@ import (
 	"flag"
 
 	// This Service
-	"github.com/mises-id/socialsvc/handlers"
-	"github.com/mises-id/socialsvc/svc/server"
+	"github.com/mises-id/sns-socialsvc/handlers"
+	"github.com/mises-id/sns-socialsvc/svc/server"
 )
 
 func main() {

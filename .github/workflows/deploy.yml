@@ -1,0 +1,72 @@
+name: Release
+on:
+  release:
+    types: [published]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64]
+        targetos: [linux]
+    name: sns-socialsvc ${{ matrix.arch }} for ${{ matrix.targetos }}
+    steps:
+      - name: Set up Go 1.16
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+        id: go
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Compile
+        run: |
+          CGO_ENABLED=0 go build -o outupt/sns-socialsvc cmd/cli/main.go
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Config
+        run: |
+          cp -rf .aws/* outupt/
+      - name: 'Tar files'
+        run: |
+          cd outupt
+          tar -czvf sns-socialsvc.tar.gz mises .env appspec.yml scripts/
+      - uses: actions/upload-artifact@v2
+        with:
+          name: sns-socialsvc ${{ matrix.targetos }} ${{ matrix.arch }}
+          path: outupt/sns-socialsvc.tar.gz
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download Artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: sns-socialsvc linux amd64
+          path: build
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      - name: Deploy to S3
+        run: |
+          aws s3 cp \
+           --recursive \
+           --region us-east-1 \
+           ./build s3://misesid
+      - name: CodeDeploy to EC2
+        run: |
+          aws deploy create-deployment \
+           --application-name sns-socialsvc \
+           --deployment-group-name MisesSnsDeployGroup \
+           --s3-location bucket=misesid,key=sns-socialsvc.tar.gz,bundleType=tgz \
+           --file-exists-behavior OVERWRITE
