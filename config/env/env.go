@@ -32,7 +32,7 @@ type Env struct {
 }
 
 func init() {
-	fmt.Println("env initializing...")
+	fmt.Println("socialsvc env initializing...")
 	_, b, _, _ := runtime.Caller(0)
 	appEnv := os.Getenv("APP_ENV")
 	projectRootPath := filepath.Dir(b) + "/../../"
@@ -46,7 +46,7 @@ func init() {
 		panic(err)
 	}
 	Envs.RootPath = projectRootPath
-	fmt.Println("env loaded...")
+	fmt.Println("socialsvc env loaded...")
 }
 
 func filtePath(paths ...string) []string {

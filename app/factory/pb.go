@@ -1,17 +1,18 @@
-package socialsvc
+package factory
 
 import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
+	pb "github.com/mises-id/sns-socialsvc/proto"
 )
 
-func NewUserInfo(user *models.User) *UserInfo {
+func NewUserInfo(user *models.User) *pb.UserInfo {
 	var avatarUrl = ""
 	if user.Avatar != nil {
 		avatarUrl = user.Avatar.FileUrl()
 	}
-	userinfo := UserInfo{
+	userinfo := pb.UserInfo{
 		Uid:      user.UID,
 		Username: user.Username,
 		Misesid:  user.Misesid,
@@ -24,11 +25,11 @@ func NewUserInfo(user *models.User) *UserInfo {
 	return &userinfo
 }
 
-func NewLinkMetaInfo(meta *meta.LinkMeta) *LinkMetaInfo {
+func NewLinkMetaInfo(meta *meta.LinkMeta) *pb.LinkMetaInfo {
 	if meta == nil {
 		return nil
 	}
-	linkMetaInfo := LinkMetaInfo{
+	linkMetaInfo := pb.LinkMetaInfo{
 		Title:         meta.Title,
 		Host:          meta.Host,
 		Link:          meta.Link,
@@ -38,7 +39,7 @@ func NewLinkMetaInfo(meta *meta.LinkMeta) *LinkMetaInfo {
 	return &linkMetaInfo
 }
 
-func NewStatusInfo(status *models.Status) *StatusInfo {
+func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 	if status == nil {
 		return nil
 	}
@@ -47,7 +48,7 @@ func NewStatusInfo(status *models.Status) *StatusInfo {
 		return nil
 	}
 
-	statusinfo := StatusInfo{
+	statusinfo := pb.StatusInfo{
 		Id:           status.ID.Hex(),
 		User:         NewUserInfo(status.User),
 		Content:      status.Content,
@@ -71,16 +72,16 @@ func NewStatusInfo(status *models.Status) *StatusInfo {
 	return &statusinfo
 }
 
-func NewStatusInfoSlice(statuses []*models.Status) []*StatusInfo {
-	result := make([]*StatusInfo, len(statuses))
+func NewStatusInfoSlice(statuses []*models.Status) []*pb.StatusInfo {
+	result := make([]*pb.StatusInfo, len(statuses))
 	for i, status := range statuses {
 		result[i] = NewStatusInfo(status)
 	}
 	return result
 }
 
-func NewRelationInfoSlice(relationType enum.RelationType, follows []*models.Follow) []*RelationInfo {
-	result := make([]*RelationInfo, len(follows))
+func NewRelationInfoSlice(relationType enum.RelationType, follows []*models.Follow) []*pb.RelationInfo {
+	result := make([]*pb.RelationInfo, len(follows))
 	for i, follow := range follows {
 		user := follow.ToUser
 		currentRelationType := enum.Following
@@ -91,7 +92,7 @@ func NewRelationInfoSlice(relationType enum.RelationType, follows []*models.Foll
 		if follow.IsFriend {
 			currentRelationType = enum.Friend
 		}
-		result[i] = &RelationInfo{
+		result[i] = &pb.RelationInfo{
 			User:         NewUserInfo(user),
 			RelationType: currentRelationType.String(),
 			CreatedAt:    uint64(follow.CreatedAt.Unix()),

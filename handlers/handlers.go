@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 
+	"github.com/mises-id/sns-socialsvc/app/factory"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
 	sessionSVC "github.com/mises-id/sns-socialsvc/app/services/session"
@@ -38,7 +39,7 @@ func (s socialService) FindUser(ctx context.Context, in *pb.FindUserRequest) (*p
 		return nil, err
 	}
 	resp.Code = 0
-	resp.User = pb.NewUserInfo(user)
+	resp.User = factory.NewUserInfo(user)
 	resp.IsFollowed = user.IsFollowed
 	return &resp, nil
 }
@@ -59,7 +60,7 @@ func (s socialService) UpdateUserProfile(ctx context.Context, in *pb.UpdateUserP
 		return nil, err
 	}
 	resp.Code = 0
-	resp.User = pb.NewUserInfo(user)
+	resp.User = factory.NewUserInfo(user)
 	return &resp, nil
 }
 
@@ -70,7 +71,7 @@ func (s socialService) UpdateUserAvatar(ctx context.Context, in *pb.UpdateUserAv
 		return nil, err
 	}
 	resp.Code = 0
-	resp.User = pb.NewUserInfo(user)
+	resp.User = factory.NewUserInfo(user)
 	return &resp, nil
 }
 
@@ -81,7 +82,7 @@ func (s socialService) UpdateUserName(ctx context.Context, in *pb.UpdateUserName
 		return nil, err
 	}
 	resp.Code = 0
-	resp.User = pb.NewUserInfo(user)
+	resp.User = factory.NewUserInfo(user)
 	return &resp, nil
 }
 
@@ -97,7 +98,7 @@ func (s socialService) GetStatus(ctx context.Context, in *pb.GetStatusRequest) (
 		return nil, err
 	}
 	resp.Code = 0
-	resp.Status = pb.NewStatusInfo(status)
+	resp.Status = factory.NewStatusInfo(status)
 	return &resp, nil
 }
 
@@ -124,7 +125,7 @@ func (s socialService) ListStatus(ctx context.Context, in *pb.ListStatusRequest)
 		return nil, err
 	}
 	resp.Code = 0
-	resp.Statuses = pb.NewStatusInfoSlice(statuses)
+	resp.Statuses = factory.NewStatusInfoSlice(statuses)
 	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
 	resp.Paginator = &pb.PageQuick{
 		Limit:  uint64(quickpage.Limit),
@@ -158,7 +159,7 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 		return nil, err
 	}
 	resp.Code = 0
-	resp.Status = pb.NewStatusInfo(status)
+	resp.Status = factory.NewStatusInfo(status)
 	return &resp, nil
 }
 
@@ -211,7 +212,7 @@ func (s socialService) ListUserTimeline(ctx context.Context, in *pb.ListStatusRe
 		return nil, err
 	}
 	resp.Code = 0
-	resp.Statuses = pb.NewStatusInfoSlice(statuses)
+	resp.Statuses = factory.NewStatusInfoSlice(statuses)
 	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
 	resp.Paginator = &pb.PageQuick{
 		Limit:  uint64(quickpage.Limit),
@@ -235,7 +236,7 @@ func (s socialService) ListRelationship(ctx context.Context, in *pb.ListRelation
 		return nil, err
 	}
 	resp.Code = 0
-	resp.Relations = pb.NewRelationInfoSlice(relationType, relations)
+	resp.Relations = factory.NewRelationInfoSlice(relationType, relations)
 	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
 	resp.Paginator = &pb.PageQuick{
 		Limit:  uint64(quickpage.Limit),
@@ -254,7 +255,7 @@ func (s socialService) ListRecommended(ctx context.Context, in *pb.ListStatusReq
 		return nil, err
 	}
 	resp.Code = 0
-	resp.Statuses = pb.NewStatusInfoSlice(statuses)
+	resp.Statuses = factory.NewStatusInfoSlice(statuses)
 	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
 	resp.Paginator = &pb.PageQuick{
 		Limit:  uint64(quickpage.Limit),
