@@ -66,7 +66,7 @@ func (s socialService) UpdateUserProfile(ctx context.Context, in *pb.UpdateUserP
 
 func (s socialService) UpdateUserAvatar(ctx context.Context, in *pb.UpdateUserAvatarRequest) (*pb.UpdateUserResponse, error) {
 	var resp pb.UpdateUserResponse
-	user, err := userSVC.UpdateUserAvatar(ctx, in.Uid, in.AttachmentId)
+	user, err := userSVC.UpdateUserAvatar(ctx, in.Uid, in.AttachmentPath)
 	if err != nil {
 		return nil, err
 	}

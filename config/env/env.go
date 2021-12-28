@@ -23,6 +23,9 @@ type Env struct {
 	DBPass            string        `env:"DB_PASS"`
 	DBName            string        `env:"DB_NAME" envDefault:"mises"`
 	AssetHost         string        `env:"ASSET_HOST" envDefault:"http://localhost/"`
+	StorageHost       string        `env:"STORAGE_HOST,required" envDefault:"http://localhost/"`
+	StorageKey        string        `env:"STORAGE_KEY,required"`
+	StorageSalt       string        `env:"STORAGE_SALT,required"`
 	StorageProvider   string        `env:"STORAGE_PROVIDER" envDefault:"local"`
 	JWTSecret         string        `env:"JWT_SECRET,required"`
 	TokenDuration     time.Duration `env:"TOKEN_DURATION" envDefault:"24h"`
