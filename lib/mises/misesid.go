@@ -4,17 +4,12 @@ import (
 	"log"
 
 	"github.com/mises-id/sdk"
-	"github.com/mises-id/sdk/misesid"
 	"github.com/mises-id/sdk/types"
 	"github.com/mises-id/sns-socialsvc/config/env"
 )
 
 func init() {
-	if env.Envs.MisesEndpoint != "" {
-		if err := misesid.SetTestEndpoint(env.Envs.MisesEndpoint); err != nil {
-			log.Fatal("init mises sdk test endpoint error")
-		}
-	}
+
 }
 
 type User struct {
@@ -45,7 +40,7 @@ func New() Client {
 	opt := sdk.MSdkOption{
 		ChainID: env.Envs.MisesChainID,
 	}
-	appinfo := misesid.NewMisesAppInfoReadonly(
+	appinfo := types.NewMisesAppInfoReadonly(
 		"Mises Discover'",
 		"https://www.mises.site",
 		"https://home.mises.site",
@@ -53,6 +48,11 @@ func New() Client {
 		"Mises Network",
 	)
 	sdk, app := sdk.NewSdkForApp(opt, appinfo)
+	if env.Envs.MisesEndpoint != "" {
+		if err := sdk.SetEndpoint(env.Envs.MisesEndpoint); err != nil {
+			log.Fatal("init mises sdk test endpoint error")
+		}
+	}
 	return &ClientImpl{
 		client: sdk,
 		app:    app,

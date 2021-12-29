@@ -630,8 +630,8 @@ github.com/mises-id/cosmos-sdk v0.44.6-0.20211209094558-a7c9c77cfc17/go.mod h1:m
 github.com/mises-id/mises-tm v0.0.0-20211229034748-9cc59047a831/go.mod h1:N7XxmfWQlphHhbsKyIPxUb542YHDQBVwVdryuHV5nWY=
 github.com/mises-id/mises-tm v0.0.0-20211229053907-7f70cc1f8835 h1:9e1auQyGkhhHrZ+LijOPdY5B4TSoWBTho3rIeSrmYOA=
 github.com/mises-id/mises-tm v0.0.0-20211229053907-7f70cc1f8835/go.mod h1:N7XxmfWQlphHhbsKyIPxUb542YHDQBVwVdryuHV5nWY=
-github.com/mises-id/sdk v0.0.0-20211229035041-7f3a3fadc8e1 h1:RPmnbLP8TOaY1bvFEcvIBJDbVwOW5KBXFf1osY055Ro=
-github.com/mises-id/sdk v0.0.0-20211229035041-7f3a3fadc8e1/go.mod h1:7RuXW6bVAFTj2bhufSaLZ63yUOzbHvve90/yY3bJgH8=
+github.com/mises-id/sdk v0.0.0-20211229101239-3ef268c49a65 h1:R7oCIK+f+cMjq3rREEKYMRyqBzLBMxwKeuS1Iuatjj8=
+github.com/mises-id/sdk v0.0.0-20211229101239-3ef268c49a65/go.mod h1:7RuXW6bVAFTj2bhufSaLZ63yUOzbHvve90/yY3bJgH8=
 github.com/mises-id/sns-storagesvc/sdk v0.0.0-20211221064425-26bd51fd6a98 h1:YyD6tOjWBarXN6eyxed2rGcpTD42IBCD1XIhyXNwKMM=
 github.com/mises-id/sns-storagesvc/sdk v0.0.0-20211221064425-26bd51fd6a98/go.mod h1:j0mQ7sMhlLdY5LmOBN23fXJF+lCI2EQXpgJLxWoVY/Q=
 github.com/mises-id/tendermint v0.34.15-0.20211207033151-1f29b59c0edf h1:oWnyYnSgdT3F4aNmfHj0lC1ChJCCiMuTQmL65kfRGLI=
