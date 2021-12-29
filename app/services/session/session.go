@@ -22,14 +22,17 @@ func init() {
 }
 
 func SignIn(ctx context.Context, auth string) (string, error) {
-	misesid, err := misesClient.Auth(auth)
+	misesid, pubkey, err := misesClient.Auth(auth)
 	if err != nil {
 		logrus.Errorf("mises verify error: %v", err)
 		return "", codes.ErrAuthorizeFailed
 	}
-	user, err := models.FindOrCreateUserByMisesid(ctx, misesid)
+	user, created, err := models.FindOrCreateUserByMisesid(ctx, misesid)
 	if err != nil {
 		return "", err
+	}
+	if created {
+		misesClient.Register(misesid, pubkey)
 	}
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"uid":      user.UID,

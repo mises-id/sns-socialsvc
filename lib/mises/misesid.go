@@ -2,17 +2,16 @@ package mises
 
 import (
 	"log"
-	"strings"
 
 	"github.com/mises-id/sdk"
+	"github.com/mises-id/sdk/misesid"
 	"github.com/mises-id/sdk/types"
-	"github.com/mises-id/sdk/user"
 	"github.com/mises-id/sns-socialsvc/config/env"
 )
 
 func init() {
-	if env.Envs.MisesTestEndpoint != "" {
-		if err := user.SetTestEndpoint(env.Envs.MisesTestEndpoint); err != nil {
+	if env.Envs.MisesEndpoint != "" {
+		if err := misesid.SetTestEndpoint(env.Envs.MisesEndpoint); err != nil {
 			log.Fatal("init mises sdk test endpoint error")
 		}
 	}
@@ -23,26 +22,39 @@ type User struct {
 }
 
 type Client interface {
-	Auth(auth string) (string, error)
+	Auth(auth string) (string, string, error)
+	Register(misesUID string, pubKey string) error
 }
 
 type ClientImpl struct {
 	client types.MSdk
+	app    types.MApp
 }
 
-func (c *ClientImpl) Auth(auth string) (string, error) {
+func (c *ClientImpl) Register(misesUID string, pubKey string) error {
+
+	return c.app.RegisterUserAsync(misesUID, pubKey)
+}
+func (c *ClientImpl) Auth(auth string) (string, string, error) {
 	// just for staging environment
-	if env.Envs.DebugMisesPrefix != "" {
-		arr := strings.Split(auth, ":")
-		if len(arr) > 1 {
-			return arr[1], nil
-		}
-	}
+
 	return c.client.VerifyLogin(auth)
 }
 
 func New() Client {
+	opt := sdk.MSdkOption{
+		ChainID: env.Envs.MisesChainID,
+	}
+	appinfo := misesid.NewMisesAppInfoReadonly(
+		"Mises Discover'",
+		"https://www.mises.site",
+		"https://home.mises.site",
+		[]string{"mises.site"},
+		"Mises Network",
+	)
+	sdk, app := sdk.NewSdkForApp(opt, appinfo)
 	return &ClientImpl{
-		client: sdk.NewSdkForApp(sdk.MSdkOption{}),
+		client: sdk,
+		app:    app,
 	}
 }

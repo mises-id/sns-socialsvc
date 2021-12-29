@@ -95,19 +95,20 @@ func FindUser(ctx context.Context, uid uint64) (*User, error) {
 	return user, result.Decode(user)
 }
 
-func FindOrCreateUserByMisesid(ctx context.Context, misesid string) (*User, error) {
+func FindOrCreateUserByMisesid(ctx context.Context, misesid string) (*User, bool, error) {
 	user := &User{}
 	result := db.DB().Collection("users").FindOne(ctx, &bson.M{
 		"misesid": misesid,
 	})
 	err := result.Err()
 	if err == mongo.ErrNoDocuments {
-		return createMisesUser(ctx, misesid)
+		created, err := createMisesUser(ctx, misesid)
+		return created, true, err
 	}
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
-	return user, result.Decode(user)
+	return user, false, result.Decode(user)
 }
 
 func UpdateUserProfile(ctx context.Context, user *User) error {
