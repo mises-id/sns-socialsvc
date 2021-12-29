@@ -8,7 +8,7 @@ syntax = "proto3";
 // for `package echo;` truss will create the directory "echo-service".
 package socialsvc;
 
-import "github.com/metaverse/truss/deftree/googlethirdparty/annotations.proto";
+import "google/api/annotations.proto";
 
 service Social {
   // SignIn verify the user auth and return a jwt
@@ -287,7 +287,7 @@ message UpdateUserProfileRequest {
 
 message UpdateUserAvatarRequest {
   uint64 uid = 1;
-  uint64 attachment_id = 2;
+  string attachment_path = 2;
 }
 
 message UpdateUserNameRequest {
@@ -304,10 +304,13 @@ message LinkMetaInfo {
   string title = 1;
   string host = 2;
   string link = 3;
-  uint64 attachment_id = 4;
-  string attachment_url = 5;
+  string image_path = 4;
+  string image_url = 5;
 }
 
+message ImageMetaInfo {
+  repeated string images  = 1;
+}
 
 message StatusInfo {
   string id = 1;
@@ -323,9 +326,8 @@ message StatusInfo {
   bool is_liked = 11;
   LinkMetaInfo link_meta = 12;
   uint64 created_at = 13;
+  ImageMetaInfo image_meta = 14;
 }
-
-
 
 message GetStatusRequest {
   uint64 current_uid = 1;
@@ -357,8 +359,6 @@ message ListStatusResponse {
   PageQuick paginator = 3;
 }
 
-
-
 message CreateStatusRequest {
   uint64 current_uid = 1;
 	string status_type = 2;
@@ -366,6 +366,7 @@ message CreateStatusRequest {
 	string content = 4;
 	string meta = 5;
 	string from_type = 6;
+  repeated string images = 7;
 }
 
 message CreateStatusResponse {
@@ -389,8 +390,6 @@ message LikeStatusRequest {
   uint64 current_uid = 1;
   string statusid = 2;
 }
-
-
 
 message UnLikeStatusRequest {
   uint64 current_uid = 1;

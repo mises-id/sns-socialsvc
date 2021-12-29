@@ -14,23 +14,26 @@ import (
 var Envs *Env
 
 type Env struct {
-	Port            int           `env:"PORT" envDefault:"8080"`
-	AppEnv          string        `env:"APP_ENV" envDefault:"development"`
-	LogLevel        string        `env:"LOG_LEVEL" envDefault:"INFO"`
-	MongoURI        string        `env:"MONGO_URI,required"`
-	DBUser          string        `env:"DB_USER"`
-	DBPass          string        `env:"DB_PASS"`
-	DBName          string        `env:"DB_NAME" envDefault:"mises"`
-	AssetHost       string        `env:"ASSET_HOST" envDefault:"http://localhost/"`
-	StorageProvider string        `env:"STORAGE_PROVIDER" envDefault:"local"`
-	JWTSecret       string        `env:"JWT_SECRET,required"`
-	TokenDuration   time.Duration `env:"TOKEN_DURATION" envDefault:"24h"`
-	AllowOrigins    string        `env:"ALLOW_ORIGINS" envDefault:""`
-
-	MisesEndpoint    string `env:"MISES_ENDPOINT" envDefault:""`
-	MisesChainID     string `env:"MISES_CHAIN_ID" envDefault:""`
-	DebugMisesPrefix string `env:"DEBUG_MISES_PREFIX" envDefault:""`
-	RootPath         string
+	Port              int           `env:"PORT" envDefault:"8080"`
+	AppEnv            string        `env:"APP_ENV" envDefault:"development"`
+	MisesTestEndpoint string        `env:"MISES_TEST_ENDPOINT" envDefault:""`
+	LogLevel          string        `env:"LOG_LEVEL" envDefault:"INFO"`
+	MongoURI          string        `env:"MONGO_URI,required"`
+	DBUser            string        `env:"DB_USER"`
+	DBPass            string        `env:"DB_PASS"`
+	DBName            string        `env:"DB_NAME" envDefault:"mises"`
+	AssetHost         string        `env:"ASSET_HOST" envDefault:"http://localhost/"`
+	StorageHost       string        `env:"STORAGE_HOST,required" envDefault:"http://localhost/"`
+	StorageKey        string        `env:"STORAGE_KEY,required"`
+	StorageSalt       string        `env:"STORAGE_SALT,required"`
+	StorageProvider   string        `env:"STORAGE_PROVIDER" envDefault:"local"`
+	JWTSecret         string        `env:"JWT_SECRET,required"`
+	TokenDuration     time.Duration `env:"TOKEN_DURATION" envDefault:"24h"`
+	AllowOrigins      string        `env:"ALLOW_ORIGINS" envDefault:""`
+	MisesEndpoint     string        `env:"MISES_ENDPOINT" envDefault:""`
+	MisesChainID      string        `env:"MISES_CHAIN_ID" envDefault:""`
+	DebugMisesPrefix  string        `env:"DEBUG_MISES_PREFIX" envDefault:""`
+	RootPath          string
 }
 
 func init() {

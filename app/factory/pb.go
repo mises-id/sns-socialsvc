@@ -8,10 +8,6 @@ import (
 )
 
 func NewUserInfo(user *models.User) *pb.UserInfo {
-	var avatarUrl = ""
-	if user.Avatar != nil {
-		avatarUrl = user.Avatar.FileUrl()
-	}
 	userinfo := pb.UserInfo{
 		Uid:      user.UID,
 		Username: user.Username,
@@ -20,7 +16,7 @@ func NewUserInfo(user *models.User) *pb.UserInfo {
 		Mobile:   user.Mobile,
 		Email:    user.Email,
 		Address:  user.Address,
-		Avatar:   avatarUrl,
+		Avatar:   user.AvatarUrl,
 	}
 	return &userinfo
 }
@@ -30,21 +26,27 @@ func NewLinkMetaInfo(meta *meta.LinkMeta) *pb.LinkMetaInfo {
 		return nil
 	}
 	linkMetaInfo := pb.LinkMetaInfo{
-		Title:         meta.Title,
-		Host:          meta.Host,
-		Link:          meta.Link,
-		AttachmentId:  meta.AttachmentID,
-		AttachmentUrl: meta.AttachmentURL,
+		Title:     meta.Title,
+		Host:      meta.Host,
+		Link:      meta.Link,
+		ImagePath: meta.ImagePath,
+		ImageUrl:  meta.ImageURL,
 	}
 	return &linkMetaInfo
 }
 
-func NewStatusInfo(status *models.Status) *pb.StatusInfo {
-	if status == nil {
+func NewImageMetaInfo(meta *meta.ImageMeta) *pb.ImageMetaInfo {
+	if meta == nil {
 		return nil
 	}
-	metaData, err := status.GetMetaData()
-	if err != nil {
+	info := &pb.ImageMetaInfo{
+		Images: meta.ImageURLs,
+	}
+	return info
+}
+
+func NewStatusInfo(status *models.Status) *pb.StatusInfo {
+	if status == nil {
 		return nil
 	}
 
@@ -64,10 +66,9 @@ func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 	}
 	switch status.StatusType {
 	case enum.LinkStatus:
-		if metaData != nil {
-			linkMeta := metaData.(*meta.LinkMeta)
-			statusinfo.LinkMeta = NewLinkMetaInfo(linkMeta)
-		}
+		statusinfo.LinkMeta = NewLinkMetaInfo(status.LinkMeta)
+	case enum.ImageStatus:
+		statusinfo.ImageMeta = NewImageMetaInfo(status.ImageMeta)
 	}
 	return &statusinfo
 }

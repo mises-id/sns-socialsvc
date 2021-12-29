@@ -2,7 +2,6 @@ package status
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
@@ -17,7 +16,7 @@ type CreateStatusParams struct {
 	StatusType string
 	ParentID   primitive.ObjectID
 	Content    string
-	Meta       json.RawMessage
+	Meta       *meta.MetaData
 	FromType   enum.FromType
 }
 
@@ -100,17 +99,13 @@ func CreateStatus(ctx context.Context, uid uint64, params *CreateStatusParams) (
 	if err != nil {
 		return nil, err
 	}
-	metaData, err := meta.BuildStatusMeta(statusType, params.Meta)
-	if err != nil {
-		return nil, err
-	}
 	return models.CreateStatus(ctx, &models.CreateStatusParams{
 		UID:        uid,
 		StatusType: statusType,
 		Content:    params.Content,
 		ParentID:   params.ParentID,
 		FromType:   params.FromType,
-		MetaData:   metaData,
+		MetaData:   params.Meta,
 	})
 }
 
