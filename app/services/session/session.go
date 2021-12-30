@@ -31,8 +31,8 @@ func SignIn(ctx context.Context, auth string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if created {
-		misesClient.Register(misesid, pubkey)
+	if created && len(pubkey) > 0 {
+		_ = misesClient.Register(misesid, pubkey)
 	}
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"uid":      user.UID,

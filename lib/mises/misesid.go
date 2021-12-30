@@ -2,6 +2,7 @@ package mises
 
 import (
 	"log"
+	"strings"
 
 	"github.com/mises-id/sdk"
 	"github.com/mises-id/sdk/types"
@@ -32,6 +33,12 @@ func (c *ClientImpl) Register(misesUID string, pubKey string) error {
 }
 func (c *ClientImpl) Auth(auth string) (string, string, error) {
 	// just for staging environment
+	if env.Envs.DebugMisesPrefix != "" {
+		arr := strings.Split(auth, ":")
+		if len(arr) > 1 {
+			return arr[1], "", nil
+		}
+	}
 
 	return c.client.VerifyLogin(auth)
 }
