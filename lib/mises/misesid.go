@@ -44,6 +44,12 @@ func (c *ClientImpl) Auth(auth string) (string, string, error) {
 }
 
 func New() Client {
+	if env.Envs.DebugMisesPrefix != "" {
+		return &ClientImpl{
+			client: nil,
+			app:    nil,
+		}
+	}
 	opt := sdk.MSdkOption{
 		ChainID: env.Envs.MisesChainID,
 	}
