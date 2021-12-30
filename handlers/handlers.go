@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/mises-id/sns-socialsvc/app/factory"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/meta"
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
 	sessionSVC "github.com/mises-id/sns-socialsvc/app/services/session"
 	statusSVC "github.com/mises-id/sns-socialsvc/app/services/status"
@@ -153,6 +155,23 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 		}
 		param.ParentID = parentID
 	}
+	statusType, err := enum.StatusTypeFromString(in.StatusType)
+	if err != nil {
+		return nil, err
+	}
+	var data meta.MetaData
+	switch statusType {
+	default:
+		data.TextMeta = &meta.TextMeta{}
+	case enum.TextStatus:
+		data.TextMeta = &meta.TextMeta{}
+		_ = json.Unmarshal([]byte(in.Meta), data.TextMeta)
+	case enum.LinkStatus:
+		data.LinkMeta = &meta.LinkMeta{}
+		_ = json.Unmarshal([]byte(in.Meta), data.LinkMeta)
+	}
+	param.Meta = &data
+
 	status, err := statusSVC.CreateStatus(ctx, in.CurrentUid, param)
 
 	if err != nil {
