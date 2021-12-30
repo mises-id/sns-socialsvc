@@ -17,10 +17,6 @@ var (
 	misesClient mises.Client
 )
 
-func init() {
-	misesClient = mises.New()
-}
-
 func SignIn(ctx context.Context, auth string) (string, error) {
 	misesid, pubkey, err := misesClient.Auth(auth)
 	if err != nil {
@@ -59,6 +55,10 @@ func Auth(ctx context.Context, authToken string) (*models.User, error) {
 		Misesid:  mapClaims["misesid"].(string),
 		Username: mapClaims["username"].(string),
 	}, nil
+}
+
+func SetupMisesClient() {
+	misesClient = mises.New()
 }
 
 func MockMisesClient(mock mises.Client) {
