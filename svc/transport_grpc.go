@@ -125,6 +125,24 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCUnFollowResponse,
 			serverOptions...,
 		),
+		listmessage: grpctransport.NewServer(
+			endpoints.ListMessageEndpoint,
+			DecodeGRPCListMessageRequest,
+			EncodeGRPCListMessageResponse,
+			serverOptions...,
+		),
+		readmessage: grpctransport.NewServer(
+			endpoints.ReadMessageEndpoint,
+			DecodeGRPCReadMessageRequest,
+			EncodeGRPCReadMessageResponse,
+			serverOptions...,
+		),
+		listcomment: grpctransport.NewServer(
+			endpoints.ListCommentEndpoint,
+			DecodeGRPCListCommentRequest,
+			EncodeGRPCListCommentResponse,
+			serverOptions...,
+		),
 	}
 }
 
@@ -146,6 +164,9 @@ type grpcServer struct {
 	listrelationship  grpctransport.Handler
 	follow            grpctransport.Handler
 	unfollow          grpctransport.Handler
+	listmessage       grpctransport.Handler
+	readmessage       grpctransport.Handler
+	listcomment       grpctransport.Handler
 }
 
 // Methods for grpcServer to implement SocialServer interface
@@ -278,6 +299,30 @@ func (s *grpcServer) UnFollow(ctx context.Context, req *pb.UnFollowRequest) (*pb
 	return rep.(*pb.SimpleResponse), nil
 }
 
+func (s *grpcServer) ListMessage(ctx context.Context, req *pb.ListMessageRequest) (*pb.ListMessageResponse, error) {
+	_, rep, err := s.listmessage.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.ListMessageResponse), nil
+}
+
+func (s *grpcServer) ReadMessage(ctx context.Context, req *pb.ReadMessageRequest) (*pb.SimpleResponse, error) {
+	_, rep, err := s.readmessage.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.SimpleResponse), nil
+}
+
+func (s *grpcServer) ListComment(ctx context.Context, req *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
+	_, rep, err := s.listcomment.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.ListCommentResponse), nil
+}
+
 // Server Decode
 
 // DecodeGRPCSignInRequest is a transport/grpc.DecodeRequestFunc that converts a
@@ -392,6 +437,27 @@ func DecodeGRPCUnFollowRequest(_ context.Context, grpcReq interface{}) (interfac
 	return req, nil
 }
 
+// DecodeGRPCListMessageRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC listmessage request to a user-domain listmessage request. Primarily useful in a server.
+func DecodeGRPCListMessageRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ListMessageRequest)
+	return req, nil
+}
+
+// DecodeGRPCReadMessageRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC readmessage request to a user-domain readmessage request. Primarily useful in a server.
+func DecodeGRPCReadMessageRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ReadMessageRequest)
+	return req, nil
+}
+
+// DecodeGRPCListCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC listcomment request to a user-domain listcomment request. Primarily useful in a server.
+func DecodeGRPCListCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ListCommentRequest)
+	return req, nil
+}
+
 // Server Encode
 
 // EncodeGRPCSignInResponse is a transport/grpc.EncodeResponseFunc that converts a
@@ -503,6 +569,27 @@ func EncodeGRPCFollowResponse(_ context.Context, response interface{}) (interfac
 // user-domain unfollow response to a gRPC unfollow reply. Primarily useful in a server.
 func EncodeGRPCUnFollowResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.SimpleResponse)
+	return resp, nil
+}
+
+// EncodeGRPCListMessageResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain listmessage response to a gRPC listmessage reply. Primarily useful in a server.
+func EncodeGRPCListMessageResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.ListMessageResponse)
+	return resp, nil
+}
+
+// EncodeGRPCReadMessageResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain readmessage response to a gRPC readmessage reply. Primarily useful in a server.
+func EncodeGRPCReadMessageResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.SimpleResponse)
+	return resp, nil
+}
+
+// EncodeGRPCListCommentResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain listcomment response to a gRPC listcomment reply. Primarily useful in a server.
+func EncodeGRPCListCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.ListCommentResponse)
 	return resp, nil
 }
 

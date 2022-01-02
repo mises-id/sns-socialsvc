@@ -265,6 +265,45 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		responseEncoder,
 		serverOptions...,
 	))
+
+	m.Methods("GET").Path("/message/list/").Handler(httptransport.NewServer(
+		endpoints.ListMessageEndpoint,
+		DecodeHTTPListMessageZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/message/list").Handler(httptransport.NewServer(
+		endpoints.ListMessageEndpoint,
+		DecodeHTTPListMessageOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("POST").Path("/message/read/").Handler(httptransport.NewServer(
+		endpoints.ReadMessageEndpoint,
+		DecodeHTTPReadMessageZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("POST").Path("/message/read").Handler(httptransport.NewServer(
+		endpoints.ReadMessageEndpoint,
+		DecodeHTTPReadMessageOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/comment/list/").Handler(httptransport.NewServer(
+		endpoints.ListCommentEndpoint,
+		DecodeHTTPListCommentZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/comment/list").Handler(httptransport.NewServer(
+		endpoints.ListCommentEndpoint,
+		DecodeHTTPListCommentOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
 	return m
 }
 
@@ -1852,6 +1891,298 @@ func DecodeHTTPUnFollowOneRequest(_ context.Context, r *http.Request) (interface
 
 	queryParams := r.URL.Query()
 	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPListMessageZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded listmessage request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPListMessageZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ListMessageRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidListMessageStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListMessageStr := CurrentUidListMessageStrArr[0]
+		CurrentUidListMessage, err := strconv.ParseUint(CurrentUidListMessageStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListMessage from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListMessage
+	}
+
+	if PaginatorListMessageStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorListMessageStr := PaginatorListMessageStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorListMessageStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorListMessage from %v", PaginatorListMessageStr)
+		}
+
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPListMessageOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded listmessage request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPListMessageOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ListMessageRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidListMessageStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListMessageStr := CurrentUidListMessageStrArr[0]
+		CurrentUidListMessage, err := strconv.ParseUint(CurrentUidListMessageStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListMessage from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListMessage
+	}
+
+	if PaginatorListMessageStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorListMessageStr := PaginatorListMessageStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorListMessageStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorListMessage from %v", PaginatorListMessageStr)
+		}
+
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPReadMessageZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded readmessage request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPReadMessageZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ReadMessageRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPReadMessageOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded readmessage request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPReadMessageOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ReadMessageRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPListCommentZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded listcomment request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPListCommentZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ListCommentRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidListCommentStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListCommentStr := CurrentUidListCommentStrArr[0]
+		CurrentUidListComment, err := strconv.ParseUint(CurrentUidListCommentStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListComment from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListComment
+	}
+
+	if PaginatorListCommentStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorListCommentStr := PaginatorListCommentStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorListCommentStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorListComment from %v", PaginatorListCommentStr)
+		}
+
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPListCommentOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded listcomment request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPListCommentOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ListCommentRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidListCommentStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListCommentStr := CurrentUidListCommentStrArr[0]
+		CurrentUidListComment, err := strconv.ParseUint(CurrentUidListCommentStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListComment from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListComment
+	}
+
+	if PaginatorListCommentStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorListCommentStr := PaginatorListCommentStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorListCommentStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorListComment from %v", PaginatorListCommentStr)
+		}
+
+	}
 
 	return &req, err
 }

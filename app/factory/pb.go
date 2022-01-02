@@ -3,6 +3,7 @@ package factory
 import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
 	pb "github.com/mises-id/sns-socialsvc/proto"
 )
@@ -98,6 +99,99 @@ func NewRelationInfoSlice(relationType enum.RelationType, follows []*models.Foll
 			RelationType: currentRelationType.String(),
 			CreatedAt:    uint64(follow.CreatedAt.Unix()),
 		}
+	}
+	return result
+}
+
+func newCommentMeta(meta *message.CommentMeta) *pb.Message_NewCommentMeta {
+	return &pb.Message_NewCommentMeta{
+		NewCommentMeta: &pb.NewCommentMeta{
+			Uid:       meta.UID,
+			GroupId:   meta.GroupID.Hex(),
+			CommentId: meta.CommentID.Hex(),
+			Content:   meta.Content,
+		},
+	}
+}
+
+func newLikeMeta(meta *message.LikeMeta) *pb.Message_NewLikeMeta {
+	return &pb.Message_NewLikeMeta{
+		NewLikeMeta: &pb.NewLikeMeta{
+			Uid:        meta.UID,
+			TargetId:   meta.TargetID.Hex(),
+			TargetType: meta.TargetType.String(),
+		},
+	}
+}
+
+func newFansMeta(meta *message.FansMeta) *pb.Message_NewFansMeta {
+	return &pb.Message_NewFansMeta{
+		NewFansMeta: &pb.NewFansMeta{
+			Uid: meta.UID,
+		},
+	}
+}
+
+func newForwardMeta(meta *message.ForwardMeta) *pb.Message_NewForwardMeta {
+	return &pb.Message_NewForwardMeta{
+		NewForwardMeta: &pb.NewForwardMeta{
+			Uid:      meta.UID,
+			StatusId: meta.StatusID.Hex(),
+			Content:  meta.Content,
+		},
+	}
+}
+func NewMessage(message *models.Message) *pb.Message {
+	if message == nil {
+		return nil
+	}
+	result := &pb.Message{
+		Id:          message.ID.Hex(),
+		Uid:         message.UID,
+		MessageType: message.MessageType.String(),
+		State:       message.State(),
+	}
+	switch message.MessageType {
+	case enum.NewComment:
+		result.MetaData = newCommentMeta(message.CommentMeta)
+	case enum.NewLike:
+		result.MetaData = newLikeMeta(message.LikeMeta)
+	case enum.NewFans:
+		result.MetaData = newFansMeta(message.FansMeta)
+	case enum.NewForward:
+		result.MetaData = newForwardMeta(message.ForwardMeta)
+	}
+	return result
+}
+
+func NewMessageSlice(messages []*models.Message) []*pb.Message {
+	result := make([]*pb.Message, len(messages))
+	for i, message := range messages {
+		result[i] = NewMessage(message)
+	}
+	return result
+}
+
+func NewComment(comment *models.Comment) *pb.Comment {
+	if comment == nil {
+		return nil
+	}
+	result := &pb.Comment{
+		Id:         comment.ID.Hex(),
+		Uid:        comment.UID,
+		StatusId:   comment.StatusID.Hex(),
+		ParentId:   comment.ParentID.Hex(),
+		GroupId:    comment.GroupID.Hex(),
+		OpponentId: comment.OpponentID,
+		Content:    comment.Content,
+	}
+	return result
+}
+
+func NewCommentSlice(comments []*models.Comment) []*pb.Comment {
+	result := make([]*pb.Comment, len(comments))
+	for i, comment := range comments {
+		result[i] = NewComment(comment)
 	}
 	return result
 }

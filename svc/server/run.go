@@ -69,6 +69,9 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		listrelationshipEndpoint  = svc.MakeListRelationshipEndpoint(service)
 		followEndpoint            = svc.MakeFollowEndpoint(service)
 		unfollowEndpoint          = svc.MakeUnFollowEndpoint(service)
+		listmessageEndpoint       = svc.MakeListMessageEndpoint(service)
+		readmessageEndpoint       = svc.MakeReadMessageEndpoint(service)
+		listcommentEndpoint       = svc.MakeListCommentEndpoint(service)
 	)
 
 	endpoints := svc.Endpoints{
@@ -88,6 +91,9 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		ListRelationshipEndpoint:  listrelationshipEndpoint,
 		FollowEndpoint:            followEndpoint,
 		UnFollowEndpoint:          unfollowEndpoint,
+		ListMessageEndpoint:       listmessageEndpoint,
+		ReadMessageEndpoint:       readmessageEndpoint,
+		ListCommentEndpoint:       listcommentEndpoint,
 	}
 
 	// Wrap selected Endpoints with middlewares. See handlers/middlewares.go

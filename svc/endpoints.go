@@ -49,6 +49,9 @@ type Endpoints struct {
 	ListRelationshipEndpoint  endpoint.Endpoint
 	FollowEndpoint            endpoint.Endpoint
 	UnFollowEndpoint          endpoint.Endpoint
+	ListMessageEndpoint       endpoint.Endpoint
+	ReadMessageEndpoint       endpoint.Endpoint
+	ListCommentEndpoint       endpoint.Endpoint
 }
 
 // Endpoints
@@ -179,6 +182,30 @@ func (e Endpoints) UnFollow(ctx context.Context, in *pb.UnFollowRequest) (*pb.Si
 		return nil, err
 	}
 	return response.(*pb.SimpleResponse), nil
+}
+
+func (e Endpoints) ListMessage(ctx context.Context, in *pb.ListMessageRequest) (*pb.ListMessageResponse, error) {
+	response, err := e.ListMessageEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.ListMessageResponse), nil
+}
+
+func (e Endpoints) ReadMessage(ctx context.Context, in *pb.ReadMessageRequest) (*pb.SimpleResponse, error) {
+	response, err := e.ReadMessageEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.SimpleResponse), nil
+}
+
+func (e Endpoints) ListComment(ctx context.Context, in *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
+	response, err := e.ListCommentEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.ListCommentResponse), nil
 }
 
 // Make Endpoints
@@ -359,6 +386,39 @@ func MakeUnFollowEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeListMessageEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ListMessageRequest)
+		v, err := s.ListMessage(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeReadMessageEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ReadMessageRequest)
+		v, err := s.ReadMessage(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeListCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ListCommentRequest)
+		v, err := s.ListComment(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 // WrapAllExcept wraps each Endpoint field of struct Endpoints with a
 // go-kit/kit/endpoint.Middleware.
 // Use this for applying a set of middlewares to every endpoint in the service.
@@ -382,6 +442,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"ListRelationship":  {},
 		"Follow":            {},
 		"UnFollow":          {},
+		"ListMessage":       {},
+		"ReadMessage":       {},
+		"ListComment":       {},
 	}
 
 	for _, ex := range excluded {
@@ -440,6 +503,15 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "UnFollow" {
 			e.UnFollowEndpoint = middleware(e.UnFollowEndpoint)
 		}
+		if inc == "ListMessage" {
+			e.ListMessageEndpoint = middleware(e.ListMessageEndpoint)
+		}
+		if inc == "ReadMessage" {
+			e.ReadMessageEndpoint = middleware(e.ReadMessageEndpoint)
+		}
+		if inc == "ListComment" {
+			e.ListCommentEndpoint = middleware(e.ListCommentEndpoint)
+		}
 	}
 }
 
@@ -470,6 +542,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"ListRelationship":  {},
 		"Follow":            {},
 		"UnFollow":          {},
+		"ListMessage":       {},
+		"ReadMessage":       {},
+		"ListComment":       {},
 	}
 
 	for _, ex := range excluded {
@@ -527,6 +602,15 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "UnFollow" {
 			e.UnFollowEndpoint = middleware("UnFollow", e.UnFollowEndpoint)
+		}
+		if inc == "ListMessage" {
+			e.ListMessageEndpoint = middleware("ListMessage", e.ListMessageEndpoint)
+		}
+		if inc == "ReadMessage" {
+			e.ReadMessageEndpoint = middleware("ReadMessage", e.ReadMessageEndpoint)
+		}
+		if inc == "ListComment" {
+			e.ListCommentEndpoint = middleware("ListComment", e.ListCommentEndpoint)
 		}
 	}
 }

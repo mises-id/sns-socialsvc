@@ -244,6 +244,45 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var listmessageEndpoint endpoint.Endpoint
+	{
+		listmessageEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"ListMessage",
+			EncodeGRPCListMessageRequest,
+			DecodeGRPCListMessageResponse,
+			pb.ListMessageResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var readmessageEndpoint endpoint.Endpoint
+	{
+		readmessageEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"ReadMessage",
+			EncodeGRPCReadMessageRequest,
+			DecodeGRPCReadMessageResponse,
+			pb.SimpleResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var listcommentEndpoint endpoint.Endpoint
+	{
+		listcommentEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"ListComment",
+			EncodeGRPCListCommentRequest,
+			DecodeGRPCListCommentResponse,
+			pb.ListCommentResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	return svc.Endpoints{
 		SignInEndpoint:            signinEndpoint,
 		FindUserEndpoint:          finduserEndpoint,
@@ -261,6 +300,9 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		ListRelationshipEndpoint:  listrelationshipEndpoint,
 		FollowEndpoint:            followEndpoint,
 		UnFollowEndpoint:          unfollowEndpoint,
+		ListMessageEndpoint:       listmessageEndpoint,
+		ReadMessageEndpoint:       readmessageEndpoint,
+		ListCommentEndpoint:       listcommentEndpoint,
 	}, nil
 }
 
@@ -378,6 +420,27 @@ func DecodeGRPCUnFollowResponse(_ context.Context, grpcReply interface{}) (inter
 	return reply, nil
 }
 
+// DecodeGRPCListMessageResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC listmessage reply to a user-domain listmessage response. Primarily useful in a client.
+func DecodeGRPCListMessageResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.ListMessageResponse)
+	return reply, nil
+}
+
+// DecodeGRPCReadMessageResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC readmessage reply to a user-domain readmessage response. Primarily useful in a client.
+func DecodeGRPCReadMessageResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.SimpleResponse)
+	return reply, nil
+}
+
+// DecodeGRPCListCommentResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC listcomment reply to a user-domain listcomment response. Primarily useful in a client.
+func DecodeGRPCListCommentResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.ListCommentResponse)
+	return reply, nil
+}
+
 // GRPC Client Encode
 
 // EncodeGRPCSignInRequest is a transport/grpc.EncodeRequestFunc that converts a
@@ -489,6 +552,27 @@ func EncodeGRPCFollowRequest(_ context.Context, request interface{}) (interface{
 // user-domain unfollow request to a gRPC unfollow request. Primarily useful in a client.
 func EncodeGRPCUnFollowRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.UnFollowRequest)
+	return req, nil
+}
+
+// EncodeGRPCListMessageRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain listmessage request to a gRPC listmessage request. Primarily useful in a client.
+func EncodeGRPCListMessageRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.ListMessageRequest)
+	return req, nil
+}
+
+// EncodeGRPCReadMessageRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain readmessage request to a gRPC readmessage request. Primarily useful in a client.
+func EncodeGRPCReadMessageRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.ReadMessageRequest)
+	return req, nil
+}
+
+// EncodeGRPCListCommentRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain listcomment request to a gRPC listcomment request. Primarily useful in a client.
+func EncodeGRPCListCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.ListCommentRequest)
 	return req, nil
 }
 

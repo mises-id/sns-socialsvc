@@ -4,8 +4,11 @@ import (
 	"context"
 
 	"github.com/mises-id/sns-socialsvc/app/factory"
+	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	commentSVC "github.com/mises-id/sns-socialsvc/app/services/comment"
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
+	messageSVC "github.com/mises-id/sns-socialsvc/app/services/message"
 	sessionSVC "github.com/mises-id/sns-socialsvc/app/services/session"
 	statusSVC "github.com/mises-id/sns-socialsvc/app/services/status"
 	userSVC "github.com/mises-id/sns-socialsvc/app/services/user"
@@ -280,5 +283,53 @@ func (s socialService) Follow(ctx context.Context, in *pb.FollowRequest) (*pb.Si
 		return nil, err
 	}
 	resp.Code = 0
+	return &resp, nil
+}
+
+func (s socialService) ListMessage(ctx context.Context, in *pb.ListMessageRequest) (*pb.ListMessageResponse, error) {
+	var resp pb.ListMessageResponse
+	messages, page, err := messageSVC.ListMessage(ctx, &messageSVC.ListMessageParams{
+		ListMessageParams: models.ListMessageParams{
+			UID: in.GetCurrentUid(),
+			PageParams: &pagination.PageQuickParams{
+				Limit:  int64(in.Paginator.Limit),
+				NextID: in.Paginator.NextId,
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	resp.Code = 0
+	resp.Messages = factory.NewMessageSlice(messages)
+	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
+	resp.Paginator = &pb.PageQuick{
+		Limit:  uint64(quickpage.Limit),
+		NextId: quickpage.NextID,
+	}
+	return &resp, nil
+}
+
+func (s socialService) ReadMessage(ctx context.Context, in *pb.ReadMessageRequest) (*pb.SimpleResponse, error) {
+	var resp pb.SimpleResponse
+	return &resp, nil
+}
+
+func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
+	var resp pb.ListCommentResponse
+	comments, page, err := commentSVC.ListComment(ctx, &commentSVC.ListCommentParams{
+		ListCommentParams: models.ListCommentParams{},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Comments = factory.NewCommentSlice(comments)
+	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
+	resp.Paginator = &pb.PageQuick{
+		Limit:  uint64(quickpage.Limit),
+		NextId: quickpage.NextID,
+	}
 	return &resp, nil
 }

@@ -121,7 +121,7 @@ func LikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) (*
 	if err == nil {
 		return like, nil
 	}
-	like, err = models.CreateLike(ctx, uid, statusID, enum.LikeStatus)
+	like, err = models.CreateLike(ctx, uid, status.UID, statusID, enum.LikeStatus)
 	if err != nil {
 		return nil, err
 	}
