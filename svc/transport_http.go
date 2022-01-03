@@ -227,6 +227,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("GET").Path("/following/latest/").Handler(httptransport.NewServer(
+		endpoints.LatestFollowingEndpoint,
+		DecodeHTTPLatestFollowingZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/following/latest").Handler(httptransport.NewServer(
+		endpoints.LatestFollowingEndpoint,
+		DecodeHTTPLatestFollowingOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("GET").Path("/relation/list/").Handler(httptransport.NewServer(
 		endpoints.ListRelationshipEndpoint,
 		DecodeHTTPListRelationshipZeroRequest,
@@ -1624,6 +1637,96 @@ func DecodeHTTPListUserTimelineOneRequest(_ context.Context, r *http.Request) (i
 			return nil, errors.Wrapf(err, "couldn't decode PaginatorListUserTimeline from %v", PaginatorListUserTimelineStr)
 		}
 
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPLatestFollowingZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded latestfollowing request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPLatestFollowingZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.LatestFollowingRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidLatestFollowingStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidLatestFollowingStr := CurrentUidLatestFollowingStrArr[0]
+		CurrentUidLatestFollowing, err := strconv.ParseUint(CurrentUidLatestFollowingStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidLatestFollowing from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidLatestFollowing
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPLatestFollowingOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded latestfollowing request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPLatestFollowingOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.LatestFollowingRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidLatestFollowingStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidLatestFollowingStr := CurrentUidLatestFollowingStrArr[0]
+		CurrentUidLatestFollowing, err := strconv.ParseUint(CurrentUidLatestFollowingStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidLatestFollowing from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidLatestFollowing
 	}
 
 	return &req, err

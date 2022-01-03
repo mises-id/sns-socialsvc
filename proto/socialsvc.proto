@@ -197,6 +197,18 @@ service Social {
   }
 
 
+  //query following users order by update time
+  rpc LatestFollowing (LatestFollowingRequest) returns (LatestFollowingResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/following/latest"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/following/latest/"
+      }
+    };
+  }
 
 
   //query related users
@@ -533,4 +545,18 @@ message ReadMessageRequest {
   uint64 current_uid = 1;
   string latestID = 2;
   repeated string ids = 3;
+}
+
+message LatestFollowingRequest {
+  uint64 current_uid = 1;
+}
+
+message Following {
+  UserInfo user = 1;
+  bool unread = 2;
+}
+
+message LatestFollowingResponse {
+  uint64 code = 1;
+  repeated Following followings = 2;
 }

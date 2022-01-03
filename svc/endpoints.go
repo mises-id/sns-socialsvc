@@ -46,6 +46,7 @@ type Endpoints struct {
 	ListStatusEndpoint        endpoint.Endpoint
 	ListRecommendedEndpoint   endpoint.Endpoint
 	ListUserTimelineEndpoint  endpoint.Endpoint
+	LatestFollowingEndpoint   endpoint.Endpoint
 	ListRelationshipEndpoint  endpoint.Endpoint
 	FollowEndpoint            endpoint.Endpoint
 	UnFollowEndpoint          endpoint.Endpoint
@@ -158,6 +159,14 @@ func (e Endpoints) ListUserTimeline(ctx context.Context, in *pb.ListStatusReques
 		return nil, err
 	}
 	return response.(*pb.ListStatusResponse), nil
+}
+
+func (e Endpoints) LatestFollowing(ctx context.Context, in *pb.LatestFollowingRequest) (*pb.LatestFollowingResponse, error) {
+	response, err := e.LatestFollowingEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.LatestFollowingResponse), nil
 }
 
 func (e Endpoints) ListRelationship(ctx context.Context, in *pb.ListRelationshipRequest) (*pb.ListRelationshipResponse, error) {
@@ -353,6 +362,17 @@ func MakeListUserTimelineEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeLatestFollowingEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.LatestFollowingRequest)
+		v, err := s.LatestFollowing(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeListRelationshipEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.ListRelationshipRequest)
@@ -439,6 +459,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"ListStatus":        {},
 		"ListRecommended":   {},
 		"ListUserTimeline":  {},
+		"LatestFollowing":   {},
 		"ListRelationship":  {},
 		"Follow":            {},
 		"UnFollow":          {},
@@ -494,6 +515,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "ListUserTimeline" {
 			e.ListUserTimelineEndpoint = middleware(e.ListUserTimelineEndpoint)
 		}
+		if inc == "LatestFollowing" {
+			e.LatestFollowingEndpoint = middleware(e.LatestFollowingEndpoint)
+		}
 		if inc == "ListRelationship" {
 			e.ListRelationshipEndpoint = middleware(e.ListRelationshipEndpoint)
 		}
@@ -539,6 +563,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"ListStatus":        {},
 		"ListRecommended":   {},
 		"ListUserTimeline":  {},
+		"LatestFollowing":   {},
 		"ListRelationship":  {},
 		"Follow":            {},
 		"UnFollow":          {},
@@ -593,6 +618,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "ListUserTimeline" {
 			e.ListUserTimelineEndpoint = middleware("ListUserTimeline", e.ListUserTimelineEndpoint)
+		}
+		if inc == "LatestFollowing" {
+			e.LatestFollowingEndpoint = middleware("LatestFollowing", e.LatestFollowingEndpoint)
 		}
 		if inc == "ListRelationship" {
 			e.ListRelationshipEndpoint = middleware("ListRelationship", e.ListRelationshipEndpoint)

@@ -107,6 +107,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCListUserTimelineResponse,
 			serverOptions...,
 		),
+		latestfollowing: grpctransport.NewServer(
+			endpoints.LatestFollowingEndpoint,
+			DecodeGRPCLatestFollowingRequest,
+			EncodeGRPCLatestFollowingResponse,
+			serverOptions...,
+		),
 		listrelationship: grpctransport.NewServer(
 			endpoints.ListRelationshipEndpoint,
 			DecodeGRPCListRelationshipRequest,
@@ -161,6 +167,7 @@ type grpcServer struct {
 	liststatus        grpctransport.Handler
 	listrecommended   grpctransport.Handler
 	listusertimeline  grpctransport.Handler
+	latestfollowing   grpctransport.Handler
 	listrelationship  grpctransport.Handler
 	follow            grpctransport.Handler
 	unfollow          grpctransport.Handler
@@ -273,6 +280,14 @@ func (s *grpcServer) ListUserTimeline(ctx context.Context, req *pb.ListStatusReq
 		return nil, err
 	}
 	return rep.(*pb.ListStatusResponse), nil
+}
+
+func (s *grpcServer) LatestFollowing(ctx context.Context, req *pb.LatestFollowingRequest) (*pb.LatestFollowingResponse, error) {
+	_, rep, err := s.latestfollowing.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.LatestFollowingResponse), nil
 }
 
 func (s *grpcServer) ListRelationship(ctx context.Context, req *pb.ListRelationshipRequest) (*pb.ListRelationshipResponse, error) {
@@ -416,6 +431,13 @@ func DecodeGRPCListUserTimelineRequest(_ context.Context, grpcReq interface{}) (
 	return req, nil
 }
 
+// DecodeGRPCLatestFollowingRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC latestfollowing request to a user-domain latestfollowing request. Primarily useful in a server.
+func DecodeGRPCLatestFollowingRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.LatestFollowingRequest)
+	return req, nil
+}
+
 // DecodeGRPCListRelationshipRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC listrelationship request to a user-domain listrelationship request. Primarily useful in a server.
 func DecodeGRPCListRelationshipRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -548,6 +570,13 @@ func EncodeGRPCListRecommendedResponse(_ context.Context, response interface{}) 
 // user-domain listusertimeline response to a gRPC listusertimeline reply. Primarily useful in a server.
 func EncodeGRPCListUserTimelineResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.ListStatusResponse)
+	return resp, nil
+}
+
+// EncodeGRPCLatestFollowingResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain latestfollowing response to a gRPC latestfollowing reply. Primarily useful in a server.
+func EncodeGRPCLatestFollowingResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.LatestFollowingResponse)
 	return resp, nil
 }
 

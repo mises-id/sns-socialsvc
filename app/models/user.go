@@ -29,6 +29,7 @@ type User struct {
 	AvatarPath     string      `bson:"avatar_path,omitempty"`
 	FollowingCount int64       `bson:"following_count,omitempty"`
 	FansCount      int64       `bson:"fans_count,omitempty"`
+	LatestPostTime *time.Time  `bson:"latest_post_time,omitempty"`
 	CreatedAt      time.Time   `bson:"created_at,omitempty"`
 	UpdatedAt      time.Time   `bson:"updated_at,omitempty"`
 	AvatarUrl      string      `bson:"-"`
@@ -70,6 +71,9 @@ func (u *User) IncFollowingCount(ctx context.Context) error {
 			Value: bson.D{{
 				Key:   "following_count",
 				Value: 1,
+			}, {
+				Key:   "updated_at",
+				Value: time.Now(),
 			}}},
 		}).Err()
 }
@@ -81,6 +85,23 @@ func (u *User) IncFansCount(ctx context.Context) error {
 			Value: bson.D{{
 				Key:   "fans_count",
 				Value: 1,
+			}, {
+				Key:   "updated_at",
+				Value: time.Now(),
+			}}},
+		}).Err()
+}
+
+func (u *User) UpdatePostTime(ctx context.Context, t time.Time) error {
+	return db.DB().Collection("users").FindOneAndUpdate(ctx, bson.M{"_id": u.UID},
+		bson.D{{
+			Key: "$set",
+			Value: bson.D{{
+				Key:   "latest_post_time",
+				Value: &t,
+			}, {
+				Key:   "updated_at",
+				Value: time.Now(),
 			}}},
 		}).Err()
 }

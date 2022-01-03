@@ -16,7 +16,7 @@ type CreateStatusParams struct {
 	StatusType string
 	ParentID   primitive.ObjectID
 	Content    string
-	Meta       *meta.MetaData
+	Meta       meta.MetaData
 	FromType   enum.FromType
 }
 
@@ -73,6 +73,7 @@ func UserTimeline(ctx context.Context, uid uint64, pageParams *pagination.PageQu
 		UIDs:           friendIDs,
 		ParentStatusID: primitive.NilObjectID,
 		PageParams:     pageParams,
+		OnlyShow:       true,
 	})
 	if err != nil {
 		return nil, nil, err
@@ -87,6 +88,7 @@ func RecommendStatus(ctx context.Context, uid uint64, pageParams *pagination.Pag
 		ParentStatusID: primitive.NilObjectID,
 		FromTypes:      []enum.FromType{enum.FromPost, enum.FromForward},
 		PageParams:     pageParams,
+		OnlyShow:       true,
 	})
 	if err != nil {
 		return nil, nil, err
@@ -95,11 +97,15 @@ func RecommendStatus(ctx context.Context, uid uint64, pageParams *pagination.Pag
 }
 
 func CreateStatus(ctx context.Context, uid uint64, params *CreateStatusParams) (*models.Status, error) {
+	user, err := models.FindUser(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
 	statusType, err := enum.StatusTypeFromString(params.StatusType)
 	if err != nil {
 		return nil, err
 	}
-	return models.CreateStatus(ctx, &models.CreateStatusParams{
+	status, err := models.CreateStatus(ctx, &models.CreateStatusParams{
 		UID:        uid,
 		StatusType: statusType,
 		Content:    params.Content,
@@ -107,6 +113,14 @@ func CreateStatus(ctx context.Context, uid uint64, params *CreateStatusParams) (
 		FromType:   params.FromType,
 		MetaData:   params.Meta,
 	})
+	if err != nil {
+		return nil, err
+	}
+	// update user latest post time
+	if err = user.UpdatePostTime(ctx, status.CreatedAt); err != nil {
+		return nil, err
+	}
+	return status, nil
 }
 
 func LikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) (*models.Like, error) {

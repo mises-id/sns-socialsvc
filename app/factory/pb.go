@@ -195,3 +195,14 @@ func NewCommentSlice(comments []*models.Comment) []*pb.Comment {
 	}
 	return result
 }
+
+func NewFollowingSlice(follows []*models.Follow) []*pb.Following {
+	result := make([]*pb.Following, len(follows))
+	for i, follow := range follows {
+		result[i] = &pb.Following{
+			User:   NewUserInfo(follow.ToUser),
+			Unread: false,
+		}
+	}
+	return result
+}

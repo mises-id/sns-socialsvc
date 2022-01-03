@@ -10,6 +10,30 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+const (
+	latestFollowingCount = 20
+)
+
+func LatestFollowing(ctx context.Context, uid uint64) ([]*models.Follow, error) {
+	follows, err := models.LatestFollowing(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*models.Follow, 0)
+	for _, follow := range follows {
+		if follow.ToUser.LatestPostTime == nil {
+			continue
+		}
+		if follow.ToUser.LatestPostTime.After(follow.ReadTime) {
+			result = append(result, follow)
+		}
+		if len(result) >= latestFollowingCount {
+			break
+		}
+	}
+	return result, nil
+}
+
 func ListFriendship(ctx context.Context, uid uint64, relationType enum.RelationType, pageParams *pagination.QuickPagination) ([]*models.Follow, pagination.Pagination, error) {
 	// check user exsit
 	_, err := models.FindUser(ctx, uid)

@@ -333,3 +333,15 @@ func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentReques
 	}
 	return &resp, nil
 }
+
+func (s socialService) LatestFollowing(ctx context.Context, in *pb.LatestFollowingRequest) (*pb.LatestFollowingResponse, error) {
+	var resp pb.LatestFollowingResponse
+	followings, err := friendshipSVC.LatestFollowing(ctx, in.CurrentUid)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Followings = factory.NewFollowingSlice(followings)
+
+	return &resp, nil
+}
