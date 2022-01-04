@@ -317,6 +317,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		responseEncoder,
 		serverOptions...,
 	))
+
+	m.Methods("GET").Path("/comment/create/").Handler(httptransport.NewServer(
+		endpoints.CreateCommentEndpoint,
+		DecodeHTTPCreateCommentZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("POST").Path("/comment/create").Handler(httptransport.NewServer(
+		endpoints.CreateCommentEndpoint,
+		DecodeHTTPCreateCommentOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
 	return m
 }
 
@@ -2222,6 +2235,24 @@ func DecodeHTTPListCommentZeroRequest(_ context.Context, r *http.Request) (inter
 		req.CurrentUid = CurrentUidListComment
 	}
 
+	if StatusIdListCommentStrArr, ok := queryParams["status_id"]; ok {
+		StatusIdListCommentStr := StatusIdListCommentStrArr[0]
+		StatusIdListComment := StatusIdListCommentStr
+		req.StatusId = StatusIdListComment
+	}
+
+	if TopicIdListCommentStrArr, ok := queryParams["topic_id"]; ok {
+		TopicIdListCommentStr := TopicIdListCommentStrArr[0]
+		TopicIdListComment := TopicIdListCommentStr
+		req.TopicId = TopicIdListComment
+	}
+
+	if LastIdListCommentStrArr, ok := queryParams["last_id"]; ok {
+		LastIdListCommentStr := LastIdListCommentStrArr[0]
+		LastIdListComment := LastIdListCommentStr
+		req.LastId = LastIdListComment
+	}
+
 	if PaginatorListCommentStrArr, ok := queryParams["paginator"]; ok {
 		PaginatorListCommentStr := PaginatorListCommentStrArr[0]
 
@@ -2277,6 +2308,24 @@ func DecodeHTTPListCommentOneRequest(_ context.Context, r *http.Request) (interf
 		req.CurrentUid = CurrentUidListComment
 	}
 
+	if StatusIdListCommentStrArr, ok := queryParams["status_id"]; ok {
+		StatusIdListCommentStr := StatusIdListCommentStrArr[0]
+		StatusIdListComment := StatusIdListCommentStr
+		req.StatusId = StatusIdListComment
+	}
+
+	if TopicIdListCommentStrArr, ok := queryParams["topic_id"]; ok {
+		TopicIdListCommentStr := TopicIdListCommentStrArr[0]
+		TopicIdListComment := TopicIdListCommentStr
+		req.TopicId = TopicIdListComment
+	}
+
+	if LastIdListCommentStrArr, ok := queryParams["last_id"]; ok {
+		LastIdListCommentStr := LastIdListCommentStrArr[0]
+		LastIdListComment := LastIdListCommentStr
+		req.LastId = LastIdListComment
+	}
+
 	if PaginatorListCommentStrArr, ok := queryParams["paginator"]; ok {
 		PaginatorListCommentStr := PaginatorListCommentStrArr[0]
 
@@ -2286,6 +2335,78 @@ func DecodeHTTPListCommentOneRequest(_ context.Context, r *http.Request) (interf
 		}
 
 	}
+
+	return &req, err
+}
+
+// DecodeHTTPCreateCommentZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded createcomment request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPCreateCommentZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.CreateCommentRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPCreateCommentOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded createcomment request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPCreateCommentOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.CreateCommentRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
 
 	return &req, err
 }

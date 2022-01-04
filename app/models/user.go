@@ -19,21 +19,22 @@ var (
 )
 
 type User struct {
-	UID            uint64      `bson:"_id"`
-	Username       string      `bson:"username,omitempty"`
-	Misesid        string      `bson:"misesid,omitempty"`
-	Gender         enum.Gender `bson:"gender,misesid"`
-	Mobile         string      `bson:"mobile,omitempty"`
-	Email          string      `bson:"email,omitempty"`
-	Address        string      `bson:"address,omitempty"`
-	AvatarPath     string      `bson:"avatar_path,omitempty"`
-	FollowingCount int64       `bson:"following_count,omitempty"`
-	FansCount      int64       `bson:"fans_count,omitempty"`
-	LatestPostTime *time.Time  `bson:"latest_post_time,omitempty"`
-	CreatedAt      time.Time   `bson:"created_at,omitempty"`
-	UpdatedAt      time.Time   `bson:"updated_at,omitempty"`
-	AvatarUrl      string      `bson:"-"`
-	IsFollowed     bool        `bson:"-"`
+	UID            uint64         `bson:"_id"`
+	Username       string         `bson:"username,omitempty"`
+	Misesid        string         `bson:"misesid,omitempty"`
+	Gender         enum.Gender    `bson:"gender,misesid"`
+	Mobile         string         `bson:"mobile,omitempty"`
+	Email          string         `bson:"email,omitempty"`
+	Address        string         `bson:"address,omitempty"`
+	AvatarPath     string         `bson:"avatar_path,omitempty"`
+	FollowingCount int64          `bson:"following_count,omitempty"`
+	FansCount      int64          `bson:"fans_count,omitempty"`
+	LatestPostTime *time.Time     `bson:"latest_post_time,omitempty"`
+	CreatedAt      time.Time      `bson:"created_at,omitempty"`
+	UpdatedAt      time.Time      `bson:"updated_at,omitempty"`
+	AvatarUrl      string         `bson:"-"`
+	IsFollowed     bool           `bson:"-"`
+	Tags           []enum.TagType `bson:"tags"`
 }
 
 func (u *User) Validate(ctx context.Context) error {

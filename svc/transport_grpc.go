@@ -149,6 +149,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCListCommentResponse,
 			serverOptions...,
 		),
+		createcomment: grpctransport.NewServer(
+			endpoints.CreateCommentEndpoint,
+			DecodeGRPCCreateCommentRequest,
+			EncodeGRPCCreateCommentResponse,
+			serverOptions...,
+		),
 	}
 }
 
@@ -174,6 +180,7 @@ type grpcServer struct {
 	listmessage       grpctransport.Handler
 	readmessage       grpctransport.Handler
 	listcomment       grpctransport.Handler
+	createcomment     grpctransport.Handler
 }
 
 // Methods for grpcServer to implement SocialServer interface
@@ -338,6 +345,14 @@ func (s *grpcServer) ListComment(ctx context.Context, req *pb.ListCommentRequest
 	return rep.(*pb.ListCommentResponse), nil
 }
 
+func (s *grpcServer) CreateComment(ctx context.Context, req *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
+	_, rep, err := s.createcomment.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.CreateCommentResponse), nil
+}
+
 // Server Decode
 
 // DecodeGRPCSignInRequest is a transport/grpc.DecodeRequestFunc that converts a
@@ -480,6 +495,13 @@ func DecodeGRPCListCommentRequest(_ context.Context, grpcReq interface{}) (inter
 	return req, nil
 }
 
+// DecodeGRPCCreateCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC createcomment request to a user-domain createcomment request. Primarily useful in a server.
+func DecodeGRPCCreateCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.CreateCommentRequest)
+	return req, nil
+}
+
 // Server Encode
 
 // EncodeGRPCSignInResponse is a transport/grpc.EncodeResponseFunc that converts a
@@ -619,6 +641,13 @@ func EncodeGRPCReadMessageResponse(_ context.Context, response interface{}) (int
 // user-domain listcomment response to a gRPC listcomment reply. Primarily useful in a server.
 func EncodeGRPCListCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.ListCommentResponse)
+	return resp, nil
+}
+
+// EncodeGRPCCreateCommentResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain createcomment response to a gRPC createcomment reply. Primarily useful in a server.
+func EncodeGRPCCreateCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.CreateCommentResponse)
 	return resp, nil
 }
 

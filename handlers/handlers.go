@@ -345,3 +345,8 @@ func (s socialService) LatestFollowing(ctx context.Context, in *pb.LatestFollowi
 
 	return &resp, nil
 }
+
+func (s socialService) CreateComment(ctx context.Context, in *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
+	var resp pb.CreateCommentResponse
+	return &resp, nil
+}

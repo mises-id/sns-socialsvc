@@ -296,6 +296,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var createcommentEndpoint endpoint.Endpoint
+	{
+		createcommentEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"CreateComment",
+			EncodeGRPCCreateCommentRequest,
+			DecodeGRPCCreateCommentResponse,
+			pb.CreateCommentResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	return svc.Endpoints{
 		SignInEndpoint:            signinEndpoint,
 		FindUserEndpoint:          finduserEndpoint,
@@ -317,6 +330,7 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		ListMessageEndpoint:       listmessageEndpoint,
 		ReadMessageEndpoint:       readmessageEndpoint,
 		ListCommentEndpoint:       listcommentEndpoint,
+		CreateCommentEndpoint:     createcommentEndpoint,
 	}, nil
 }
 
@@ -462,6 +476,13 @@ func DecodeGRPCListCommentResponse(_ context.Context, grpcReply interface{}) (in
 	return reply, nil
 }
 
+// DecodeGRPCCreateCommentResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC createcomment reply to a user-domain createcomment response. Primarily useful in a client.
+func DecodeGRPCCreateCommentResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.CreateCommentResponse)
+	return reply, nil
+}
+
 // GRPC Client Encode
 
 // EncodeGRPCSignInRequest is a transport/grpc.EncodeRequestFunc that converts a
@@ -601,6 +622,13 @@ func EncodeGRPCReadMessageRequest(_ context.Context, request interface{}) (inter
 // user-domain listcomment request to a gRPC listcomment request. Primarily useful in a client.
 func EncodeGRPCListCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.ListCommentRequest)
+	return req, nil
+}
+
+// EncodeGRPCCreateCommentRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain createcomment request to a gRPC createcomment request. Primarily useful in a client.
+func EncodeGRPCCreateCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.CreateCommentRequest)
 	return req, nil
 }
 

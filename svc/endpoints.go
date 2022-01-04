@@ -53,6 +53,7 @@ type Endpoints struct {
 	ListMessageEndpoint       endpoint.Endpoint
 	ReadMessageEndpoint       endpoint.Endpoint
 	ListCommentEndpoint       endpoint.Endpoint
+	CreateCommentEndpoint     endpoint.Endpoint
 }
 
 // Endpoints
@@ -215,6 +216,14 @@ func (e Endpoints) ListComment(ctx context.Context, in *pb.ListCommentRequest) (
 		return nil, err
 	}
 	return response.(*pb.ListCommentResponse), nil
+}
+
+func (e Endpoints) CreateComment(ctx context.Context, in *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
+	response, err := e.CreateCommentEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.CreateCommentResponse), nil
 }
 
 // Make Endpoints
@@ -439,6 +448,17 @@ func MakeListCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeCreateCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.CreateCommentRequest)
+		v, err := s.CreateComment(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 // WrapAllExcept wraps each Endpoint field of struct Endpoints with a
 // go-kit/kit/endpoint.Middleware.
 // Use this for applying a set of middlewares to every endpoint in the service.
@@ -466,6 +486,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"ListMessage":       {},
 		"ReadMessage":       {},
 		"ListComment":       {},
+		"CreateComment":     {},
 	}
 
 	for _, ex := range excluded {
@@ -536,6 +557,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "ListComment" {
 			e.ListCommentEndpoint = middleware(e.ListCommentEndpoint)
 		}
+		if inc == "CreateComment" {
+			e.CreateCommentEndpoint = middleware(e.CreateCommentEndpoint)
+		}
 	}
 }
 
@@ -570,6 +594,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"ListMessage":       {},
 		"ReadMessage":       {},
 		"ListComment":       {},
+		"CreateComment":     {},
 	}
 
 	for _, ex := range excluded {
@@ -639,6 +664,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "ListComment" {
 			e.ListCommentEndpoint = middleware("ListComment", e.ListCommentEndpoint)
+		}
+		if inc == "CreateComment" {
+			e.CreateCommentEndpoint = middleware("CreateComment", e.CreateCommentEndpoint)
 		}
 	}
 }

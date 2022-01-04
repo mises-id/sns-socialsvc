@@ -251,6 +251,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var CreateCommentZeroEndpoint endpoint.Endpoint
+	{
+		CreateCommentZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/comment/create/"),
+			EncodeHTTPCreateCommentZeroRequest,
+			DecodeHTTPCreateCommentResponse,
+			options...,
+		).Endpoint()
+	}
 
 	return svc.Endpoints{
 		SignInEndpoint:            SignInZeroEndpoint,
@@ -273,6 +283,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		ListMessageEndpoint:       ListMessageZeroEndpoint,
 		ReadMessageEndpoint:       ReadMessageZeroEndpoint,
 		ListCommentEndpoint:       ListCommentZeroEndpoint,
+		CreateCommentEndpoint:     CreateCommentZeroEndpoint,
 	}, nil
 }
 
@@ -832,6 +843,33 @@ func DecodeHTTPListCommentResponse(_ context.Context, r *http.Response) (interfa
 	}
 
 	var resp pb.ListCommentResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPCreateCommentResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded CreateCommentResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPCreateCommentResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.CreateCommentResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -2645,6 +2683,12 @@ func EncodeHTTPListCommentZeroRequest(_ context.Context, r *http.Request, reques
 
 	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
 
+	values.Add("status_id", fmt.Sprint(req.StatusId))
+
+	values.Add("topic_id", fmt.Sprint(req.TopicId))
+
+	values.Add("last_id", fmt.Sprint(req.LastId))
+
 	tmp, err = json.Marshal(req.Paginator)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal req.Paginator")
@@ -2688,6 +2732,12 @@ func EncodeHTTPListCommentOneRequest(_ context.Context, r *http.Request, request
 
 	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
 
+	values.Add("status_id", fmt.Sprint(req.StatusId))
+
+	values.Add("topic_id", fmt.Sprint(req.TopicId))
+
+	values.Add("last_id", fmt.Sprint(req.LastId))
+
 	tmp, err = json.Marshal(req.Paginator)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal req.Paginator")
@@ -2696,6 +2746,93 @@ func EncodeHTTPListCommentOneRequest(_ context.Context, r *http.Request, request
 	values.Add("paginator", strval)
 
 	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPCreateCommentZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a createcomment request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPCreateCommentZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.CreateCommentRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"comment",
+		"create",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPCreateCommentOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a createcomment request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPCreateCommentOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.CreateCommentRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"comment",
+		"create",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.CreateCommentRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.StatusId = req.StatusId
+
+	toRet.ParentId = req.ParentId
+
+	toRet.Content = req.Content
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
 	return nil
 }
 

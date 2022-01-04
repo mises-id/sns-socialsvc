@@ -294,6 +294,19 @@ service Social {
     };
   }
 
+  rpc CreateComment (CreateCommentRequest) returns (CreateCommentResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/comment/create"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/comment/create/"
+        body: "*"
+      }
+    };
+  }
 }
 
 message SignInRequest {
@@ -481,17 +494,33 @@ message Comment {
   string group_id = 5;
   uint64 opponent_id = 6;
   string content = 7;
+  repeated Comment comments = 8;
 }
 
 message ListCommentRequest {
   uint64 current_uid = 1;
-  PageQuick paginator = 3;
+  string status_id = 2;
+  string topic_id = 3;
+  string last_id = 4;
+  PageQuick paginator = 5;
 }
 
 message ListCommentResponse {
   uint64 code = 1;
   repeated Comment comments = 2;
   PageQuick paginator = 3;
+}
+
+message CreateCommentRequest {
+  uint64 current_uid = 1;
+  string status_id = 2;
+  string parent_id = 3;
+  string content = 4;
+}
+
+message CreateCommentResponse {
+  uint64 code = 1;
+  Comment comment = 2;
 }
 
 message NewCommentMeta {
