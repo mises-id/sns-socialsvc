@@ -66,6 +66,7 @@ func (s socialService) UpdateUserProfile(ctx context.Context, in *pb.UpdateUserP
 	}
 	resp.Code = 0
 	resp.User = factory.NewUserInfo(user)
+
 	return &resp, nil
 }
 
