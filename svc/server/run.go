@@ -66,9 +66,14 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		liststatusEndpoint        = svc.MakeListStatusEndpoint(service)
 		listrecommendedEndpoint   = svc.MakeListRecommendedEndpoint(service)
 		listusertimelineEndpoint  = svc.MakeListUserTimelineEndpoint(service)
+		latestfollowingEndpoint   = svc.MakeLatestFollowingEndpoint(service)
 		listrelationshipEndpoint  = svc.MakeListRelationshipEndpoint(service)
 		followEndpoint            = svc.MakeFollowEndpoint(service)
 		unfollowEndpoint          = svc.MakeUnFollowEndpoint(service)
+		listmessageEndpoint       = svc.MakeListMessageEndpoint(service)
+		readmessageEndpoint       = svc.MakeReadMessageEndpoint(service)
+		listcommentEndpoint       = svc.MakeListCommentEndpoint(service)
+		createcommentEndpoint     = svc.MakeCreateCommentEndpoint(service)
 	)
 
 	endpoints := svc.Endpoints{
@@ -85,9 +90,14 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		ListStatusEndpoint:        liststatusEndpoint,
 		ListRecommendedEndpoint:   listrecommendedEndpoint,
 		ListUserTimelineEndpoint:  listusertimelineEndpoint,
+		LatestFollowingEndpoint:   latestfollowingEndpoint,
 		ListRelationshipEndpoint:  listrelationshipEndpoint,
 		FollowEndpoint:            followEndpoint,
 		UnFollowEndpoint:          unfollowEndpoint,
+		ListMessageEndpoint:       listmessageEndpoint,
+		ReadMessageEndpoint:       readmessageEndpoint,
+		ListCommentEndpoint:       listcommentEndpoint,
+		CreateCommentEndpoint:     createcommentEndpoint,
 	}
 
 	// Wrap selected Endpoints with middlewares. See handlers/middlewares.go

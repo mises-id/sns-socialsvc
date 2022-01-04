@@ -197,6 +197,18 @@ service Social {
   }
 
 
+  //query following users order by update time
+  rpc LatestFollowing (LatestFollowingRequest) returns (LatestFollowingResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/following/latest"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/following/latest/"
+      }
+    };
+  }
 
 
   //query related users
@@ -243,9 +255,59 @@ service Social {
     };
   }
 
-  
-}
+  rpc ListMessage (ListMessageRequest) returns (ListMessageResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/message/list"
 
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/message/list/"
+      }
+    };
+  }
+
+  rpc ReadMessage (ReadMessageRequest) returns (SimpleResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/message/read"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/message/read/"
+        body: "*"
+      }
+    };
+  }
+
+
+  rpc ListComment (ListCommentRequest) returns (ListCommentResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/comment/list"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/comment/list/"
+      }
+    };
+  }
+
+  rpc CreateComment (CreateCommentRequest) returns (CreateCommentResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/comment/create"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/comment/create/"
+        body: "*"
+      }
+    };
+  }
+}
 
 message SignInRequest {
   string auth = 1;
@@ -422,4 +484,108 @@ message ListRelationshipResponse {
   uint64 code = 1;
   repeated RelationInfo relations = 2;
   PageQuick paginator = 3;
+}
+
+message Comment {
+  string id = 1;
+  uint64 uid = 2;
+  string status_id = 3;
+  string parent_id = 4;
+  string group_id = 5;
+  uint64 opponent_id = 6;
+  string content = 7;
+  repeated Comment comments = 8;
+}
+
+message ListCommentRequest {
+  uint64 current_uid = 1;
+  string status_id = 2;
+  string topic_id = 3;
+  string last_id = 4;
+  PageQuick paginator = 5;
+}
+
+message ListCommentResponse {
+  uint64 code = 1;
+  repeated Comment comments = 2;
+  PageQuick paginator = 3;
+}
+
+message CreateCommentRequest {
+  uint64 current_uid = 1;
+  string status_id = 2;
+  string parent_id = 3;
+  string content = 4;
+}
+
+message CreateCommentResponse {
+  uint64 code = 1;
+  Comment comment = 2;
+}
+
+message NewCommentMeta {
+  uint64 uid = 1;
+  string group_id=2;
+  string comment_id=3;
+  string content=4;
+}
+
+message NewLikeMeta {
+  uint64 uid = 1;
+  string target_id=2;
+  string target_type=3;
+}
+
+message NewFansMeta {
+  uint64 uid = 1;
+}
+
+message NewForwardMeta {
+  uint64 uid = 1;
+  string status_id=2;
+  string content=3;
+}
+
+message Message {
+  string id = 1;
+  uint64 uid = 2;
+  string message_type = 3;
+	string state = 4;
+  oneof meta_data {
+    NewCommentMeta new_comment_meta = 21;
+    NewLikeMeta new_like_meta = 22;
+    NewFansMeta new_fans_meta = 23;
+    NewForwardMeta new_forward_meta = 24;
+  }
+}
+
+message ListMessageRequest {
+  uint64 current_uid = 1;
+  PageQuick paginator = 3;
+}
+
+message ListMessageResponse {
+  uint64 code = 1;
+  repeated Message messages = 2;
+  PageQuick paginator = 3;
+}
+
+message ReadMessageRequest {
+  uint64 current_uid = 1;
+  string latestID = 2;
+  repeated string ids = 3;
+}
+
+message LatestFollowingRequest {
+  uint64 current_uid = 1;
+}
+
+message Following {
+  UserInfo user = 1;
+  bool unread = 2;
+}
+
+message LatestFollowingResponse {
+  uint64 code = 1;
+  repeated Following followings = 2;
 }

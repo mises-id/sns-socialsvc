@@ -107,6 +107,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCListUserTimelineResponse,
 			serverOptions...,
 		),
+		latestfollowing: grpctransport.NewServer(
+			endpoints.LatestFollowingEndpoint,
+			DecodeGRPCLatestFollowingRequest,
+			EncodeGRPCLatestFollowingResponse,
+			serverOptions...,
+		),
 		listrelationship: grpctransport.NewServer(
 			endpoints.ListRelationshipEndpoint,
 			DecodeGRPCListRelationshipRequest,
@@ -123,6 +129,30 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			endpoints.UnFollowEndpoint,
 			DecodeGRPCUnFollowRequest,
 			EncodeGRPCUnFollowResponse,
+			serverOptions...,
+		),
+		listmessage: grpctransport.NewServer(
+			endpoints.ListMessageEndpoint,
+			DecodeGRPCListMessageRequest,
+			EncodeGRPCListMessageResponse,
+			serverOptions...,
+		),
+		readmessage: grpctransport.NewServer(
+			endpoints.ReadMessageEndpoint,
+			DecodeGRPCReadMessageRequest,
+			EncodeGRPCReadMessageResponse,
+			serverOptions...,
+		),
+		listcomment: grpctransport.NewServer(
+			endpoints.ListCommentEndpoint,
+			DecodeGRPCListCommentRequest,
+			EncodeGRPCListCommentResponse,
+			serverOptions...,
+		),
+		createcomment: grpctransport.NewServer(
+			endpoints.CreateCommentEndpoint,
+			DecodeGRPCCreateCommentRequest,
+			EncodeGRPCCreateCommentResponse,
 			serverOptions...,
 		),
 	}
@@ -143,9 +173,14 @@ type grpcServer struct {
 	liststatus        grpctransport.Handler
 	listrecommended   grpctransport.Handler
 	listusertimeline  grpctransport.Handler
+	latestfollowing   grpctransport.Handler
 	listrelationship  grpctransport.Handler
 	follow            grpctransport.Handler
 	unfollow          grpctransport.Handler
+	listmessage       grpctransport.Handler
+	readmessage       grpctransport.Handler
+	listcomment       grpctransport.Handler
+	createcomment     grpctransport.Handler
 }
 
 // Methods for grpcServer to implement SocialServer interface
@@ -254,6 +289,14 @@ func (s *grpcServer) ListUserTimeline(ctx context.Context, req *pb.ListStatusReq
 	return rep.(*pb.ListStatusResponse), nil
 }
 
+func (s *grpcServer) LatestFollowing(ctx context.Context, req *pb.LatestFollowingRequest) (*pb.LatestFollowingResponse, error) {
+	_, rep, err := s.latestfollowing.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.LatestFollowingResponse), nil
+}
+
 func (s *grpcServer) ListRelationship(ctx context.Context, req *pb.ListRelationshipRequest) (*pb.ListRelationshipResponse, error) {
 	_, rep, err := s.listrelationship.ServeGRPC(ctx, req)
 	if err != nil {
@@ -276,6 +319,38 @@ func (s *grpcServer) UnFollow(ctx context.Context, req *pb.UnFollowRequest) (*pb
 		return nil, err
 	}
 	return rep.(*pb.SimpleResponse), nil
+}
+
+func (s *grpcServer) ListMessage(ctx context.Context, req *pb.ListMessageRequest) (*pb.ListMessageResponse, error) {
+	_, rep, err := s.listmessage.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.ListMessageResponse), nil
+}
+
+func (s *grpcServer) ReadMessage(ctx context.Context, req *pb.ReadMessageRequest) (*pb.SimpleResponse, error) {
+	_, rep, err := s.readmessage.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.SimpleResponse), nil
+}
+
+func (s *grpcServer) ListComment(ctx context.Context, req *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
+	_, rep, err := s.listcomment.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.ListCommentResponse), nil
+}
+
+func (s *grpcServer) CreateComment(ctx context.Context, req *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
+	_, rep, err := s.createcomment.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.CreateCommentResponse), nil
 }
 
 // Server Decode
@@ -371,6 +446,13 @@ func DecodeGRPCListUserTimelineRequest(_ context.Context, grpcReq interface{}) (
 	return req, nil
 }
 
+// DecodeGRPCLatestFollowingRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC latestfollowing request to a user-domain latestfollowing request. Primarily useful in a server.
+func DecodeGRPCLatestFollowingRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.LatestFollowingRequest)
+	return req, nil
+}
+
 // DecodeGRPCListRelationshipRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC listrelationship request to a user-domain listrelationship request. Primarily useful in a server.
 func DecodeGRPCListRelationshipRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -389,6 +471,34 @@ func DecodeGRPCFollowRequest(_ context.Context, grpcReq interface{}) (interface{
 // gRPC unfollow request to a user-domain unfollow request. Primarily useful in a server.
 func DecodeGRPCUnFollowRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.UnFollowRequest)
+	return req, nil
+}
+
+// DecodeGRPCListMessageRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC listmessage request to a user-domain listmessage request. Primarily useful in a server.
+func DecodeGRPCListMessageRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ListMessageRequest)
+	return req, nil
+}
+
+// DecodeGRPCReadMessageRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC readmessage request to a user-domain readmessage request. Primarily useful in a server.
+func DecodeGRPCReadMessageRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ReadMessageRequest)
+	return req, nil
+}
+
+// DecodeGRPCListCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC listcomment request to a user-domain listcomment request. Primarily useful in a server.
+func DecodeGRPCListCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ListCommentRequest)
+	return req, nil
+}
+
+// DecodeGRPCCreateCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC createcomment request to a user-domain createcomment request. Primarily useful in a server.
+func DecodeGRPCCreateCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.CreateCommentRequest)
 	return req, nil
 }
 
@@ -485,6 +595,13 @@ func EncodeGRPCListUserTimelineResponse(_ context.Context, response interface{})
 	return resp, nil
 }
 
+// EncodeGRPCLatestFollowingResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain latestfollowing response to a gRPC latestfollowing reply. Primarily useful in a server.
+func EncodeGRPCLatestFollowingResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.LatestFollowingResponse)
+	return resp, nil
+}
+
 // EncodeGRPCListRelationshipResponse is a transport/grpc.EncodeResponseFunc that converts a
 // user-domain listrelationship response to a gRPC listrelationship reply. Primarily useful in a server.
 func EncodeGRPCListRelationshipResponse(_ context.Context, response interface{}) (interface{}, error) {
@@ -503,6 +620,34 @@ func EncodeGRPCFollowResponse(_ context.Context, response interface{}) (interfac
 // user-domain unfollow response to a gRPC unfollow reply. Primarily useful in a server.
 func EncodeGRPCUnFollowResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.SimpleResponse)
+	return resp, nil
+}
+
+// EncodeGRPCListMessageResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain listmessage response to a gRPC listmessage reply. Primarily useful in a server.
+func EncodeGRPCListMessageResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.ListMessageResponse)
+	return resp, nil
+}
+
+// EncodeGRPCReadMessageResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain readmessage response to a gRPC readmessage reply. Primarily useful in a server.
+func EncodeGRPCReadMessageResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.SimpleResponse)
+	return resp, nil
+}
+
+// EncodeGRPCListCommentResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain listcomment response to a gRPC listcomment reply. Primarily useful in a server.
+func EncodeGRPCListCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.ListCommentResponse)
+	return resp, nil
+}
+
+// EncodeGRPCCreateCommentResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain createcomment response to a gRPC createcomment reply. Primarily useful in a server.
+func EncodeGRPCCreateCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.CreateCommentResponse)
 	return resp, nil
 }
 

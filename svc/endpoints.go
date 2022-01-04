@@ -46,9 +46,14 @@ type Endpoints struct {
 	ListStatusEndpoint        endpoint.Endpoint
 	ListRecommendedEndpoint   endpoint.Endpoint
 	ListUserTimelineEndpoint  endpoint.Endpoint
+	LatestFollowingEndpoint   endpoint.Endpoint
 	ListRelationshipEndpoint  endpoint.Endpoint
 	FollowEndpoint            endpoint.Endpoint
 	UnFollowEndpoint          endpoint.Endpoint
+	ListMessageEndpoint       endpoint.Endpoint
+	ReadMessageEndpoint       endpoint.Endpoint
+	ListCommentEndpoint       endpoint.Endpoint
+	CreateCommentEndpoint     endpoint.Endpoint
 }
 
 // Endpoints
@@ -157,6 +162,14 @@ func (e Endpoints) ListUserTimeline(ctx context.Context, in *pb.ListStatusReques
 	return response.(*pb.ListStatusResponse), nil
 }
 
+func (e Endpoints) LatestFollowing(ctx context.Context, in *pb.LatestFollowingRequest) (*pb.LatestFollowingResponse, error) {
+	response, err := e.LatestFollowingEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.LatestFollowingResponse), nil
+}
+
 func (e Endpoints) ListRelationship(ctx context.Context, in *pb.ListRelationshipRequest) (*pb.ListRelationshipResponse, error) {
 	response, err := e.ListRelationshipEndpoint(ctx, in)
 	if err != nil {
@@ -179,6 +192,38 @@ func (e Endpoints) UnFollow(ctx context.Context, in *pb.UnFollowRequest) (*pb.Si
 		return nil, err
 	}
 	return response.(*pb.SimpleResponse), nil
+}
+
+func (e Endpoints) ListMessage(ctx context.Context, in *pb.ListMessageRequest) (*pb.ListMessageResponse, error) {
+	response, err := e.ListMessageEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.ListMessageResponse), nil
+}
+
+func (e Endpoints) ReadMessage(ctx context.Context, in *pb.ReadMessageRequest) (*pb.SimpleResponse, error) {
+	response, err := e.ReadMessageEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.SimpleResponse), nil
+}
+
+func (e Endpoints) ListComment(ctx context.Context, in *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
+	response, err := e.ListCommentEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.ListCommentResponse), nil
+}
+
+func (e Endpoints) CreateComment(ctx context.Context, in *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
+	response, err := e.CreateCommentEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.CreateCommentResponse), nil
 }
 
 // Make Endpoints
@@ -326,6 +371,17 @@ func MakeListUserTimelineEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeLatestFollowingEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.LatestFollowingRequest)
+		v, err := s.LatestFollowing(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeListRelationshipEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.ListRelationshipRequest)
@@ -359,6 +415,50 @@ func MakeUnFollowEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeListMessageEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ListMessageRequest)
+		v, err := s.ListMessage(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeReadMessageEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ReadMessageRequest)
+		v, err := s.ReadMessage(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeListCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ListCommentRequest)
+		v, err := s.ListComment(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeCreateCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.CreateCommentRequest)
+		v, err := s.CreateComment(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 // WrapAllExcept wraps each Endpoint field of struct Endpoints with a
 // go-kit/kit/endpoint.Middleware.
 // Use this for applying a set of middlewares to every endpoint in the service.
@@ -379,9 +479,14 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"ListStatus":        {},
 		"ListRecommended":   {},
 		"ListUserTimeline":  {},
+		"LatestFollowing":   {},
 		"ListRelationship":  {},
 		"Follow":            {},
 		"UnFollow":          {},
+		"ListMessage":       {},
+		"ReadMessage":       {},
+		"ListComment":       {},
+		"CreateComment":     {},
 	}
 
 	for _, ex := range excluded {
@@ -431,6 +536,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "ListUserTimeline" {
 			e.ListUserTimelineEndpoint = middleware(e.ListUserTimelineEndpoint)
 		}
+		if inc == "LatestFollowing" {
+			e.LatestFollowingEndpoint = middleware(e.LatestFollowingEndpoint)
+		}
 		if inc == "ListRelationship" {
 			e.ListRelationshipEndpoint = middleware(e.ListRelationshipEndpoint)
 		}
@@ -439,6 +547,18 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		}
 		if inc == "UnFollow" {
 			e.UnFollowEndpoint = middleware(e.UnFollowEndpoint)
+		}
+		if inc == "ListMessage" {
+			e.ListMessageEndpoint = middleware(e.ListMessageEndpoint)
+		}
+		if inc == "ReadMessage" {
+			e.ReadMessageEndpoint = middleware(e.ReadMessageEndpoint)
+		}
+		if inc == "ListComment" {
+			e.ListCommentEndpoint = middleware(e.ListCommentEndpoint)
+		}
+		if inc == "CreateComment" {
+			e.CreateCommentEndpoint = middleware(e.CreateCommentEndpoint)
 		}
 	}
 }
@@ -467,9 +587,14 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"ListStatus":        {},
 		"ListRecommended":   {},
 		"ListUserTimeline":  {},
+		"LatestFollowing":   {},
 		"ListRelationship":  {},
 		"Follow":            {},
 		"UnFollow":          {},
+		"ListMessage":       {},
+		"ReadMessage":       {},
+		"ListComment":       {},
+		"CreateComment":     {},
 	}
 
 	for _, ex := range excluded {
@@ -519,6 +644,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		if inc == "ListUserTimeline" {
 			e.ListUserTimelineEndpoint = middleware("ListUserTimeline", e.ListUserTimelineEndpoint)
 		}
+		if inc == "LatestFollowing" {
+			e.LatestFollowingEndpoint = middleware("LatestFollowing", e.LatestFollowingEndpoint)
+		}
 		if inc == "ListRelationship" {
 			e.ListRelationshipEndpoint = middleware("ListRelationship", e.ListRelationshipEndpoint)
 		}
@@ -527,6 +655,18 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "UnFollow" {
 			e.UnFollowEndpoint = middleware("UnFollow", e.UnFollowEndpoint)
+		}
+		if inc == "ListMessage" {
+			e.ListMessageEndpoint = middleware("ListMessage", e.ListMessageEndpoint)
+		}
+		if inc == "ReadMessage" {
+			e.ReadMessageEndpoint = middleware("ReadMessage", e.ReadMessageEndpoint)
+		}
+		if inc == "ListComment" {
+			e.ListCommentEndpoint = middleware("ListComment", e.ListCommentEndpoint)
+		}
+		if inc == "CreateComment" {
+			e.CreateCommentEndpoint = middleware("CreateComment", e.CreateCommentEndpoint)
 		}
 	}
 }

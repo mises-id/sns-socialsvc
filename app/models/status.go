@@ -26,6 +26,8 @@ type Status struct {
 	CommentsCount uint64             `bson:"comments_count,omitempty"`
 	LikesCount    uint64             `bson:"likes_count,omitempty"`
 	ForwardsCount uint64             `bson:"forwards_count,omitempty"`
+	HideTime      *time.Time         `bson:"hide_time"`
+	Tags          []enum.TagType     `bson:"tags"`
 	DeletedAt     *time.Time         `bson:"deleted_at,omitempty"`
 	CreatedAt     time.Time          `bson:"created_at,omitempty"`
 	UpdatedAt     time.Time          `bson:"updated_at,omitempty"`
@@ -78,6 +80,27 @@ func (s *Status) AfterCreate(ctx context.Context) error {
 	return nil
 }
 
+func (s *Status) Hide(ctx context.Context, duration int64) error {
+	if duration < 0 {
+		s.HideTime = nil
+	} else {
+		t := time.Now().Add(time.Second * time.Duration(duration))
+		s.HideTime = &t
+	}
+	err := db.DB().Collection("statuses").FindOneAndUpdate(ctx, bson.M{"_id": s.ID},
+		bson.D{{
+			Key: "$set",
+			Value: bson.D{{
+				Key:   "hide_time",
+				Value: s.HideTime,
+			}, {
+				Key:   "updated_at",
+				Value: time.Now(),
+			}}},
+		}).Err()
+	return err
+}
+
 func (s *Status) IncStatusCounter(ctx context.Context, counterKey string, values ...int) error {
 	if counterKey == "" {
 		return nil
@@ -115,12 +138,13 @@ func FindStatus(ctx context.Context, id primitive.ObjectID) (*Status, error) {
 }
 
 type CreateStatusParams struct {
-	UID        uint64
-	ParentID   primitive.ObjectID
-	StatusType enum.StatusType
-	FromType   enum.FromType
-	Content    string
-	MetaData   *meta.MetaData
+	UID          uint64
+	ParentID     primitive.ObjectID
+	StatusType   enum.StatusType
+	FromType     enum.FromType
+	Content      string
+	ShowDuration int64
+	MetaData     meta.MetaData
 }
 
 func CreateStatus(ctx context.Context, params *CreateStatusParams) (*Status, error) {
@@ -130,7 +154,7 @@ func CreateStatus(ctx context.Context, params *CreateStatusParams) (*Status, err
 		FromType:   params.FromType,
 		ParentID:   params.ParentID,
 		Content:    params.Content,
-		MetaData:   *params.MetaData,
+		MetaData:   params.MetaData,
 	}
 	var err error
 	if err = status.BeforeCreate(ctx); err != nil {
@@ -138,6 +162,10 @@ func CreateStatus(ctx context.Context, params *CreateStatusParams) (*Status, err
 	}
 	if err = db.ODM(ctx).Create(status).Error; err != nil {
 		return nil, err
+	}
+	if params.ShowDuration != 0 {
+		t := status.CreatedAt.Add(time.Second * time.Duration(params.ShowDuration))
+		status.HideTime = &t
 	}
 	if err = status.AfterCreate(ctx); err != nil {
 		return nil, err
@@ -160,6 +188,7 @@ type ListStatusParams struct {
 	UIDs           []uint64
 	ParentStatusID primitive.ObjectID
 	FromTypes      []enum.FromType
+	OnlyShow       bool
 	PageParams     *pagination.PageQuickParams
 }
 
@@ -177,6 +206,9 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*Status, pagin
 	}
 	if params.FromTypes != nil {
 		chain = chain.Where(bson.M{"from_type": bson.M{"$in": params.FromTypes}})
+	}
+	if params.OnlyShow {
+		chain = chain.Where(bson.M{"$or": bson.A{bson.M{"hide_time": nil}, bson.M{"hide_time": bson.M{"$gt": time.Now()}}}})
 	}
 	paginator := pagination.NewQuickPaginator(params.PageParams.Limit, params.PageParams.NextID, chain)
 	page, err := paginator.Paginate(&statuses)
