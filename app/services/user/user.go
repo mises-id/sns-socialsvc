@@ -6,6 +6,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
+	"github.com/mises-id/sns-socialsvc/lib/storage"
 )
 
 type UserProfileParams struct {
@@ -38,12 +39,12 @@ func UpdateUserProfile(ctx context.Context, uid uint64, params *UserProfileParam
 	return user, preloadAvatar(ctx, user)
 }
 
-func UpdateUserAvatar(ctx context.Context, uid, attachmentID uint64) (*models.User, error) {
+func UpdateUserAvatar(ctx context.Context, uid uint64, attachmentPath string) (*models.User, error) {
 	user, err := models.FindUser(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	user.AvatarID = attachmentID
+	user.AvatarPath = attachmentPath
 	if err = models.UpdateUserAvatar(ctx, user); err != nil {
 		return nil, err
 	}
@@ -66,16 +67,18 @@ func UpdateUsername(ctx context.Context, uid uint64, username string) (*models.U
 }
 
 func preloadAvatar(ctx context.Context, users ...*models.User) error {
-	avatarIDs := make([]uint64, len(users))
-	for i, user := range users {
-		avatarIDs[i] = user.AvatarID
+	paths := make([]string, 0)
+	for _, user := range users {
+		if user.AvatarPath != "" {
+			paths = append(paths, user.AvatarPath)
+		}
 	}
-	attachmentMap, err := models.FindAttachmentMap(ctx, avatarIDs)
+	avatars, err := storage.ImageClient.GetFileUrl(ctx, paths...)
 	if err != nil {
 		return err
 	}
 	for _, user := range users {
-		user.Avatar = attachmentMap[user.AvatarID]
+		user.AvatarUrl = avatars[user.AvatarPath]
 	}
 	return nil
 }

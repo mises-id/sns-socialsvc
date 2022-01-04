@@ -7,12 +7,14 @@ type StatusType uint8
 const (
 	TextStatus StatusType = iota
 	LinkStatus
+	ImageStatus
 )
 
 var (
 	statusTypeMap = map[StatusType]string{
-		TextStatus: "text",
-		LinkStatus: "link",
+		TextStatus:  "text",
+		LinkStatus:  "link",
+		ImageStatus: "image",
 	}
 	statusTypeStringMap = map[string]StatusType{}
 )

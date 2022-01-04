@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"encoding/json"
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
@@ -10,19 +9,19 @@ import (
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
-	"github.com/sirupsen/logrus"
+	"github.com/mises-id/sns-socialsvc/lib/storage"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Status struct {
+	meta.MetaData
 	ID            primitive.ObjectID `bson:"_id,omitempty"`
 	ParentID      primitive.ObjectID `bson:"parent_id,omitempty"`
 	OriginID      primitive.ObjectID `bson:"origin_id,omitempty"`
 	UID           uint64             `bson:"uid,omitempty"`
 	FromType      enum.FromType      `bson:"from_type"`
 	StatusType    enum.StatusType    `bson:"status_type"`
-	Meta          json.RawMessage    `bson:"meta,omitempty"`
 	Content       string             `bson:"content,omitempty" validate:"min=0,max=4000"`
 	CommentsCount uint64             `bson:"comments_count,omitempty"`
 	LikesCount    uint64             `bson:"likes_count,omitempty"`
@@ -34,7 +33,6 @@ type Status struct {
 	IsLiked       bool               `bson:"-"`
 	ParentStatus  *Status            `bson:"-"`
 	OriginStatus  *Status            `bson:"-"`
-	metaData      meta.MetaData      `bson:"-"`
 }
 
 func (s *Status) validate(ctx context.Context) error {
@@ -98,15 +96,6 @@ func (s *Status) IncStatusCounter(ctx context.Context, counterKey string, values
 		}).Err()
 }
 
-func (s *Status) GetMetaData() (meta.MetaData, error) {
-	var err error
-	if s.metaData == nil {
-		logrus.Info("build meta: ", s.ID.Hex())
-		s.metaData, err = meta.BuildStatusMeta(s.StatusType, s.Meta)
-	}
-	return s.metaData, err
-}
-
 func FindStatus(ctx context.Context, id primitive.ObjectID) (*Status, error) {
 	status := &Status{}
 	err := db.ODM(ctx).First(status, bson.M{"_id": id}).Error
@@ -119,6 +108,9 @@ func FindStatus(ctx context.Context, id primitive.ObjectID) (*Status, error) {
 	if err = preloadAttachment(ctx, status); err != nil {
 		return nil, err
 	}
+	if err = preloadImage(ctx, status); err != nil {
+		return nil, err
+	}
 	return status, preloadStatusUser(ctx, status)
 }
 
@@ -128,7 +120,7 @@ type CreateStatusParams struct {
 	StatusType enum.StatusType
 	FromType   enum.FromType
 	Content    string
-	MetaData   meta.MetaData
+	MetaData   *meta.MetaData
 }
 
 func CreateStatus(ctx context.Context, params *CreateStatusParams) (*Status, error) {
@@ -138,14 +130,9 @@ func CreateStatus(ctx context.Context, params *CreateStatusParams) (*Status, err
 		FromType:   params.FromType,
 		ParentID:   params.ParentID,
 		Content:    params.Content,
+		MetaData:   *params.MetaData,
 	}
 	var err error
-	if params.MetaData != nil {
-		status.Meta, err = json.Marshal(params.MetaData)
-		if err != nil {
-			return nil, err
-		}
-	}
 	if err = status.BeforeCreate(ctx); err != nil {
 		return nil, err
 	}
@@ -202,6 +189,9 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*Status, pagin
 	if err = preloadAttachment(ctx, statuses...); err != nil {
 		return nil, nil, err
 	}
+	if err = preloadImage(ctx, statuses...); err != nil {
+		return nil, nil, err
+	}
 	return statuses, page, preloadStatusUser(ctx, statuses...)
 }
 
@@ -220,6 +210,9 @@ func ListCommentStatus(ctx context.Context, statusID primitive.ObjectID, pagePar
 		return nil, nil, err
 	}
 	if err = preloadAttachment(ctx, statuses...); err != nil {
+		return nil, nil, err
+	}
+	if err = preloadImage(ctx, statuses...); err != nil {
 		return nil, nil, err
 	}
 	return statuses, page, preloadStatusUser(ctx, statuses...)
@@ -272,6 +265,9 @@ func preloadRelatedStatus(ctx context.Context, statuses ...*Status) error {
 	if err = preloadAttachment(ctx, relatedStatuses...); err != nil {
 		return err
 	}
+	if err = preloadImage(ctx, relatedStatuses...); err != nil {
+		return err
+	}
 	statusMap := make(map[primitive.ObjectID]*Status)
 	for _, status := range relatedStatuses {
 		statusMap[status.ID] = status
@@ -284,35 +280,52 @@ func preloadRelatedStatus(ctx context.Context, statuses ...*Status) error {
 }
 
 func preloadAttachment(ctx context.Context, statuses ...*Status) error {
-	attachmentIDs := make([]uint64, 0)
+	paths := make([]string, 0)
 	linkMetas := make([]*meta.LinkMeta, 0)
 	for _, status := range statuses {
 		if status.StatusType != enum.LinkStatus {
 			continue
 		}
-		metaData, err := status.GetMetaData()
-		if err != nil {
-			return err
-		}
-		if metaData != nil {
-			linkMeta := metaData.(*meta.LinkMeta)
-			attachmentIDs = append(attachmentIDs, linkMeta.AttachmentID)
-			linkMetas = append(linkMetas, linkMeta)
+		linkMeta := status.LinkMeta
+		if linkMeta != nil {
+			paths = append(paths, linkMeta.ImagePath)
 		}
 
 	}
-	attachments := make([]*Attachment, 0)
-	err := db.ODM(ctx).Where(bson.M{"_id": bson.M{"$in": attachmentIDs}}).Find(&attachments).Error
+	images, err := storage.ImageClient.GetFileUrl(ctx, paths...)
 	if err != nil {
 		return err
 	}
-	attachmentMap := make(map[uint64]*Attachment)
-	for _, attachment := range attachments {
-		attachmentMap[attachment.ID] = attachment
-	}
 	for _, linkMeta := range linkMetas {
-		if attachmentMap[linkMeta.AttachmentID] != nil {
-			linkMeta.AttachmentURL = attachmentMap[linkMeta.AttachmentID].FileUrl()
+		if images[linkMeta.ImagePath] != "" {
+			linkMeta.ImageURL = images[linkMeta.ImagePath]
+		}
+	}
+	return nil
+}
+
+func preloadImage(ctx context.Context, statuses ...*Status) error {
+	paths := make([]string, 0)
+	metas := make([]*meta.ImageMeta, 0)
+	for _, status := range statuses {
+		if status.StatusType != enum.ImageStatus {
+			continue
+		}
+		meta := status.ImageMeta
+		if meta != nil {
+			paths = append(paths, meta.Images...)
+			metas = append(metas, meta)
+		}
+
+	}
+	images, err := storage.ImageClient.GetFileUrl(ctx, paths...)
+	if err != nil {
+		return err
+	}
+	for _, meta := range metas {
+		meta.ImageURLs = []string{}
+		for _, path := range meta.Images {
+			meta.ImageURLs = append(meta.ImageURLs, images[path])
 		}
 	}
 	return nil
