@@ -107,6 +107,14 @@ func (u *User) UpdatePostTime(ctx context.Context, t time.Time) error {
 		}).Err()
 }
 
+func ListUserByIDs(ctx context.Context, uids ...uint64) ([]*User, error) {
+	users := make([]*User, 0)
+	chain := db.ODM(ctx).Where(bson.M{
+		"_id": bson.M{"$in": uids},
+	})
+	return users, chain.Find(&users).Error
+}
+
 func FindUser(ctx context.Context, uid uint64) (*User, error) {
 	user := &User{}
 	result := db.DB().Collection("users").FindOne(ctx, &bson.M{
