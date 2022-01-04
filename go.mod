@@ -15,7 +15,7 @@ require (
 	github.com/kr/pretty v0.3.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mises-id/mises-tm v0.0.0-20211229053907-7f70cc1f8835 // indirect
-	github.com/mises-id/sdk v0.0.0-20211229101239-3ef268c49a65
+	github.com/mises-id/sdk v0.0.0-20211230080547-c4ca8c16a10e
 	github.com/mises-id/sns-storagesvc/sdk v0.0.0-20211221064425-26bd51fd6a98
 	github.com/onsi/gomega v1.14.0 // indirect
 	github.com/pkg/errors v0.9.1

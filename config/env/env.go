@@ -3,8 +3,6 @@ package env
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"runtime"
 	"time"
 
 	"github.com/caarlos0/env"
@@ -38,19 +36,25 @@ type Env struct {
 
 func init() {
 	fmt.Println("socialsvc env initializing...")
-	_, b, _, _ := runtime.Caller(0)
+	//_, b, _, _ := runtime.Caller(0)
 	appEnv := os.Getenv("APP_ENV")
-	projectRootPath := filepath.Dir(b) + "/../../"
-	envPath := projectRootPath + ".env"
+	projectRootPath, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	envPath := projectRootPath + "/.env"
 	appEnvPath := envPath + "." + appEnv
 	localEnvPath := appEnvPath + ".local"
 	_ = godotenv.Load(filtePath(localEnvPath, appEnvPath, envPath)...)
 	Envs = &Env{}
-	err := env.Parse(Envs)
+	err = env.Parse(Envs)
 	if err != nil {
 		panic(err)
 	}
 	Envs.RootPath = projectRootPath
+	fmt.Println("socialsvc env root " + projectRootPath)
+	fmt.Println("socialsvc env chain id " + Envs.MisesChainID)
+	fmt.Println("socialsvc env debug prefix " + Envs.DebugMisesPrefix)
 	fmt.Println("socialsvc env loaded...")
 }
 

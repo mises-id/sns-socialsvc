@@ -29,7 +29,13 @@ type ClientImpl struct {
 
 func (c *ClientImpl) Register(misesUID string, pubKey string) error {
 
-	return c.app.RegisterUserAsync(misesUID, pubKey)
+	return c.app.RegisterUserAsync(
+		types.Registration{
+			MisesUID:         misesUID,
+			PubKey:           pubKey,
+			FeeGrantedPerDay: 1000000,
+		},
+	)
 }
 func (c *ClientImpl) Auth(auth string) (string, string, error) {
 	// just for staging environment
