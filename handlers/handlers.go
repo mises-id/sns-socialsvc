@@ -172,6 +172,8 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 	case enum.LinkStatus:
 		data.LinkMeta = &meta.LinkMeta{}
 		_ = json.Unmarshal([]byte(in.Meta), data.LinkMeta)
+	case enum.ImageStatus:
+		data.ImageMeta = &meta.ImageMeta{Images: in.Images}
 	}
 	param.Meta = data
 

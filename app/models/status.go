@@ -176,6 +176,9 @@ func CreateStatus(ctx context.Context, params *CreateStatusParams) (*Status, err
 	if err = preloadAttachment(ctx, status); err != nil {
 		return nil, err
 	}
+	if err = preloadImage(ctx, status); err != nil {
+		return nil, err
+	}
 	return status, preloadStatusUser(ctx, status)
 }
 
@@ -321,6 +324,7 @@ func preloadAttachment(ctx context.Context, statuses ...*Status) error {
 		linkMeta := status.LinkMeta
 		if linkMeta != nil {
 			paths = append(paths, linkMeta.ImagePath)
+			linkMetas = append(linkMetas, linkMeta)
 		}
 
 	}
