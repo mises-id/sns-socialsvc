@@ -252,7 +252,12 @@ func (s socialService) ListRelationship(ctx context.Context, in *pb.ListRelation
 	if err != nil {
 		return nil, err
 	}
-	relations, page, err := friendshipSVC.ListFriendship(ctx, in.CurrentUid, relationType, &pagination.QuickPagination{
+	ctxWithUID := ctx
+	if in.CurrentUid > 0 {
+		ctxWithUID = context.WithValue(ctx, "CurrentUID", in.CurrentUid)
+	}
+
+	relations, page, err := friendshipSVC.ListFriendship(ctxWithUID, in.Uid, relationType, &pagination.QuickPagination{
 		Limit:  int64(in.Paginator.Limit),
 		NextID: in.Paginator.NextId,
 	})

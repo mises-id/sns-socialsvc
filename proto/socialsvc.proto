@@ -327,6 +327,7 @@ message UserInfo {
   string email = 6;
   string address = 7;
   string avatar = 8;
+  bool is_followed = 9;
 }
 message FindUserRequest {
   uint64 uid = 1;
@@ -476,8 +477,9 @@ message RelationInfo {
 
 message ListRelationshipRequest {
   uint64 current_uid = 1;
-  string relation_type = 2;
-  PageQuick paginator = 3;
+  uint64 uid = 2;
+  string relation_type = 3;
+  PageQuick paginator = 4;
 }
 
 message ListRelationshipResponse {

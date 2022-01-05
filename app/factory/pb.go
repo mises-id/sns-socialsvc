@@ -10,14 +10,15 @@ import (
 
 func NewUserInfo(user *models.User) *pb.UserInfo {
 	userinfo := pb.UserInfo{
-		Uid:      user.UID,
-		Username: user.Username,
-		Misesid:  user.Misesid,
-		Gender:   user.Gender.String(),
-		Mobile:   user.Mobile,
-		Email:    user.Email,
-		Address:  user.Address,
-		Avatar:   user.AvatarUrl,
+		Uid:        user.UID,
+		Username:   user.Username,
+		Misesid:    user.Misesid,
+		Gender:     user.Gender.String(),
+		Mobile:     user.Mobile,
+		Email:      user.Email,
+		Address:    user.Address,
+		Avatar:     user.AvatarUrl,
+		IsFollowed: user.IsFollowed,
 	}
 	return &userinfo
 }
