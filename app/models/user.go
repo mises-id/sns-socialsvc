@@ -72,7 +72,9 @@ func (u *User) IncFollowingCount(ctx context.Context) error {
 			Value: bson.D{{
 				Key:   "following_count",
 				Value: 1,
-			}, {
+			}}}, {
+			Key: "$set",
+			Value: bson.D{{
 				Key:   "updated_at",
 				Value: time.Now(),
 			}}},
@@ -86,7 +88,9 @@ func (u *User) IncFansCount(ctx context.Context) error {
 			Value: bson.D{{
 				Key:   "fans_count",
 				Value: 1,
-			}, {
+			}}}, {
+			Key: "$set",
+			Value: bson.D{{
 				Key:   "updated_at",
 				Value: time.Now(),
 			}}},
