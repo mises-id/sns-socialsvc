@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -12,6 +13,7 @@ import (
 
 type Like struct {
 	ID         primitive.ObjectID  `bson:"_id,omitempty"`
+	OwnerID    uint64              `bson:"owner_id,omitempty"`
 	UID        uint64              `bson:"uid,omitempty"`
 	TargetID   primitive.ObjectID  `bson:"target_id,omitempty"`
 	TargetType enum.LikeTargetType `bson:"target_type"`
@@ -20,13 +22,35 @@ type Like struct {
 	UpdatedAt  time.Time           `bson:"updated_at,omitempty"`
 }
 
-func CreateLike(ctx context.Context, uid uint64, targetID primitive.ObjectID, targetType enum.LikeTargetType) (*Like, error) {
+func (l *Like) AfterCreate(ctx context.Context) error {
+	_, err := CreateMessage(ctx, &CreateMessageParams{
+		UID:         l.OwnerID,
+		MessageType: enum.NewLike,
+		MetaData: &message.MetaData{
+			LikeMeta: &message.LikeMeta{
+				UID:        l.UID,
+				TargetID:   l.TargetID,
+				TargetType: l.TargetType,
+			},
+		},
+	})
+	return err
+}
+
+func CreateLike(ctx context.Context, ownerID, uid uint64, targetID primitive.ObjectID, targetType enum.LikeTargetType) (*Like, error) {
 	like := &Like{
+		OwnerID:    ownerID,
 		UID:        uid,
 		TargetID:   targetID,
 		TargetType: targetType,
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
 	}
-	return like, db.ODM(ctx).Create(like).Error
+	err := db.ODM(ctx).Create(like).Error
+	if err != nil {
+		return nil, err
+	}
+	return like, like.AfterCreate(ctx)
 }
 
 func DeleteLike(ctx context.Context, id primitive.ObjectID) error {

@@ -17,6 +17,7 @@ type Follow struct {
 	FromUID   uint64             `bson:"from_uid,omitempty"`
 	ToUID     uint64             `bson:"to_uid,omitempty"`
 	IsFriend  bool               `bson:"is_friend,omitempty"`
+	ReadTime  time.Time          `bson:"read_time,omitempty"`
 	CreatedAt time.Time          `bson:"created_at,omitempty"`
 	UpdatedAt time.Time          `bson:"updated_at,omitempty"`
 	FromUser  *User              `bson:"-"`
@@ -27,6 +28,12 @@ func (a *Follow) BeforeCreate(ctx context.Context) error {
 	a.CreatedAt = time.Now()
 	a.UpdatedAt = time.Now()
 	return nil
+}
+
+func LatestFollowing(ctx context.Context, uid uint64) ([]*Follow, error) {
+	follows := make([]*Follow, 0)
+	return follows, db.ODM(ctx).Where(bson.M{"from_uid": uid}).
+		Sort(bson.M{"read_time": -1}).Find(&follows).Error
 }
 
 func ListFollow(ctx context.Context, uid uint64, relationType enum.RelationType, pageParams *pagination.QuickPagination) ([]*Follow, pagination.Pagination, error) {
@@ -52,6 +59,7 @@ func CreateFollow(ctx context.Context, fromUID, toUID uint64, isFriend bool) (*F
 		FromUID:  fromUID,
 		ToUID:    toUID,
 		IsFriend: isFriend,
+		ReadTime: time.Now(),
 	}
 	if err := follow.BeforeCreate(ctx); err != nil {
 		return nil, err
@@ -68,6 +76,22 @@ func (f *Follow) SetFriend(ctx context.Context, isFriend bool) error {
 	f.IsFriend = isFriend
 	_, err := db.DB().Collection("follows").UpdateByID(ctx, f.ID, bson.M{"$set": bson.M{"is_friend": isFriend}})
 	return err
+}
+
+func UpdateReadTime(ctx context.Context, uid uint64, t time.Time, targetUIDs ...uint64) error {
+	return db.DB().Collection("users").FindOneAndUpdate(ctx, bson.M{
+		"from_uid": uid,
+		"to_uid":   bson.M{"$in": targetUIDs},
+	}, bson.D{{
+		Key: "$set",
+		Value: bson.D{{
+			Key:   "read_time",
+			Value: t,
+		}, {
+			Key:   "updated_at",
+			Value: time.Now(),
+		}}},
+	}).Err()
 }
 
 func GetFollow(ctx context.Context, fromUID, toUID uint64) (*Follow, error) {
@@ -119,6 +143,9 @@ func preloadFollowUser(ctx context.Context, follows []*Follow) error {
 		return err
 	}
 	if err = PreloadUserAvatar(ctx, users...); err != nil {
+		return err
+	}
+	if err = BatchSetFolloweState(ctx, users...); err != nil {
 		return err
 	}
 	userMap := make(map[uint64]*User)

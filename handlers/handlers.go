@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 
 	"github.com/mises-id/sns-socialsvc/app/factory"
+	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
+	commentSVC "github.com/mises-id/sns-socialsvc/app/services/comment"
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
+	messageSVC "github.com/mises-id/sns-socialsvc/app/services/message"
 	sessionSVC "github.com/mises-id/sns-socialsvc/app/services/session"
 	statusSVC "github.com/mises-id/sns-socialsvc/app/services/status"
 	userSVC "github.com/mises-id/sns-socialsvc/app/services/user"
@@ -169,8 +172,10 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 	case enum.LinkStatus:
 		data.LinkMeta = &meta.LinkMeta{}
 		_ = json.Unmarshal([]byte(in.Meta), data.LinkMeta)
+	case enum.ImageStatus:
+		data.ImageMeta = &meta.ImageMeta{Images: in.Images}
 	}
-	param.Meta = &data
+	param.Meta = data
 
 	status, err := statusSVC.CreateStatus(ctx, in.CurrentUid, param)
 
@@ -247,7 +252,12 @@ func (s socialService) ListRelationship(ctx context.Context, in *pb.ListRelation
 	if err != nil {
 		return nil, err
 	}
-	relations, page, err := friendshipSVC.ListFriendship(ctx, in.CurrentUid, relationType, &pagination.QuickPagination{
+	ctxWithUID := ctx
+	if in.CurrentUid > 0 {
+		ctxWithUID = context.WithValue(ctx, "CurrentUID", in.CurrentUid)
+	}
+
+	relations, page, err := friendshipSVC.ListFriendship(ctxWithUID, in.Uid, relationType, &pagination.QuickPagination{
 		Limit:  int64(in.Paginator.Limit),
 		NextID: in.Paginator.NextId,
 	})
@@ -299,5 +309,70 @@ func (s socialService) Follow(ctx context.Context, in *pb.FollowRequest) (*pb.Si
 		return nil, err
 	}
 	resp.Code = 0
+	return &resp, nil
+}
+
+func (s socialService) ListMessage(ctx context.Context, in *pb.ListMessageRequest) (*pb.ListMessageResponse, error) {
+	var resp pb.ListMessageResponse
+	messages, page, err := messageSVC.ListMessage(ctx, &messageSVC.ListMessageParams{
+		ListMessageParams: models.ListMessageParams{
+			UID: in.GetCurrentUid(),
+			PageParams: &pagination.PageQuickParams{
+				Limit:  int64(in.Paginator.Limit),
+				NextID: in.Paginator.NextId,
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	resp.Code = 0
+	resp.Messages = factory.NewMessageSlice(messages)
+	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
+	resp.Paginator = &pb.PageQuick{
+		Limit:  uint64(quickpage.Limit),
+		NextId: quickpage.NextID,
+	}
+	return &resp, nil
+}
+
+func (s socialService) ReadMessage(ctx context.Context, in *pb.ReadMessageRequest) (*pb.SimpleResponse, error) {
+	var resp pb.SimpleResponse
+	return &resp, nil
+}
+
+func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
+	var resp pb.ListCommentResponse
+	comments, page, err := commentSVC.ListComment(ctx, &commentSVC.ListCommentParams{
+		ListCommentParams: models.ListCommentParams{},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Comments = factory.NewCommentSlice(comments)
+	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
+	resp.Paginator = &pb.PageQuick{
+		Limit:  uint64(quickpage.Limit),
+		NextId: quickpage.NextID,
+	}
+	return &resp, nil
+}
+
+func (s socialService) LatestFollowing(ctx context.Context, in *pb.LatestFollowingRequest) (*pb.LatestFollowingResponse, error) {
+	var resp pb.LatestFollowingResponse
+	followings, err := friendshipSVC.LatestFollowing(ctx, in.CurrentUid)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Followings = factory.NewFollowingSlice(followings)
+
+	return &resp, nil
+}
+
+func (s socialService) CreateComment(ctx context.Context, in *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
+	var resp pb.CreateCommentResponse
 	return &resp, nil
 }
