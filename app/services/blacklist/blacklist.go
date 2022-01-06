@@ -4,10 +4,16 @@ import (
 	"context"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
+	"github.com/mises-id/sns-socialsvc/lib/pagination"
 )
 
-func ListBlacklist(ctx context.Context, uid uint64) ([]*models.Blacklist, error) {
-	return models.ListBlacklist(ctx, uid)
+type ListBlacklistParams struct {
+	UID        uint64
+	PageParams *pagination.PageQuickParams
+}
+
+func ListBlacklist(ctx context.Context, params *ListBlacklistParams) ([]*models.Blacklist, pagination.Pagination, error) {
+	return models.ListBlacklist(ctx, params.UID, params.PageParams)
 }
 
 func CreateBlacklist(ctx context.Context, uid, targetUID uint64) (*models.Blacklist, error) {

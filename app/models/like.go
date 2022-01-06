@@ -7,6 +7,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/lib/db"
+	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -20,6 +21,8 @@ type Like struct {
 	DeletedAt  time.Time           `bson:"deleted_at,omitempty"`
 	CreatedAt  time.Time           `bson:"created_at,omitempty"`
 	UpdatedAt  time.Time           `bson:"updated_at,omitempty"`
+	Status     *Status             `bson:"-"`
+	Comment    *Comment            `bson:"-"`
 }
 
 func (l *Like) AfterCreate(ctx context.Context) error {
@@ -87,4 +90,43 @@ func GetStatusLikeMap(ctx context.Context, uid uint64, statusIDs []primitive.Obj
 		likeMap[like.TargetID] = like
 	}
 	return likeMap, nil
+}
+
+func ListLike(ctx context.Context, uid uint64, tp enum.LikeTargetType, pageParams *pagination.PageQuickParams) ([]*Like, pagination.Pagination, error) {
+	if pageParams == nil {
+		pageParams = pagination.DefaultQuickParams()
+	}
+	likes := make([]*Like, 0)
+	chain := db.ODM(ctx).Where(bson.M{"uid": uid, "target_type": tp})
+	paginator := pagination.NewQuickPaginator(pageParams.Limit, pageParams.NextID, chain)
+	page, err := paginator.Paginate(&likes)
+	if err == nil {
+		return nil, nil, err
+	}
+	return likes, page, preloadLikeStatus(ctx, likes...)
+}
+
+func preloadLikeStatus(ctx context.Context, likes ...*Like) error {
+	statusIDs := make([]primitive.ObjectID, 0)
+	for _, like := range likes {
+		if like.TargetType != enum.LikeStatus {
+			continue
+		}
+		statusIDs = append(statusIDs, like.TargetID)
+	}
+	statuses, err := FindStatusByIDs(ctx, statusIDs...)
+	if err != nil {
+		return err
+	}
+	statusMap := make(map[primitive.ObjectID]*Status)
+	for _, status := range statuses {
+		statusMap[status.ID] = status
+	}
+	for _, like := range likes {
+		if like.TargetType != enum.LikeStatus {
+			continue
+		}
+		like.Status = statusMap[like.TargetID]
+	}
+	return nil
 }

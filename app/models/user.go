@@ -197,6 +197,15 @@ func createMisesUser(ctx context.Context, misesid string) (*User, error) {
 	return user, err
 }
 
+func FindUserByIDs(ctx context.Context, ids ...uint64) ([]*User, error) {
+	users := make([]*User, 0)
+	err := db.ODM(ctx).Where(bson.M{"_id": bson.M{"$in": ids}}).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, PreloadUserAvatar(ctx, users...)
+}
+
 func PreloadUserAvatar(ctx context.Context, users ...*User) error {
 	paths := make([]string, 0)
 	for _, user := range users {

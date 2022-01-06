@@ -157,6 +157,15 @@ func UnlikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) 
 	return status.IncStatusCounter(ctx, "likes_count", -1)
 }
 
+type ListLikeStatusParams struct {
+	UID        uint64
+	PageParams *pagination.PageQuickParams
+}
+
+func ListLikeStatus(ctx context.Context, params *ListLikeStatusParams) ([]*models.Like, pagination.Pagination, error) {
+	return models.ListLike(ctx, params.UID, enum.LikeStatus, params.PageParams)
+}
+
 func DeleteStatus(ctx context.Context, uid uint64, id primitive.ObjectID) error {
 	status, err := models.FindStatus(ctx, id)
 	if err != nil {

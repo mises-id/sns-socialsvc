@@ -142,6 +142,18 @@ service Social {
     };
   }
 
+  // list like status
+  rpc ListLikeStatus (ListLikeRequest) returns (ListLikeResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/status/like/list"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/status/like/list"
+      }
+    };
+  }
 
   //query single status
   rpc GetStatus (GetStatusRequest) returns (GetStatusResponse) {
@@ -302,7 +314,47 @@ service Social {
 
       additional_bindings {
         // Trailing slashes are different routes
-        get: "/comment/create/"
+        post: "/comment/create/"
+        body: "*"
+      }
+    };
+  }
+
+  rpc ListBlacklist (ListBlacklistRequest) returns (ListBlacklistResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/blacklist/list"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/blacklist/list"
+      }
+    };
+  }
+
+  rpc CreateBlacklist (CreateBlacklistRequest) returns (SimpleResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/blacklist/create"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/blacklist/create/"
+        body: "*"
+      }
+    };
+  }
+
+  rpc DeleteBlacklist (DeleteBlacklistRequest) returns (SimpleResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/blacklist/delete"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/blacklist/delete/"
         body: "*"
       }
     };
@@ -590,4 +642,46 @@ message Following {
 message LatestFollowingResponse {
   uint64 code = 1;
   repeated Following followings = 2;
+}
+
+message Blacklist {
+  UserInfo user = 1;
+	uint64 created_at = 2;
+}
+
+message ListBlacklistRequest {
+  uint64 uid = 1;
+  PageQuick paginator = 2;
+}
+
+message ListBlacklistResponse {
+  uint64 code = 1;
+  repeated Blacklist blacklists = 2;
+  PageQuick paginator = 3;
+}
+
+message CreateBlacklistRequest {
+  uint64 uid = 1;
+  uint64 target_uid = 2;
+}
+
+message DeleteBlacklistRequest {
+  uint64 uid = 1;
+  uint64 target_uid = 2;
+}
+
+message ListLikeRequest {
+  uint64 uid = 1;
+  PageQuick paginator = 2;
+}
+
+message StatusLike {
+  StatusInfo status = 1;
+  uint64 created_at = 13;
+}
+
+message ListLikeResponse {
+  uint64 code = 1;
+  repeated StatusLike statuses = 2;
+  PageQuick paginator = 3;
 }

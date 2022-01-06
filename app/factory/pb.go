@@ -207,3 +207,25 @@ func NewFollowingSlice(follows []*models.Follow) []*pb.Following {
 	}
 	return result
 }
+
+func NewBlacklistSlice(blacklists []*models.Blacklist) []*pb.Blacklist {
+	result := make([]*pb.Blacklist, len(blacklists))
+	for i, blacklist := range blacklists {
+		result[i] = &pb.Blacklist{
+			User:      NewUserInfo(blacklist.TargetUser),
+			CreatedAt: uint64(blacklist.CreatedAt.Unix()),
+		}
+	}
+	return result
+}
+
+func NewStatusLikeSlice(likes []*models.Like) []*pb.StatusLike {
+	result := make([]*pb.StatusLike, len(likes))
+	for i, like := range likes {
+		result[i] = &pb.StatusLike{
+			Status:    NewStatusInfo(like.Status),
+			CreatedAt: uint64(like.CreatedAt.Unix()),
+		}
+	}
+	return result
+}

@@ -64,6 +64,15 @@ func (c *Comment) AfterCreate(ctx context.Context) error {
 	return err
 }
 
+func FindComment(ctx context.Context, id primitive.ObjectID) (*Comment, error) {
+	comment := &Comment{}
+	err := db.ODM(ctx).First(comment, bson.M{"_id": id}).Error
+	if err != nil {
+		return nil, err
+	}
+	return comment, nil
+}
+
 func ListComment(ctx context.Context, params *ListCommentParams) ([]*Comment, pagination.Pagination, error) {
 	if params.PageParams == nil {
 		params.PageParams = pagination.DefaultQuickParams()

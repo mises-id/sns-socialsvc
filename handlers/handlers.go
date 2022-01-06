@@ -8,6 +8,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
+	blacklistSVC "github.com/mises-id/sns-socialsvc/app/services/blacklist"
 	commentSVC "github.com/mises-id/sns-socialsvc/app/services/comment"
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
 	messageSVC "github.com/mises-id/sns-socialsvc/app/services/message"
@@ -375,5 +376,88 @@ func (s socialService) LatestFollowing(ctx context.Context, in *pb.LatestFollowi
 
 func (s socialService) CreateComment(ctx context.Context, in *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
 	var resp pb.CreateCommentResponse
+	statusID, err := primitive.ObjectIDFromHex(in.GetStatusId())
+	if err != nil {
+		return nil, err
+	}
+	var parentID primitive.ObjectID
+	if in.GetParentId() != "" {
+		parentID, err = primitive.ObjectIDFromHex(in.GetStatusId())
+		if err != nil {
+			return nil, err
+		}
+	}
+	comment, err := commentSVC.CreateComment(ctx, &commentSVC.CreateCommentParams{
+		CreateCommentParams: &models.CreateCommentParams{
+			StatusID: statusID,
+			ParentID: parentID,
+			UID:      in.GetCurrentUid(),
+			Content:  in.GetContent(),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Comment = factory.NewComment(comment)
 	return &resp, nil
+}
+
+func (s socialService) ListLikeStatus(ctx context.Context, in *pb.ListLikeRequest) (*pb.ListLikeResponse, error) {
+	var resp pb.ListLikeResponse
+	likes, page, err := statusSVC.ListLikeStatus(ctx, &statusSVC.ListLikeStatusParams{
+		UID: in.GetUid(),
+		PageParams: &pagination.PageQuickParams{
+			Limit:  int64(in.Paginator.Limit),
+			NextID: in.Paginator.NextId,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Statuses = factory.NewStatusLikeSlice(likes)
+	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
+	resp.Paginator = &pb.PageQuick{
+		Limit:  uint64(quickpage.Limit),
+		NextId: quickpage.NextID,
+	}
+	return &resp, nil
+}
+
+func (s socialService) DeleteBlacklist(ctx context.Context, in *pb.DeleteBlacklistRequest) (*pb.SimpleResponse, error) {
+	var resp pb.SimpleResponse
+	err := blacklistSVC.DeleteBlacklist(ctx, in.GetUid(), in.GetTargetUid())
+	resp.Code = 0
+	return &resp, err
+}
+
+func (s socialService) ListBlacklist(ctx context.Context, in *pb.ListBlacklistRequest) (*pb.ListBlacklistResponse, error) {
+	var resp pb.ListBlacklistResponse
+	blacklists, page, err := blacklistSVC.ListBlacklist(ctx, &blacklistSVC.ListBlacklistParams{
+		UID: in.GetUid(),
+		PageParams: &pagination.PageQuickParams{
+			Limit:  int64(in.Paginator.Limit),
+			NextID: in.Paginator.NextId,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Blacklists = factory.NewBlacklistSlice(blacklists)
+	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
+	resp.Paginator = &pb.PageQuick{
+		Limit:  uint64(quickpage.Limit),
+		NextId: quickpage.NextID,
+	}
+
+	return &resp, nil
+}
+
+func (s socialService) CreateBlacklist(ctx context.Context, in *pb.CreateBlacklistRequest) (*pb.SimpleResponse, error) {
+	var resp pb.SimpleResponse
+	_, err := blacklistSVC.CreateBlacklist(ctx, in.GetUid(), in.GetTargetUid())
+	resp.Code = 0
+	return &resp, err
 }
