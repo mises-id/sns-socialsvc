@@ -9,6 +9,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -105,6 +106,17 @@ func GetFollow(ctx context.Context, fromUID, toUID uint64) (*Follow, error) {
 		return nil, err
 	}
 	return follow, result.Decode(follow)
+}
+
+func EnsureDeleteFollow(ctx context.Context, fromUID, toUID uint64) error {
+	_, err := GetFollow(ctx, fromUID, toUID)
+	if err == nil {
+		return DeleteFollow(ctx, fromUID, toUID)
+	}
+	if err == mongo.ErrNoDocuments {
+		return nil
+	}
+	return err
 }
 
 func DeleteFollow(ctx context.Context, fromUID, toUID uint64) error {
