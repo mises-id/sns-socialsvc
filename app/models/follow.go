@@ -33,8 +33,12 @@ func (a *Follow) BeforeCreate(ctx context.Context) error {
 
 func LatestFollowing(ctx context.Context, uid uint64) ([]*Follow, error) {
 	follows := make([]*Follow, 0)
-	return follows, db.ODM(ctx).Where(bson.M{"from_uid": uid}).
+	err := db.ODM(ctx).Where(bson.M{"from_uid": uid}).
 		Sort(bson.M{"read_time": -1}).Find(&follows).Error
+	if err != nil {
+		return nil, err
+	}
+	return follows, preloadFollowUser(ctx, follows)
 }
 
 func ListFollow(ctx context.Context, uid uint64, relationType enum.RelationType, pageParams *pagination.QuickPagination) ([]*Follow, pagination.Pagination, error) {
