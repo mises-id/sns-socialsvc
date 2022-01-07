@@ -27,7 +27,6 @@ type Status struct {
 	LikesCount    uint64             `bson:"likes_count,omitempty"`
 	ForwardsCount uint64             `bson:"forwards_count,omitempty"`
 	HideTime      *time.Time         `bson:"hide_time"`
-	Tags          []enum.TagType     `bson:"tags"`
 	DeletedAt     *time.Time         `bson:"deleted_at,omitempty"`
 	CreatedAt     time.Time          `bson:"created_at,omitempty"`
 	UpdatedAt     time.Time          `bson:"updated_at,omitempty"`

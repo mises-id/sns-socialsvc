@@ -28,7 +28,7 @@ func ListBlacklist(ctx context.Context, uid uint64, pageParams *pagination.PageQ
 	chain := db.ODM(ctx).Where(bson.M{"uid": uid})
 	paginator := pagination.NewQuickPaginator(pageParams.Limit, pageParams.NextID, chain)
 	page, err := paginator.Paginate(&blacklists)
-	if err == nil {
+	if err != nil {
 		return nil, nil, err
 	}
 	return blacklists, page, preloadBlacklistUser(ctx, blacklists...)
