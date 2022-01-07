@@ -346,8 +346,26 @@ func (s socialService) ReadMessage(ctx context.Context, in *pb.ReadMessageReques
 
 func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
 	var resp pb.ListCommentResponse
+	statusID, err := primitive.ObjectIDFromHex(in.GetStatusId())
+	if err != nil {
+		return nil, err
+	}
+	var groupID primitive.ObjectID
+	if in.GetTopicId() != "" {
+		groupID, err = primitive.ObjectIDFromHex(in.GetTopicId())
+		if err != nil {
+			return nil, err
+		}
+	}
 	comments, page, err := commentSVC.ListComment(ctx, &commentSVC.ListCommentParams{
-		ListCommentParams: models.ListCommentParams{},
+		ListCommentParams: models.ListCommentParams{
+			StatusID: statusID,
+			GroupID:  groupID,
+			PageParams: &pagination.PageQuickParams{
+				Limit:  int64(in.Paginator.Limit),
+				NextID: in.Paginator.NextId,
+			},
+		},
 	})
 	if err != nil {
 		return nil, err
