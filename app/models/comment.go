@@ -40,6 +40,7 @@ type Comment struct {
 	Content    string             `bson:"content,omitempty"`
 	CreatedAt  time.Time          `bson:"created_at,omitempty"`
 	UpdatedAt  time.Time          `bson:"updated_at,omitempty"`
+	User       *User              `bson:"-"`
 }
 
 func (c *Comment) BeforeCreate(ctx context.Context) error {
@@ -123,5 +124,16 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*Comment, 
 }
 
 func preloadCommentData(ctx context.Context, comments ...*Comment) error {
+	userIDs := make([]uint64, len(comments))
+	for i, comment := range comments {
+		userIDs[i] = comment.UID
+	}
+	users, err := GetUserMap(ctx, userIDs...)
+	if err != nil {
+		return err
+	}
+	for _, comment := range comments {
+		comment.User = users[comment.UID]
+	}
 	return nil
 }

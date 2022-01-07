@@ -205,6 +205,19 @@ func FindUserByIDs(ctx context.Context, ids ...uint64) ([]*User, error) {
 	return users, PreloadUserAvatar(ctx, users...)
 }
 
+func GetUserMap(ctx context.Context, ids ...uint64) (map[uint64]*User, error) {
+	users, err := FindUserByIDs(ctx, ids...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[uint64]*User)
+	for _, user := range users {
+		result[user.UID] = user
+	}
+	return result, nil
+}
+
 func PreloadUserAvatar(ctx context.Context, users ...*User) error {
 	paths := make([]string, 0)
 	for _, user := range users {
