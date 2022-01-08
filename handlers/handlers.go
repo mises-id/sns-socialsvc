@@ -421,6 +421,32 @@ func (s socialService) CreateComment(ctx context.Context, in *pb.CreateCommentRe
 	return &resp, nil
 }
 
+func (s socialService) LikeComment(ctx context.Context, in *pb.LikeCommentRequest) (*pb.SimpleResponse, error) {
+	var resp pb.SimpleResponse
+	commentID, err := primitive.ObjectIDFromHex(in.GetCommentId())
+	if err != nil {
+		return nil, err
+	}
+	if _, err := commentSVC.LikeComment(ctx, in.CurrentUid, commentID); err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	return &resp, nil
+}
+
+func (s socialService) UnlikeComment(ctx context.Context, in *pb.UnlikeCommentRequest) (*pb.SimpleResponse, error) {
+	var resp pb.SimpleResponse
+	commentID, err := primitive.ObjectIDFromHex(in.GetCommentId())
+	if err != nil {
+		return nil, err
+	}
+	if err := commentSVC.UnlikeComment(ctx, in.CurrentUid, commentID); err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	return &resp, nil
+}
+
 func (s socialService) ListLikeStatus(ctx context.Context, in *pb.ListLikeRequest) (*pb.ListLikeResponse, error) {
 	var resp pb.ListLikeResponse
 	likes, page, err := statusSVC.ListLikeStatus(ctx, &statusSVC.ListLikeStatusParams{

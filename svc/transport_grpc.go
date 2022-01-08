@@ -161,6 +161,18 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCCreateCommentResponse,
 			serverOptions...,
 		),
+		likecomment: grpctransport.NewServer(
+			endpoints.LikeCommentEndpoint,
+			DecodeGRPCLikeCommentRequest,
+			EncodeGRPCLikeCommentResponse,
+			serverOptions...,
+		),
+		unlikecomment: grpctransport.NewServer(
+			endpoints.UnlikeCommentEndpoint,
+			DecodeGRPCUnlikeCommentRequest,
+			EncodeGRPCUnlikeCommentResponse,
+			serverOptions...,
+		),
 		listblacklist: grpctransport.NewServer(
 			endpoints.ListBlacklistEndpoint,
 			DecodeGRPCListBlacklistRequest,
@@ -206,6 +218,8 @@ type grpcServer struct {
 	readmessage       grpctransport.Handler
 	listcomment       grpctransport.Handler
 	createcomment     grpctransport.Handler
+	likecomment       grpctransport.Handler
+	unlikecomment     grpctransport.Handler
 	listblacklist     grpctransport.Handler
 	createblacklist   grpctransport.Handler
 	deleteblacklist   grpctransport.Handler
@@ -389,6 +403,22 @@ func (s *grpcServer) CreateComment(ctx context.Context, req *pb.CreateCommentReq
 	return rep.(*pb.CreateCommentResponse), nil
 }
 
+func (s *grpcServer) LikeComment(ctx context.Context, req *pb.LikeCommentRequest) (*pb.SimpleResponse, error) {
+	_, rep, err := s.likecomment.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.SimpleResponse), nil
+}
+
+func (s *grpcServer) UnlikeComment(ctx context.Context, req *pb.UnlikeCommentRequest) (*pb.SimpleResponse, error) {
+	_, rep, err := s.unlikecomment.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.SimpleResponse), nil
+}
+
 func (s *grpcServer) ListBlacklist(ctx context.Context, req *pb.ListBlacklistRequest) (*pb.ListBlacklistResponse, error) {
 	_, rep, err := s.listblacklist.ServeGRPC(ctx, req)
 	if err != nil {
@@ -569,6 +599,20 @@ func DecodeGRPCCreateCommentRequest(_ context.Context, grpcReq interface{}) (int
 	return req, nil
 }
 
+// DecodeGRPCLikeCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC likecomment request to a user-domain likecomment request. Primarily useful in a server.
+func DecodeGRPCLikeCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.LikeCommentRequest)
+	return req, nil
+}
+
+// DecodeGRPCUnlikeCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC unlikecomment request to a user-domain unlikecomment request. Primarily useful in a server.
+func DecodeGRPCUnlikeCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.UnlikeCommentRequest)
+	return req, nil
+}
+
 // DecodeGRPCListBlacklistRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC listblacklist request to a user-domain listblacklist request. Primarily useful in a server.
 func DecodeGRPCListBlacklistRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -743,6 +787,20 @@ func EncodeGRPCListCommentResponse(_ context.Context, response interface{}) (int
 // user-domain createcomment response to a gRPC createcomment reply. Primarily useful in a server.
 func EncodeGRPCCreateCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.CreateCommentResponse)
+	return resp, nil
+}
+
+// EncodeGRPCLikeCommentResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain likecomment response to a gRPC likecomment reply. Primarily useful in a server.
+func EncodeGRPCLikeCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.SimpleResponse)
+	return resp, nil
+}
+
+// EncodeGRPCUnlikeCommentResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain unlikecomment response to a gRPC unlikecomment reply. Primarily useful in a server.
+func EncodeGRPCUnlikeCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.SimpleResponse)
 	return resp, nil
 }
 

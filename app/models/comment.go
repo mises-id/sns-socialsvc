@@ -65,6 +65,24 @@ func (c *Comment) AfterCreate(ctx context.Context) error {
 	return err
 }
 
+func (c *Comment) IncCommentCounter(ctx context.Context, counterKey string, values ...int) error {
+	if counterKey == "" {
+		return nil
+	}
+	value := 1
+	if len(values) > 0 {
+		value = values[0]
+	}
+	return db.DB().Collection("comments").FindOneAndUpdate(ctx, bson.M{"_id": c.ID},
+		bson.D{{
+			Key: "$inc",
+			Value: bson.D{{
+				Key:   counterKey,
+				Value: value,
+			}}},
+		}).Err()
+}
+
 func FindComment(ctx context.Context, id primitive.ObjectID) (*Comment, error) {
 	comment := &Comment{}
 	err := db.ODM(ctx).First(comment, bson.M{"_id": id}).Error

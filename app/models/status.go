@@ -366,7 +366,6 @@ func preloadImage(ctx context.Context, statuses ...*Status) error {
 			paths = append(paths, meta.Images...)
 			metas = append(metas, meta)
 		}
-
 	}
 	images, err := storage.ImageClient.GetFileUrl(ctx, paths...)
 	if err != nil {
