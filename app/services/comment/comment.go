@@ -51,7 +51,16 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*models.Co
 	if err != nil {
 		return nil, err
 	}
-	return comment, incrCommentCounter(ctx, status, groupComment)
+	if err = addChildrenComment(ctx, groupComment, comment); err != nil {
+		return nil, err
+	}
+	if err = incrCommentCounter(ctx, status, groupComment); err != nil {
+		return nil, err
+	}
+	if err = models.PreloadCommentData(ctx, comment); err != nil {
+		return nil, err
+	}
+	return comment, nil
 }
 
 func LikeComment(ctx context.Context, uid uint64, commentID primitive.ObjectID) (*models.Like, error) {
@@ -100,4 +109,14 @@ func incrCommentCounter(ctx context.Context, status *models.Status, comment *mod
 		}
 	}
 	return nil
+}
+
+func addChildrenComment(ctx context.Context, groupComment, comment *models.Comment) error {
+	if groupComment == nil {
+		return nil
+	}
+	if groupComment.CommentIDs != nil && len(groupComment.CommentIDs) >= 3 {
+		return nil
+	}
+	return groupComment.AddChildComment(ctx, comment.ID)
 }

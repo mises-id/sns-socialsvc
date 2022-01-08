@@ -178,13 +178,24 @@ func NewComment(comment *models.Comment) *pb.Comment {
 		return nil
 	}
 	result := &pb.Comment{
-		Id:         comment.ID.Hex(),
-		Uid:        comment.UID,
-		StatusId:   comment.StatusID.Hex(),
-		ParentId:   comment.ParentID.Hex(),
-		GroupId:    comment.GroupID.Hex(),
-		OpponentId: comment.OpponentID,
-		Content:    comment.Content,
+		Id:           comment.ID.Hex(),
+		Uid:          comment.UID,
+		StatusId:     comment.StatusID.Hex(),
+		ParentId:     comment.ParentID.Hex(),
+		GroupId:      comment.GroupID.Hex(),
+		OpponentId:   comment.OpponentID,
+		Content:      comment.Content,
+		CommentCount: comment.CommentsCount,
+		LikeCount:    comment.LikesCount,
+	}
+	if comment.Comments != nil {
+		result.Comments = NewCommentSlice(comment.Comments)
+	}
+	if comment.Opponent != nil {
+		result.Opponent = NewUserInfo(comment.Opponent)
+	}
+	if comment.User != nil {
+		result.User = NewUserInfo(comment.User)
 	}
 	return result
 }

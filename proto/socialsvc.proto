@@ -580,6 +580,10 @@ message Comment {
   uint64 opponent_id = 6;
   string content = 7;
   repeated Comment comments = 8;
+  UserInfo user = 9;
+  UserInfo opponent = 10;
+  uint64 comment_count = 11;
+  uint64 like_count = 12;
 }
 
 message ListCommentRequest {

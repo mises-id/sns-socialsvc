@@ -88,8 +88,11 @@ func ReadMessages(ctx context.Context, params *ReadMessageParams) error {
 		query["_id"] = bson.M{"$lte": params.LatestID}
 	} else if params.MessageIDs != nil && len(primitive.NilObjectID) > 0 {
 		query["_id"] = bson.M{"$in": params.MessageIDs}
+	} else {
+		return nil
 	}
-	_, err := db.DB().Collection("messages").UpdateMany(ctx, query, bson.D{{Key: "$set", Value: bson.D{{Key: "read_time", Value: time.Now()}}}})
+	_, err := db.DB().Collection("messages").UpdateMany(ctx, query, bson.D{
+		{Key: "$set", Value: bson.D{{Key: "read_time", Value: time.Now()}}}})
 	return err
 }
 

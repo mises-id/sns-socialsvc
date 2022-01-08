@@ -12,7 +12,7 @@ type ListMessageParams struct {
 }
 
 type ReadMessageParams struct {
-	models.ReadMessageParams
+	*models.ReadMessageParams
 }
 
 func ListMessage(ctx context.Context, params *ListMessageParams) ([]*models.Message, pagination.Pagination, error) {
@@ -20,5 +20,5 @@ func ListMessage(ctx context.Context, params *ListMessageParams) ([]*models.Mess
 }
 
 func ReadMessages(ctx context.Context, params *ReadMessageParams) error {
-	return models.ReadMessages(ctx, &params.ReadMessageParams)
+	return models.ReadMessages(ctx, params.ReadMessageParams)
 }

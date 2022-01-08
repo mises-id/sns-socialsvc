@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson"
@@ -29,6 +30,19 @@ func (a *Follow) BeforeCreate(ctx context.Context) error {
 	a.CreatedAt = time.Now()
 	a.UpdatedAt = time.Now()
 	return nil
+}
+
+func (a *Follow) AfterCreate(ctx context.Context) error {
+	_, err := CreateMessage(ctx, &CreateMessageParams{
+		UID:         a.ToUID,
+		MessageType: enum.NewFans,
+		MetaData: &message.MetaData{
+			FansMeta: &message.FansMeta{
+				UID: a.FromUID,
+			},
+		},
+	})
+	return err
 }
 
 func LatestFollowing(ctx context.Context, uid uint64) ([]*Follow, error) {

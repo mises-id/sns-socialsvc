@@ -31,16 +31,21 @@ type CreateCommentParams struct {
 }
 
 type Comment struct {
-	ID         primitive.ObjectID `bson:"_id,omitempty"`
-	StatusID   primitive.ObjectID `bson:"status_id,omitempty"`
-	ParentID   primitive.ObjectID `bson:"parent_id,omitempty"`
-	GroupID    primitive.ObjectID `bson:"group_id,omitempty"`
-	OpponentID uint64             `bson:"opponent_uid,omitempty"`
-	UID        uint64             `bson:"uid,omitempty"`
-	Content    string             `bson:"content,omitempty"`
-	CreatedAt  time.Time          `bson:"created_at,omitempty"`
-	UpdatedAt  time.Time          `bson:"updated_at,omitempty"`
-	User       *User              `bson:"-"`
+	ID            primitive.ObjectID   `bson:"_id,omitempty"`
+	StatusID      primitive.ObjectID   `bson:"status_id,omitempty"`
+	ParentID      primitive.ObjectID   `bson:"parent_id,omitempty"`
+	GroupID       primitive.ObjectID   `bson:"group_id,omitempty"`
+	OpponentID    uint64               `bson:"opponent_uid,omitempty"`
+	CommentIDs    []primitive.ObjectID `bson:"comment_ids,omitempty"`
+	UID           uint64               `bson:"uid,omitempty"`
+	LikesCount    uint64               `bson:"likes_count,omitempty"`
+	CommentsCount uint64               `bson:"comments_count,omitempty"`
+	Content       string               `bson:"content,omitempty"`
+	CreatedAt     time.Time            `bson:"created_at,omitempty"`
+	UpdatedAt     time.Time            `bson:"updated_at,omitempty"`
+	User          *User                `bson:"-"`
+	Opponent      *User                `bson:"-"`
+	Comments      []*Comment           `bson:"-"`
 }
 
 func (c *Comment) BeforeCreate(ctx context.Context) error {
@@ -73,14 +78,33 @@ func (c *Comment) IncCommentCounter(ctx context.Context, counterKey string, valu
 	if len(values) > 0 {
 		value = values[0]
 	}
-	return db.DB().Collection("comments").FindOneAndUpdate(ctx, bson.M{"_id": c.ID},
+	result := db.DB().Collection("comments").FindOneAndUpdate(ctx, bson.M{"_id": c.ID},
 		bson.D{{
 			Key: "$inc",
 			Value: bson.D{{
 				Key:   counterKey,
 				Value: value,
 			}}},
-		}).Err()
+		})
+	if err := result.Err(); err != nil {
+		return err
+	}
+	return result.Decode(c)
+}
+
+func (c *Comment) AddChildComment(ctx context.Context, commentID primitive.ObjectID) error {
+	result := db.DB().Collection("comments").FindOneAndUpdate(ctx, bson.M{"_id": c.ID},
+		bson.D{{
+			Key: "$push",
+			Value: bson.D{{
+				Key:   "comment_ids",
+				Value: commentID,
+			}}},
+		})
+	if err := result.Err(); err != nil {
+		return err
+	}
+	return result.Decode(c)
 }
 
 func FindComment(ctx context.Context, id primitive.ObjectID) (*Comment, error) {
@@ -115,7 +139,7 @@ func ListComment(ctx context.Context, params *ListCommentParams) ([]*Comment, pa
 	if err != nil {
 		return nil, nil, err
 	}
-	return comments, page, preloadCommentData(ctx, comments...)
+	return comments, page, PreloadCommentData(ctx, comments...)
 }
 
 func CreateComment(ctx context.Context, params *CreateCommentParams) (*Comment, error) {
@@ -137,14 +161,57 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*Comment, 
 	if err = comment.AfterCreate(ctx); err != nil {
 		return nil, err
 	}
-	return comment, preloadCommentData(ctx, comment)
+	return comment, nil
 
 }
 
-func preloadCommentData(ctx context.Context, comments ...*Comment) error {
-	userIDs := make([]uint64, len(comments))
-	for i, comment := range comments {
-		userIDs[i] = comment.UID
+func PreloadCommentData(ctx context.Context, comments ...*Comment) error {
+	if err := preloadCommentUser(ctx, comments...); err != nil {
+		return err
+	}
+	return preloadCommentChildren(ctx, comments...)
+}
+
+func preloadCommentChildren(ctx context.Context, comments ...*Comment) error {
+	ids := make([]primitive.ObjectID, 0)
+	for _, comment := range comments {
+		if comment.CommentIDs == nil {
+			continue
+		}
+		ids = append(ids, comment.CommentIDs...)
+	}
+	children, err := findCommentByIDs(ctx, ids)
+	if err != nil {
+		return err
+	}
+	if err = preloadCommentUser(ctx, children...); err != nil {
+		return err
+	}
+	childrenMap := make(map[primitive.ObjectID]*Comment)
+	for _, child := range children {
+		childrenMap[child.ID] = child
+	}
+	for _, comment := range comments {
+		if comment.CommentIDs == nil {
+			continue
+		}
+		comment.Comments = make([]*Comment, 0)
+		for _, id := range comment.CommentIDs {
+			if childrenMap[id] != nil {
+				comment.Comments = append(comment.Comments, childrenMap[id])
+			}
+		}
+	}
+	return nil
+}
+
+func preloadCommentUser(ctx context.Context, comments ...*Comment) error {
+	userIDs := make([]uint64, 0)
+	for _, comment := range comments {
+		userIDs = append(userIDs, comment.UID)
+		if comment.OpponentID != 0 {
+			userIDs = append(userIDs, comment.OpponentID)
+		}
 	}
 	users, err := GetUserMap(ctx, userIDs...)
 	if err != nil {
@@ -152,6 +219,12 @@ func preloadCommentData(ctx context.Context, comments ...*Comment) error {
 	}
 	for _, comment := range comments {
 		comment.User = users[comment.UID]
+		comment.Opponent = users[comment.OpponentID]
 	}
 	return nil
+}
+
+func findCommentByIDs(ctx context.Context, ids []primitive.ObjectID) ([]*Comment, error) {
+	comments := make([]*Comment, 0)
+	return comments, db.ODM(ctx).Where(bson.M{"_id": bson.M{"$in": ids}}).Find(&comments).Error
 }
