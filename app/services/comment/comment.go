@@ -89,8 +89,15 @@ func UnlikeComment(ctx context.Context, uid uint64, commentID primitive.ObjectID
 }
 
 func incrCommentCounter(ctx context.Context, status *models.Status, comment *models.Comment) error {
-	if err := status.IncStatusCounter(ctx, "comments_count"); err != nil {
+	err := status.IncStatusCounter(ctx, "comments_count")
+	if err != nil {
 		return err
 	}
-	return comment.IncCommentCounter(ctx, "comments_count")
+	if comment != nil {
+		err = comment.IncCommentCounter(ctx, "comments_count")
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
