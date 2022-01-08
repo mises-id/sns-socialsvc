@@ -271,6 +271,26 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var LikeCommentZeroEndpoint endpoint.Endpoint
+	{
+		LikeCommentZeroEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, "/comment/like/"),
+			EncodeHTTPLikeCommentZeroRequest,
+			DecodeHTTPLikeCommentResponse,
+			options...,
+		).Endpoint()
+	}
+	var UnlikeCommentZeroEndpoint endpoint.Endpoint
+	{
+		UnlikeCommentZeroEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, "/comment/unlike/"),
+			EncodeHTTPUnlikeCommentZeroRequest,
+			DecodeHTTPUnlikeCommentResponse,
+			options...,
+		).Endpoint()
+	}
 	var ListBlacklistZeroEndpoint endpoint.Endpoint
 	{
 		ListBlacklistZeroEndpoint = httptransport.NewClient(
@@ -325,6 +345,8 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		ReadMessageEndpoint:       ReadMessageZeroEndpoint,
 		ListCommentEndpoint:       ListCommentZeroEndpoint,
 		CreateCommentEndpoint:     CreateCommentZeroEndpoint,
+		LikeCommentEndpoint:       LikeCommentZeroEndpoint,
+		UnlikeCommentEndpoint:     UnlikeCommentZeroEndpoint,
 		ListBlacklistEndpoint:     ListBlacklistZeroEndpoint,
 		CreateBlacklistEndpoint:   CreateBlacklistZeroEndpoint,
 		DeleteBlacklistEndpoint:   DeleteBlacklistZeroEndpoint,
@@ -941,6 +963,60 @@ func DecodeHTTPCreateCommentResponse(_ context.Context, r *http.Response) (inter
 	}
 
 	var resp pb.CreateCommentResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPLikeCommentResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded SimpleResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPLikeCommentResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.SimpleResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPUnlikeCommentResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded SimpleResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPUnlikeCommentResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.SimpleResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -3088,6 +3164,200 @@ func EncodeHTTPCreateCommentOneRequest(_ context.Context, r *http.Request, reque
 	toRet.ParentId = req.ParentId
 
 	toRet.Content = req.Content
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPLikeCommentZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a likecomment request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPLikeCommentZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.LikeCommentRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"comment",
+		"like",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.LikeCommentRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.CommentId = req.CommentId
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPLikeCommentOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a likecomment request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPLikeCommentOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.LikeCommentRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"comment",
+		"like",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.LikeCommentRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.CommentId = req.CommentId
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPUnlikeCommentZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a unlikecomment request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUnlikeCommentZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UnlikeCommentRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"comment",
+		"unlike",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.UnlikeCommentRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.CommentId = req.CommentId
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPUnlikeCommentOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a unlikecomment request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUnlikeCommentOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UnlikeCommentRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"comment",
+		"unlike",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.UnlikeCommentRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.CommentId = req.CommentId
 
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)

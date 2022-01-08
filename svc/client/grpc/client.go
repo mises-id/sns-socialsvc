@@ -322,6 +322,32 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var likecommentEndpoint endpoint.Endpoint
+	{
+		likecommentEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"LikeComment",
+			EncodeGRPCLikeCommentRequest,
+			DecodeGRPCLikeCommentResponse,
+			pb.SimpleResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var unlikecommentEndpoint endpoint.Endpoint
+	{
+		unlikecommentEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"UnlikeComment",
+			EncodeGRPCUnlikeCommentRequest,
+			DecodeGRPCUnlikeCommentResponse,
+			pb.SimpleResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	var listblacklistEndpoint endpoint.Endpoint
 	{
 		listblacklistEndpoint = grpctransport.NewClient(
@@ -384,6 +410,8 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		ReadMessageEndpoint:       readmessageEndpoint,
 		ListCommentEndpoint:       listcommentEndpoint,
 		CreateCommentEndpoint:     createcommentEndpoint,
+		LikeCommentEndpoint:       likecommentEndpoint,
+		UnlikeCommentEndpoint:     unlikecommentEndpoint,
 		ListBlacklistEndpoint:     listblacklistEndpoint,
 		CreateBlacklistEndpoint:   createblacklistEndpoint,
 		DeleteBlacklistEndpoint:   deleteblacklistEndpoint,
@@ -543,6 +571,20 @@ func DecodeGRPCListCommentResponse(_ context.Context, grpcReply interface{}) (in
 // gRPC createcomment reply to a user-domain createcomment response. Primarily useful in a client.
 func DecodeGRPCCreateCommentResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.CreateCommentResponse)
+	return reply, nil
+}
+
+// DecodeGRPCLikeCommentResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC likecomment reply to a user-domain likecomment response. Primarily useful in a client.
+func DecodeGRPCLikeCommentResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.SimpleResponse)
+	return reply, nil
+}
+
+// DecodeGRPCUnlikeCommentResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC unlikecomment reply to a user-domain unlikecomment response. Primarily useful in a client.
+func DecodeGRPCUnlikeCommentResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.SimpleResponse)
 	return reply, nil
 }
 
@@ -720,6 +762,20 @@ func EncodeGRPCListCommentRequest(_ context.Context, request interface{}) (inter
 // user-domain createcomment request to a gRPC createcomment request. Primarily useful in a client.
 func EncodeGRPCCreateCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.CreateCommentRequest)
+	return req, nil
+}
+
+// EncodeGRPCLikeCommentRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain likecomment request to a gRPC likecomment request. Primarily useful in a client.
+func EncodeGRPCLikeCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.LikeCommentRequest)
+	return req, nil
+}
+
+// EncodeGRPCUnlikeCommentRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain unlikecomment request to a gRPC unlikecomment request. Primarily useful in a client.
+func EncodeGRPCUnlikeCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.UnlikeCommentRequest)
 	return req, nil
 }
 

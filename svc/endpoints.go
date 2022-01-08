@@ -55,6 +55,8 @@ type Endpoints struct {
 	ReadMessageEndpoint       endpoint.Endpoint
 	ListCommentEndpoint       endpoint.Endpoint
 	CreateCommentEndpoint     endpoint.Endpoint
+	LikeCommentEndpoint       endpoint.Endpoint
+	UnlikeCommentEndpoint     endpoint.Endpoint
 	ListBlacklistEndpoint     endpoint.Endpoint
 	CreateBlacklistEndpoint   endpoint.Endpoint
 	DeleteBlacklistEndpoint   endpoint.Endpoint
@@ -236,6 +238,22 @@ func (e Endpoints) CreateComment(ctx context.Context, in *pb.CreateCommentReques
 		return nil, err
 	}
 	return response.(*pb.CreateCommentResponse), nil
+}
+
+func (e Endpoints) LikeComment(ctx context.Context, in *pb.LikeCommentRequest) (*pb.SimpleResponse, error) {
+	response, err := e.LikeCommentEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.SimpleResponse), nil
+}
+
+func (e Endpoints) UnlikeComment(ctx context.Context, in *pb.UnlikeCommentRequest) (*pb.SimpleResponse, error) {
+	response, err := e.UnlikeCommentEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.SimpleResponse), nil
 }
 
 func (e Endpoints) ListBlacklist(ctx context.Context, in *pb.ListBlacklistRequest) (*pb.ListBlacklistResponse, error) {
@@ -506,6 +524,28 @@ func MakeCreateCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeLikeCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.LikeCommentRequest)
+		v, err := s.LikeComment(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeUnlikeCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.UnlikeCommentRequest)
+		v, err := s.UnlikeComment(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeListBlacklistEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.ListBlacklistRequest)
@@ -568,6 +608,8 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"ReadMessage":       {},
 		"ListComment":       {},
 		"CreateComment":     {},
+		"LikeComment":       {},
+		"UnlikeComment":     {},
 		"ListBlacklist":     {},
 		"CreateBlacklist":   {},
 		"DeleteBlacklist":   {},
@@ -647,6 +689,12 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "CreateComment" {
 			e.CreateCommentEndpoint = middleware(e.CreateCommentEndpoint)
 		}
+		if inc == "LikeComment" {
+			e.LikeCommentEndpoint = middleware(e.LikeCommentEndpoint)
+		}
+		if inc == "UnlikeComment" {
+			e.UnlikeCommentEndpoint = middleware(e.UnlikeCommentEndpoint)
+		}
 		if inc == "ListBlacklist" {
 			e.ListBlacklistEndpoint = middleware(e.ListBlacklistEndpoint)
 		}
@@ -692,6 +740,8 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"ReadMessage":       {},
 		"ListComment":       {},
 		"CreateComment":     {},
+		"LikeComment":       {},
+		"UnlikeComment":     {},
 		"ListBlacklist":     {},
 		"CreateBlacklist":   {},
 		"DeleteBlacklist":   {},
@@ -770,6 +820,12 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "CreateComment" {
 			e.CreateCommentEndpoint = middleware("CreateComment", e.CreateCommentEndpoint)
+		}
+		if inc == "LikeComment" {
+			e.LikeCommentEndpoint = middleware("LikeComment", e.LikeCommentEndpoint)
+		}
+		if inc == "UnlikeComment" {
+			e.UnlikeCommentEndpoint = middleware("UnlikeComment", e.UnlikeCommentEndpoint)
 		}
 		if inc == "ListBlacklist" {
 			e.ListBlacklistEndpoint = middleware("ListBlacklist", e.ListBlacklistEndpoint)

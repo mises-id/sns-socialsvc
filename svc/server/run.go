@@ -75,6 +75,8 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		readmessageEndpoint       = svc.MakeReadMessageEndpoint(service)
 		listcommentEndpoint       = svc.MakeListCommentEndpoint(service)
 		createcommentEndpoint     = svc.MakeCreateCommentEndpoint(service)
+		likecommentEndpoint       = svc.MakeLikeCommentEndpoint(service)
+		unlikecommentEndpoint     = svc.MakeUnlikeCommentEndpoint(service)
 		listblacklistEndpoint     = svc.MakeListBlacklistEndpoint(service)
 		createblacklistEndpoint   = svc.MakeCreateBlacklistEndpoint(service)
 		deleteblacklistEndpoint   = svc.MakeDeleteBlacklistEndpoint(service)
@@ -103,6 +105,8 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		ReadMessageEndpoint:       readmessageEndpoint,
 		ListCommentEndpoint:       listcommentEndpoint,
 		CreateCommentEndpoint:     createcommentEndpoint,
+		LikeCommentEndpoint:       likecommentEndpoint,
+		UnlikeCommentEndpoint:     unlikecommentEndpoint,
 		ListBlacklistEndpoint:     listblacklistEndpoint,
 		CreateBlacklistEndpoint:   createblacklistEndpoint,
 		DeleteBlacklistEndpoint:   deleteblacklistEndpoint,

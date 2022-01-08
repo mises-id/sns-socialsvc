@@ -6,11 +6,13 @@ type LikeTargetType uint32
 
 const (
 	LikeStatus LikeTargetType = iota
+	LikeComment
 )
 
 var (
 	likeTargetTypeMap = map[LikeTargetType]string{
-		LikeStatus: "status",
+		LikeStatus:  "status",
+		LikeComment: "comment",
 	}
 	likeTargetTypeStringMap = map[string]LikeTargetType{}
 )
