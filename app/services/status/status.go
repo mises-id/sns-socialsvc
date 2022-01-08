@@ -8,16 +8,19 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type CreateStatusParams struct {
-	StatusType string
-	ParentID   primitive.ObjectID
-	Content    string
-	Meta       meta.MetaData
-	FromType   enum.FromType
+	StatusType   string
+	ParentID     primitive.ObjectID
+	Content      string
+	IsPrivate    bool
+	ShowDuration int64
+	Meta         meta.MetaData
+	FromType     enum.FromType
 }
 
 type ListStatusParams struct {
@@ -29,7 +32,7 @@ type ListStatusParams struct {
 }
 
 func GetStatus(ctx context.Context, currentUID uint64, id primitive.ObjectID) (*models.Status, error) {
-	ctxWithUID := context.WithValue(ctx, "CurrentUID", currentUID)
+	ctxWithUID := context.WithValue(ctx, utils.CurrentUIDKey{}, currentUID)
 	status, err := models.FindStatus(ctxWithUID, id)
 	if err != nil {
 		return nil, err
@@ -38,7 +41,7 @@ func GetStatus(ctx context.Context, currentUID uint64, id primitive.ObjectID) (*
 }
 
 func ListStatus(ctx context.Context, params *ListStatusParams) ([]*models.Status, pagination.Pagination, error) {
-	ctxWithUID := context.WithValue(ctx, "CurrentUID", params.CurrentUID)
+	ctxWithUID := context.WithValue(ctx, utils.CurrentUIDKey{}, params.CurrentUID)
 
 	uids := make([]uint64, 0)
 	if params.UID != 0 {
@@ -58,7 +61,7 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*models.Status
 }
 
 func UserTimeline(ctx context.Context, uid uint64, pageParams *pagination.PageQuickParams) ([]*models.Status, pagination.Pagination, error) {
-	ctxWithUID := context.WithValue(ctx, "CurrentUID", uid)
+	ctxWithUID := context.WithValue(ctx, utils.CurrentUIDKey{}, uid)
 	friendIDs, err := models.ListFollowingUserIDs(ctx, uid)
 	if err != nil {
 		return nil, nil, err
@@ -82,7 +85,7 @@ func UserTimeline(ctx context.Context, uid uint64, pageParams *pagination.PageQu
 }
 
 func RecommendStatus(ctx context.Context, uid uint64, pageParams *pagination.PageQuickParams) ([]*models.Status, pagination.Pagination, error) {
-	ctxWithUID := context.WithValue(ctx, "CurrentUID", uid)
+	ctxWithUID := context.WithValue(ctx, utils.CurrentUIDKey{}, uid)
 	statues, page, err := models.ListStatus(ctxWithUID, &models.ListStatusParams{
 		UIDs:           nil,
 		ParentStatusID: primitive.NilObjectID,
@@ -155,6 +158,15 @@ func UnlikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) 
 		return err
 	}
 	return status.IncStatusCounter(ctx, "likes_count", -1)
+}
+
+type ListLikeStatusParams struct {
+	UID        uint64
+	PageParams *pagination.PageQuickParams
+}
+
+func ListLikeStatus(ctx context.Context, params *ListLikeStatusParams) ([]*models.Like, pagination.Pagination, error) {
+	return models.ListLike(ctx, params.UID, enum.LikeStatus, params.PageParams)
 }
 
 func DeleteStatus(ctx context.Context, uid uint64, id primitive.ObjectID) error {

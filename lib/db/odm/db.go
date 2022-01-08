@@ -6,6 +6,7 @@ import (
 	"log"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/jinzhu/inflection"
 	"go.mongodb.org/mongo-driver/bson"
@@ -55,8 +56,30 @@ func (db *DB) Model(model interface{}) *DB {
 	return db
 }
 
+func (db *DB) Delete(out interface{}, pk interface{}) *DB {
+	db.out = out
+	_, err := db.db.Collection(db.reflectCollectionName()).DeleteOne(db.ctx, bson.M{"_id": pk})
+	if err != nil {
+		db.Error = err
+		return db
+	}
+	return db
+}
+
+func (db *DB) Save(out interface{}, pk interface{}) *DB {
+	db.out = out
+	beforeUpdate(db.out)
+	_, err := db.db.Collection(db.reflectCollectionName()).UpdateOne(db.ctx, bson.M{"_id": pk}, out)
+	if err != nil {
+		db.Error = err
+		return db
+	}
+	return db
+}
+
 func (db *DB) Create(out interface{}) *DB {
 	db.out = out
+	beforeCreate(db.out)
 	result, err := db.db.Collection(db.reflectCollectionName()).InsertOne(db.ctx, out)
 	if err != nil {
 		db.Error = err
@@ -185,4 +208,32 @@ func (db *DB) reflectCollectionName(outs ...interface{}) string {
 		db.collectionName = strings.ToLower(inflection.Plural(t.Name()))
 	}
 	return db.collectionName
+}
+
+func beforeCreate(out interface{}) {
+	value := reflect.ValueOf(out)
+	if value.Kind() == reflect.Ptr {
+		value = value.Elem()
+	}
+	now := time.Now()
+	createTimeFiled := value.FieldByName("CreatedAt")
+	if createTimeFiled.CanSet() {
+		createTimeFiled.Set(reflect.ValueOf(now))
+	}
+	updateTimeFiled := value.FieldByName("UpdatedAt")
+	if updateTimeFiled.CanSet() {
+		updateTimeFiled.Set(reflect.ValueOf(now))
+	}
+}
+
+func beforeUpdate(out interface{}) {
+	value := reflect.ValueOf(out)
+	if value.Kind() == reflect.Ptr {
+		value = value.Elem()
+	}
+	now := time.Now()
+	updateTimeFiled := value.FieldByName("UpdatedAt")
+	if updateTimeFiled.CanSet() {
+		updateTimeFiled.Set(reflect.ValueOf(now))
+	}
 }

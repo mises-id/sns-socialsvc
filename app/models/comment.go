@@ -40,6 +40,7 @@ type Comment struct {
 	Content    string             `bson:"content,omitempty"`
 	CreatedAt  time.Time          `bson:"created_at,omitempty"`
 	UpdatedAt  time.Time          `bson:"updated_at,omitempty"`
+	User       *User              `bson:"-"`
 }
 
 func (c *Comment) BeforeCreate(ctx context.Context) error {
@@ -62,6 +63,33 @@ func (c *Comment) AfterCreate(ctx context.Context) error {
 		},
 	})
 	return err
+}
+
+func (c *Comment) IncCommentCounter(ctx context.Context, counterKey string, values ...int) error {
+	if counterKey == "" {
+		return nil
+	}
+	value := 1
+	if len(values) > 0 {
+		value = values[0]
+	}
+	return db.DB().Collection("comments").FindOneAndUpdate(ctx, bson.M{"_id": c.ID},
+		bson.D{{
+			Key: "$inc",
+			Value: bson.D{{
+				Key:   counterKey,
+				Value: value,
+			}}},
+		}).Err()
+}
+
+func FindComment(ctx context.Context, id primitive.ObjectID) (*Comment, error) {
+	comment := &Comment{}
+	err := db.ODM(ctx).First(comment, bson.M{"_id": id}).Error
+	if err != nil {
+		return nil, err
+	}
+	return comment, nil
 }
 
 func ListComment(ctx context.Context, params *ListCommentParams) ([]*Comment, pagination.Pagination, error) {
@@ -114,5 +142,16 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*Comment, 
 }
 
 func preloadCommentData(ctx context.Context, comments ...*Comment) error {
+	userIDs := make([]uint64, len(comments))
+	for i, comment := range comments {
+		userIDs[i] = comment.UID
+	}
+	users, err := GetUserMap(ctx, userIDs...)
+	if err != nil {
+		return err
+	}
+	for _, comment := range comments {
+		comment.User = users[comment.UID]
+	}
 	return nil
 }

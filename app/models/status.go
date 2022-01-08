@@ -27,7 +27,6 @@ type Status struct {
 	LikesCount    uint64             `bson:"likes_count,omitempty"`
 	ForwardsCount uint64             `bson:"forwards_count,omitempty"`
 	HideTime      *time.Time         `bson:"hide_time"`
-	Tags          []enum.TagType     `bson:"tags"`
 	DeletedAt     *time.Time         `bson:"deleted_at,omitempty"`
 	CreatedAt     time.Time          `bson:"created_at,omitempty"`
 	UpdatedAt     time.Time          `bson:"updated_at,omitempty"`
@@ -230,6 +229,21 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*Status, pagin
 	return statuses, page, preloadStatusUser(ctx, statuses...)
 }
 
+func FindStatusByIDs(ctx context.Context, ids ...primitive.ObjectID) ([]*Status, error) {
+	statuses := make([]*Status, 0)
+	err := db.ODM(ctx).Where(bson.M{"_id": bson.M{"$in": ids}}).Find(&statuses).Error
+	if err != nil {
+		return nil, err
+	}
+	if err = preloadAttachment(ctx, statuses...); err != nil {
+		return nil, err
+	}
+	if err = preloadImage(ctx, statuses...); err != nil {
+		return nil, err
+	}
+	return statuses, preloadStatusUser(ctx, statuses...)
+}
+
 func ListCommentStatus(ctx context.Context, statusID primitive.ObjectID, pageParams *pagination.PageQuickParams) ([]*Status, pagination.Pagination, error) {
 	if pageParams == nil {
 		pageParams = pagination.DefaultQuickParams()
@@ -352,7 +366,6 @@ func preloadImage(ctx context.Context, statuses ...*Status) error {
 			paths = append(paths, meta.Images...)
 			metas = append(metas, meta)
 		}
-
 	}
 	images, err := storage.ImageClient.GetFileUrl(ctx, paths...)
 	if err != nil {
