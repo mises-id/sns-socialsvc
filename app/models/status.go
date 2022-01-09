@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/db"
@@ -72,6 +73,21 @@ func (s *Status) AfterCreate(ctx context.Context) error {
 	counterKey := s.FromType.CounterKey()
 	if s.ParentStatus != nil {
 		err = s.ParentStatus.IncStatusCounter(ctx, counterKey)
+		if err != nil {
+			return err
+		}
+		_, err = CreateMessage(ctx, &CreateMessageParams{
+			UID:         s.ParentStatus.UID,
+			FromUID:     s.UID,
+			MessageType: enum.NewForward,
+			MetaData: &message.MetaData{
+				ForwardMeta: &message.ForwardMeta{
+					UID:      s.UID,
+					StatusID: s.ID,
+					Content:  s.Content,
+				},
+			},
+		})
 		if err != nil {
 			return err
 		}

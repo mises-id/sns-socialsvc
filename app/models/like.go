@@ -28,6 +28,7 @@ type Like struct {
 func (l *Like) AfterCreate(ctx context.Context) error {
 	_, err := CreateMessage(ctx, &CreateMessageParams{
 		UID:         l.OwnerID,
+		FromUID:     l.UID,
 		MessageType: enum.NewLike,
 		MetaData: &message.MetaData{
 			LikeMeta: &message.LikeMeta{

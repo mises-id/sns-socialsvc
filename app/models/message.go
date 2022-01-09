@@ -25,6 +25,7 @@ type ReadMessageParams struct {
 
 type CreateMessageParams struct {
 	UID         uint64
+	FromUID     uint64
 	MessageType enum.MessageType
 	MetaData    *message.MetaData
 }
@@ -55,8 +56,12 @@ func (m *Message) BeforeCreate(ctx context.Context) error {
 }
 
 func CreateMessage(ctx context.Context, params *CreateMessageParams) (*Message, error) {
+	if params.UID == params.FromUID {
+		return nil, nil
+	}
 	message := &Message{
 		UID:         params.UID,
+		FromUID:     params.FromUID,
 		MessageType: params.MessageType,
 		MetaData:    *params.MetaData,
 	}
@@ -102,50 +107,8 @@ func preloadMessageData(ctx context.Context, messages ...*Message) error {
 	if err := preloadMessageUser(ctx, messages...); err != nil {
 		return err
 	}
-	return nil
-}
-
-func preloadMessageStatus(ctx context.Context, messages ...*Message) error {
-	userIDs := make([]uint64, len(messages))
-	for i, message := range messages {
-		userIDs[i] = message.FromUID
-	}
-	users, err := GetUserMap(ctx, userIDs...)
-	if err != nil {
+	if err := preloadMessageUser(ctx, messages...); err != nil {
 		return err
-	}
-	for _, message := range messages {
-		message.FromUser = users[message.FromUID]
-	}
-	return nil
-}
-
-func preloadMessageComment(ctx context.Context, messages ...*Message) error {
-	userIDs := make([]uint64, len(messages))
-	for i, message := range messages {
-		userIDs[i] = message.FromUID
-	}
-	users, err := GetUserMap(ctx, userIDs...)
-	if err != nil {
-		return err
-	}
-	for _, message := range messages {
-		message.FromUser = users[message.FromUID]
-	}
-	return nil
-}
-
-func preloadMessageLike(ctx context.Context, messages ...*Message) error {
-	userIDs := make([]uint64, len(messages))
-	for i, message := range messages {
-		userIDs[i] = message.FromUID
-	}
-	users, err := GetUserMap(ctx, userIDs...)
-	if err != nil {
-		return err
-	}
-	for _, message := range messages {
-		message.FromUser = users[message.FromUID]
 	}
 	return nil
 }
