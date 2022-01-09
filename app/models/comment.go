@@ -28,6 +28,7 @@ type CreateCommentParams struct {
 	OpponentID uint64
 	UID        uint64
 	Content    string
+	Status     *Status
 }
 
 type Comment struct {
@@ -46,6 +47,7 @@ type Comment struct {
 	User          *User                `bson:"-"`
 	Opponent      *User                `bson:"-"`
 	Comments      []*Comment           `bson:"-"`
+	Status        *Status              `bson:"-"`
 }
 
 func (c *Comment) BeforeCreate(ctx context.Context) error {
@@ -55,20 +57,54 @@ func (c *Comment) BeforeCreate(ctx context.Context) error {
 }
 
 func (c *Comment) AfterCreate(ctx context.Context) error {
-	_, err := CreateMessage(ctx, &CreateMessageParams{
-		UID:         c.OpponentID,
-		FromUID:     c.UID,
-		MessageType: enum.NewComment,
-		MetaData: &message.MetaData{
-			CommentMeta: &message.CommentMeta{
-				UID:       c.UID,
-				GroupID:   c.GroupID,
-				CommentID: c.ID,
-				Content:   c.Content,
+	err := c.notifyCommentUser(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Comment) notifyCommentUser(ctx context.Context) error {
+	var err error
+	// notify parent comment user
+	if c.ParentID != primitive.NilObjectID {
+		_, err := CreateMessage(ctx, &CreateMessageParams{
+			UID:         c.OpponentID,
+			FromUID:     c.UID,
+			MessageType: enum.NewComment,
+			MetaData: &message.MetaData{
+				CommentMeta: &message.CommentMeta{
+					UID:       c.UID,
+					GroupID:   c.GroupID,
+					CommentID: c.ID,
+					Content:   c.Content,
+				},
 			},
-		},
-	})
-	return err
+		})
+		if err != nil {
+			return err
+		}
+	}
+	// notify status user
+	if c.Status != nil && c.Status.UID != c.OpponentID {
+		_, err = CreateMessage(ctx, &CreateMessageParams{
+			UID:         c.Status.UID,
+			FromUID:     c.UID,
+			MessageType: enum.NewComment,
+			MetaData: &message.MetaData{
+				CommentMeta: &message.CommentMeta{
+					UID:       c.UID,
+					GroupID:   c.GroupID,
+					CommentID: c.ID,
+					Content:   c.Content,
+				},
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *Comment) IncCommentCounter(ctx context.Context, counterKey string, values ...int) error {
@@ -154,6 +190,7 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*Comment, 
 		GroupID:    params.GroupID,
 		OpponentID: params.OpponentID,
 		Content:    params.Content,
+		Status:     params.Status,
 	}
 	var err error
 	if err = comment.BeforeCreate(ctx); err != nil {

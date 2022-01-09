@@ -29,6 +29,7 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*models.Co
 	if err != nil {
 		return nil, err
 	}
+	commentParams.Status = status
 	var groupComment *models.Comment
 	if params.ParentID != primitive.NilObjectID {
 		parent, err := models.FindComment(ctx, params.ParentID)

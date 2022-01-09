@@ -42,7 +42,7 @@ type DB struct {
 	collectionName string
 	out            interface{}
 	options        *options.FindOptions
-	sort           bson.M
+	sort           interface{}
 	condition      bson.M
 }
 
@@ -120,7 +120,7 @@ func (db *DB) Count(c *int64) *DB {
 	return db
 }
 
-func (db *DB) Sort(sort bson.M) *DB {
+func (db *DB) Sort(sort interface{}) *DB {
 	if db.sort == nil {
 		db.sort = sort
 	}

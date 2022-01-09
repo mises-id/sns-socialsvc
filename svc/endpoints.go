@@ -53,6 +53,7 @@ type Endpoints struct {
 	UnFollowEndpoint          endpoint.Endpoint
 	ListMessageEndpoint       endpoint.Endpoint
 	ReadMessageEndpoint       endpoint.Endpoint
+	GetMessageSummaryEndpoint endpoint.Endpoint
 	ListCommentEndpoint       endpoint.Endpoint
 	CreateCommentEndpoint     endpoint.Endpoint
 	LikeCommentEndpoint       endpoint.Endpoint
@@ -222,6 +223,14 @@ func (e Endpoints) ReadMessage(ctx context.Context, in *pb.ReadMessageRequest) (
 		return nil, err
 	}
 	return response.(*pb.SimpleResponse), nil
+}
+
+func (e Endpoints) GetMessageSummary(ctx context.Context, in *pb.GetMessageSummaryRequest) (*pb.MessageSummaryResponse, error) {
+	response, err := e.GetMessageSummaryEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.MessageSummaryResponse), nil
 }
 
 func (e Endpoints) ListComment(ctx context.Context, in *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
@@ -502,6 +511,17 @@ func MakeReadMessageEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeGetMessageSummaryEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.GetMessageSummaryRequest)
+		v, err := s.GetMessageSummary(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeListCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.ListCommentRequest)
@@ -606,6 +626,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"UnFollow":          {},
 		"ListMessage":       {},
 		"ReadMessage":       {},
+		"GetMessageSummary": {},
 		"ListComment":       {},
 		"CreateComment":     {},
 		"LikeComment":       {},
@@ -683,6 +704,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "ReadMessage" {
 			e.ReadMessageEndpoint = middleware(e.ReadMessageEndpoint)
 		}
+		if inc == "GetMessageSummary" {
+			e.GetMessageSummaryEndpoint = middleware(e.GetMessageSummaryEndpoint)
+		}
 		if inc == "ListComment" {
 			e.ListCommentEndpoint = middleware(e.ListCommentEndpoint)
 		}
@@ -738,6 +762,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"UnFollow":          {},
 		"ListMessage":       {},
 		"ReadMessage":       {},
+		"GetMessageSummary": {},
 		"ListComment":       {},
 		"CreateComment":     {},
 		"LikeComment":       {},
@@ -814,6 +839,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "ReadMessage" {
 			e.ReadMessageEndpoint = middleware("ReadMessage", e.ReadMessageEndpoint)
+		}
+		if inc == "GetMessageSummary" {
+			e.GetMessageSummaryEndpoint = middleware("GetMessageSummary", e.GetMessageSummaryEndpoint)
 		}
 		if inc == "ListComment" {
 			e.ListCommentEndpoint = middleware("ListComment", e.ListCommentEndpoint)

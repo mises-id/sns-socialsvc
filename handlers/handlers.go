@@ -17,6 +17,7 @@ import (
 	userSVC "github.com/mises-id/sns-socialsvc/app/services/user"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	pb "github.com/mises-id/sns-socialsvc/proto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -256,7 +257,7 @@ func (s socialService) ListRelationship(ctx context.Context, in *pb.ListRelation
 	}
 	ctxWithUID := ctx
 	if in.CurrentUid > 0 {
-		ctxWithUID = context.WithValue(ctx, "CurrentUID", in.CurrentUid)
+		ctxWithUID = context.WithValue(ctx, utils.CurrentUIDKey{}, in.CurrentUid)
 	}
 
 	relations, page, err := friendshipSVC.ListFriendship(ctxWithUID, in.Uid, relationType, &pagination.QuickPagination{
@@ -533,4 +534,20 @@ func (s socialService) CreateBlacklist(ctx context.Context, in *pb.CreateBlackli
 	_, err := blacklistSVC.CreateBlacklist(ctx, in.GetUid(), in.GetTargetUid())
 	resp.Code = 0
 	return &resp, err
+}
+
+func (s socialService) GetMessageSummary(ctx context.Context, in *pb.GetMessageSummaryRequest) (*pb.MessageSummaryResponse, error) {
+	var resp pb.MessageSummaryResponse
+	summary, err := messageSVC.GetMessageSummary(ctx, in.GetCurrentUid())
+	if err != nil {
+		return nil, err
+	}
+	resp.Summary = &pb.MessageSummary{
+		LatestMessage:      factory.NewMessage(summary.LatestMessage),
+		Total:              summary.Total,
+		NotificationsCount: summary.NotificationsCount,
+		UsersCount:         summary.UsersCount,
+	}
+	resp.Code = 0
+	return &resp, nil
 }

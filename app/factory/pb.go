@@ -210,7 +210,7 @@ func NewFollowingSlice(follows []*models.Follow) []*pb.Following {
 	for i, follow := range follows {
 		result[i] = &pb.Following{
 			User:   NewUserInfo(follow.ToUser),
-			Unread: false,
+			Unread: !follow.IsRead,
 		}
 	}
 	return result

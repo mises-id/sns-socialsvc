@@ -29,7 +29,6 @@ type User struct {
 	AvatarPath     string      `bson:"avatar_path,omitempty"`
 	FollowingCount int64       `bson:"following_count,omitempty"`
 	FansCount      int64       `bson:"fans_count,omitempty"`
-	LatestPostTime *time.Time  `bson:"latest_post_time,omitempty"`
 	CreatedAt      time.Time   `bson:"created_at,omitempty"`
 	UpdatedAt      time.Time   `bson:"updated_at,omitempty"`
 	AvatarUrl      string      `bson:"-"`

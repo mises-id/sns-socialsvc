@@ -46,6 +46,10 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*models.Status
 	uids := make([]uint64, 0)
 	if params.UID != 0 {
 		uids = append(uids, params.UID)
+		err := models.MarkFollowRead(ctx, params.CurrentUID, params.UID)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 	listParams := &models.ListStatusParams{
 		UIDs:           uids,

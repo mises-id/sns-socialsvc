@@ -92,7 +92,26 @@ func (s *Status) AfterCreate(ctx context.Context) error {
 			return err
 		}
 	}
-	return nil
+	return s.notifyFans(ctx)
+}
+
+func (s *Status) notifyFans(ctx context.Context) error {
+	t := time.Now()
+	_, err := db.DB().Collection("follows").UpdateMany(ctx, bson.M{"to_uid": s.UID},
+		bson.D{{
+			Key: "$set",
+			Value: bson.D{{
+				Key:   "is_read",
+				Value: false,
+			}, {
+				Key:   "latest_post_time",
+				Value: &t,
+			}, {
+				Key:   "updated_at",
+				Value: t,
+			}}},
+		})
+	return err
 }
 
 func (s *Status) Hide(ctx context.Context, duration int64) error {

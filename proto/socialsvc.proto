@@ -293,6 +293,19 @@ service Social {
     };
   }
 
+  rpc GetMessageSummary (GetMessageSummaryRequest) returns (MessageSummaryResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/message/summary"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/message/summary/"
+      }
+    };
+  }
+
+  
 
   rpc ListComment (ListCommentRequest) returns (ListCommentResponse) {
     option (google.api.http) = {
@@ -354,11 +367,11 @@ service Social {
   rpc ListBlacklist (ListBlacklistRequest) returns (ListBlacklistResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
-      get: "/blacklist/list"
+      get: "/user/blacklist/list"
 
       additional_bindings {
         // Trailing slashes are different routes
-        get: "/blacklist/list"
+        get: "/user/blacklist/list"
       }
     };
   }
@@ -366,12 +379,12 @@ service Social {
   rpc CreateBlacklist (CreateBlacklistRequest) returns (SimpleResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
-      post: "/blacklist/create"
+      post: "/user/blacklist/create"
       body: "*"
 
       additional_bindings {
         // Trailing slashes are different routes
-        post: "/blacklist/create/"
+        post: "/user/blacklist/create/"
         body: "*"
       }
     };
@@ -380,12 +393,12 @@ service Social {
   rpc DeleteBlacklist (DeleteBlacklistRequest) returns (SimpleResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
-      post: "/blacklist/delete"
+      post: "/user/blacklist/delete"
       body: "*"
 
       additional_bindings {
         // Trailing slashes are different routes
-        post: "/blacklist/delete/"
+        post: "/user/blacklist/delete/"
         body: "*"
       }
     };
@@ -494,7 +507,7 @@ message PageQuick {
 message ListStatusRequest {
   uint64 current_uid = 1;
   uint64 target_uid = 2;
-  string parrent_id = 3;
+  string parent_id = 3;
   repeated string from_types = 4;
   PageQuick paginator = 5;
 }
@@ -662,6 +675,22 @@ message ReadMessageRequest {
   uint64 current_uid = 1;
   string latestID = 2;
   repeated string ids = 3;
+}
+
+message GetMessageSummaryRequest {
+  uint64 current_uid = 1;
+}
+
+message MessageSummaryResponse {
+  uint64 code = 1;
+  MessageSummary summary = 2;
+}
+
+message MessageSummary {
+  Message latest_message = 1;
+  uint32 total = 2;
+  uint32 notifications_count = 3;
+  uint32 users_count = 4;
 }
 
 message LatestFollowingRequest {
