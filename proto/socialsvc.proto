@@ -580,6 +580,10 @@ message Comment {
   uint64 opponent_id = 6;
   string content = 7;
   repeated Comment comments = 8;
+  UserInfo user = 9;
+  UserInfo opponent = 10;
+  uint64 comment_count = 11;
+  uint64 like_count = 12;
 }
 
 message ListCommentRequest {
@@ -636,12 +640,11 @@ message Message {
   uint64 uid = 2;
   string message_type = 3;
 	string state = 4;
-  oneof meta_data {
-    NewCommentMeta new_comment_meta = 21;
-    NewLikeMeta new_like_meta = 22;
-    NewFansMeta new_fans_meta = 23;
-    NewForwardMeta new_forward_meta = 24;
-  }
+  UserInfo from_user = 5;
+  NewCommentMeta new_comment_meta = 21;
+  NewLikeMeta new_like_meta = 22;
+  NewFansMeta new_fans_meta = 23;
+  NewForwardMeta new_forward_meta = 24;
 }
 
 message ListMessageRequest {

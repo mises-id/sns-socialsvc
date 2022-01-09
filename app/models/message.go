@@ -33,10 +33,12 @@ type Message struct {
 	message.MetaData
 	ID          primitive.ObjectID `bson:"_id,omitempty"`
 	UID         uint64             `bson:"uid,omitempty"`
+	FromUID     uint64             `bson:"from_uid,omitempty"`
 	MessageType enum.MessageType   `bson:"message_type,omitempty"`
 	ReadTime    *time.Time         `bson:"read_time,omitempty"`
 	CreatedAt   time.Time          `bson:"created_at,omitempty"`
 	UpdatedAt   time.Time          `bson:"updated_at,omitempty"`
+	FromUser    *User              `bson:"-"`
 }
 
 func (m *Message) State() string {
@@ -88,11 +90,77 @@ func ReadMessages(ctx context.Context, params *ReadMessageParams) error {
 		query["_id"] = bson.M{"$lte": params.LatestID}
 	} else if params.MessageIDs != nil && len(primitive.NilObjectID) > 0 {
 		query["_id"] = bson.M{"$in": params.MessageIDs}
+	} else {
+		return nil
 	}
-	_, err := db.DB().Collection("messages").UpdateMany(ctx, query, bson.D{{Key: "$set", Value: bson.D{{Key: "read_time", Value: time.Now()}}}})
+	_, err := db.DB().Collection("messages").UpdateMany(ctx, query, bson.D{
+		{Key: "$set", Value: bson.D{{Key: "read_time", Value: time.Now()}}}})
 	return err
 }
 
 func preloadMessageData(ctx context.Context, messages ...*Message) error {
+	if err := preloadMessageUser(ctx, messages...); err != nil {
+		return err
+	}
+	return nil
+}
+
+func preloadMessageStatus(ctx context.Context, messages ...*Message) error {
+	userIDs := make([]uint64, len(messages))
+	for i, message := range messages {
+		userIDs[i] = message.FromUID
+	}
+	users, err := GetUserMap(ctx, userIDs...)
+	if err != nil {
+		return err
+	}
+	for _, message := range messages {
+		message.FromUser = users[message.FromUID]
+	}
+	return nil
+}
+
+func preloadMessageComment(ctx context.Context, messages ...*Message) error {
+	userIDs := make([]uint64, len(messages))
+	for i, message := range messages {
+		userIDs[i] = message.FromUID
+	}
+	users, err := GetUserMap(ctx, userIDs...)
+	if err != nil {
+		return err
+	}
+	for _, message := range messages {
+		message.FromUser = users[message.FromUID]
+	}
+	return nil
+}
+
+func preloadMessageLike(ctx context.Context, messages ...*Message) error {
+	userIDs := make([]uint64, len(messages))
+	for i, message := range messages {
+		userIDs[i] = message.FromUID
+	}
+	users, err := GetUserMap(ctx, userIDs...)
+	if err != nil {
+		return err
+	}
+	for _, message := range messages {
+		message.FromUser = users[message.FromUID]
+	}
+	return nil
+}
+
+func preloadMessageUser(ctx context.Context, messages ...*Message) error {
+	userIDs := make([]uint64, len(messages))
+	for i, message := range messages {
+		userIDs[i] = message.FromUID
+	}
+	users, err := GetUserMap(ctx, userIDs...)
+	if err != nil {
+		return err
+	}
+	for _, message := range messages {
+		message.FromUser = users[message.FromUID]
+	}
 	return nil
 }

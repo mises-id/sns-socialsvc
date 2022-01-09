@@ -42,6 +42,7 @@ type DB struct {
 	collectionName string
 	out            interface{}
 	options        *options.FindOptions
+	sort           bson.M
 	condition      bson.M
 }
 
@@ -119,8 +120,10 @@ func (db *DB) Count(c *int64) *DB {
 	return db
 }
 
-func (db *DB) Sort(sort interface{}) *DB {
-	db.options.Sort = sort
+func (db *DB) Sort(sort bson.M) *DB {
+	if db.sort == nil {
+		db.sort = sort
+	}
 	return db
 }
 
@@ -166,6 +169,9 @@ func (db *DB) Find(out interface{}, conditions ...bson.M) *DB {
 	db.out = out
 	for _, condition := range conditions {
 		db = db.Where(condition)
+	}
+	if db.sort != nil {
+		db.options.Sort = db.sort
 	}
 	var result *mongo.Cursor
 	if db.options == nil {

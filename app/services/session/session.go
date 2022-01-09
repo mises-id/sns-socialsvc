@@ -2,6 +2,7 @@ package session
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -18,6 +19,7 @@ var (
 )
 
 func SignIn(ctx context.Context, auth string) (string, error) {
+	fmt.Println("misesClient: ", misesClient)
 	misesid, pubkey, err := misesClient.Auth(auth)
 	if err != nil {
 		logrus.Errorf("mises verify error: %v", err)

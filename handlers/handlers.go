@@ -341,6 +341,35 @@ func (s socialService) ListMessage(ctx context.Context, in *pb.ListMessageReques
 
 func (s socialService) ReadMessage(ctx context.Context, in *pb.ReadMessageRequest) (*pb.SimpleResponse, error) {
 	var resp pb.SimpleResponse
+	var latestID primitive.ObjectID
+	var messageIDs []primitive.ObjectID
+	var err error
+	if in.GetIds() != nil {
+		messageIDs = make([]primitive.ObjectID, len(in.GetIds()))
+		for i, id := range in.GetIds() {
+			messageIDs[i], err = primitive.ObjectIDFromHex(id)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	if in.GetLatestID() != "" {
+		latestID, err = primitive.ObjectIDFromHex(in.GetLatestID())
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = messageSVC.ReadMessages(ctx, &messageSVC.ReadMessageParams{
+		ReadMessageParams: &models.ReadMessageParams{
+			UID:        in.GetCurrentUid(),
+			MessageIDs: messageIDs,
+			LatestID:   latestID,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
 	return &resp, nil
 }
 
@@ -400,7 +429,7 @@ func (s socialService) CreateComment(ctx context.Context, in *pb.CreateCommentRe
 	}
 	var parentID primitive.ObjectID
 	if in.GetParentId() != "" {
-		parentID, err = primitive.ObjectIDFromHex(in.GetStatusId())
+		parentID, err = primitive.ObjectIDFromHex(in.GetParentId())
 		if err != nil {
 			return nil, err
 		}
