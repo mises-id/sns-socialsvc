@@ -10,6 +10,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ListMessageParams struct {
@@ -36,10 +37,11 @@ type Message struct {
 	UID         uint64             `bson:"uid,omitempty"`
 	FromUID     uint64             `bson:"from_uid,omitempty"`
 	MessageType enum.MessageType   `bson:"message_type,omitempty"`
-	ReadTime    *time.Time         `bson:"read_time,omitempty"`
+	ReadTime    *time.Time         `bson:"read_time"`
 	CreatedAt   time.Time          `bson:"created_at,omitempty"`
 	UpdatedAt   time.Time          `bson:"updated_at,omitempty"`
 	FromUser    *User              `bson:"-"`
+	Status      *Status            `bson:"-"`
 }
 
 func (m *Message) State() string {
@@ -103,11 +105,28 @@ func ReadMessages(ctx context.Context, params *ReadMessageParams) error {
 	return err
 }
 
+func UnreadMessagesCount(ctx context.Context, uid uint64) (uint32, error) {
+	var c int64
+	return uint32(c), db.ODM(ctx).Model(&Message{}).Where(bson.M{"uid": uid, "read_time": nil}).Count(&c).Error
+}
+
+func LatestUnreadMessage(ctx context.Context, uid uint64) (*Message, error) {
+	message := &Message{}
+	err := db.ODM(ctx).Model(&Message{}).
+		Where(bson.M{"uid": uid, "read_time": nil}).Sort(bson.M{"_id": -1}).First(message).Error
+	if err == mongo.ErrNoDocuments {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+	return message, preloadMessageData(ctx, message)
+}
+
 func preloadMessageData(ctx context.Context, messages ...*Message) error {
 	if err := preloadMessageUser(ctx, messages...); err != nil {
 		return err
 	}
-	if err := preloadMessageUser(ctx, messages...); err != nil {
+	if err := preloadMessageStatus(ctx, messages...); err != nil {
 		return err
 	}
 	return nil
@@ -124,6 +143,29 @@ func preloadMessageUser(ctx context.Context, messages ...*Message) error {
 	}
 	for _, message := range messages {
 		message.FromUser = users[message.FromUID]
+	}
+	return nil
+}
+
+func preloadMessageStatus(ctx context.Context, messages ...*Message) error {
+	statusIDs := make([]primitive.ObjectID, 0)
+	for _, message := range messages {
+		if message.MessageType == enum.NewForward {
+			statusIDs = append(statusIDs, message.ForwardMeta.StatusID)
+		}
+	}
+	statuses, err := FindStatusByIDs(ctx, statusIDs...)
+	if err != nil {
+		return err
+	}
+	statusMap := map[primitive.ObjectID]*Status{}
+	for _, status := range statuses {
+		statusMap[status.ID] = status
+	}
+	for _, message := range messages {
+		if message.MessageType == enum.NewForward {
+			message.Status = statusMap[message.ForwardMeta.StatusID]
+		}
 	}
 	return nil
 }

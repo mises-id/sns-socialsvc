@@ -318,6 +318,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("GET").Path("/message/summary/").Handler(httptransport.NewServer(
+		endpoints.GetMessageSummaryEndpoint,
+		DecodeHTTPGetMessageSummaryZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/message/summary").Handler(httptransport.NewServer(
+		endpoints.GetMessageSummaryEndpoint,
+		DecodeHTTPGetMessageSummaryOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("GET").Path("/comment/list/").Handler(httptransport.NewServer(
 		endpoints.ListCommentEndpoint,
 		DecodeHTTPListCommentZeroRequest,
@@ -2395,6 +2408,96 @@ func DecodeHTTPReadMessageOneRequest(_ context.Context, r *http.Request) (interf
 
 	queryParams := r.URL.Query()
 	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPGetMessageSummaryZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getmessagesummary request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetMessageSummaryZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetMessageSummaryRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetMessageSummaryStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetMessageSummaryStr := CurrentUidGetMessageSummaryStrArr[0]
+		CurrentUidGetMessageSummary, err := strconv.ParseUint(CurrentUidGetMessageSummaryStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetMessageSummary from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetMessageSummary
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetMessageSummaryOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getmessagesummary request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetMessageSummaryOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetMessageSummaryRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetMessageSummaryStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetMessageSummaryStr := CurrentUidGetMessageSummaryStrArr[0]
+		CurrentUidGetMessageSummary, err := strconv.ParseUint(CurrentUidGetMessageSummaryStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetMessageSummary from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetMessageSummary
+	}
 
 	return &req, err
 }

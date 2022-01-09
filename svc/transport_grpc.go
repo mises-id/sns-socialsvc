@@ -149,6 +149,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCReadMessageResponse,
 			serverOptions...,
 		),
+		getmessagesummary: grpctransport.NewServer(
+			endpoints.GetMessageSummaryEndpoint,
+			DecodeGRPCGetMessageSummaryRequest,
+			EncodeGRPCGetMessageSummaryResponse,
+			serverOptions...,
+		),
 		listcomment: grpctransport.NewServer(
 			endpoints.ListCommentEndpoint,
 			DecodeGRPCListCommentRequest,
@@ -216,6 +222,7 @@ type grpcServer struct {
 	unfollow          grpctransport.Handler
 	listmessage       grpctransport.Handler
 	readmessage       grpctransport.Handler
+	getmessagesummary grpctransport.Handler
 	listcomment       grpctransport.Handler
 	createcomment     grpctransport.Handler
 	likecomment       grpctransport.Handler
@@ -385,6 +392,14 @@ func (s *grpcServer) ReadMessage(ctx context.Context, req *pb.ReadMessageRequest
 		return nil, err
 	}
 	return rep.(*pb.SimpleResponse), nil
+}
+
+func (s *grpcServer) GetMessageSummary(ctx context.Context, req *pb.GetMessageSummaryRequest) (*pb.MessageSummaryResponse, error) {
+	_, rep, err := s.getmessagesummary.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.MessageSummaryResponse), nil
 }
 
 func (s *grpcServer) ListComment(ctx context.Context, req *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
@@ -585,6 +600,13 @@ func DecodeGRPCReadMessageRequest(_ context.Context, grpcReq interface{}) (inter
 	return req, nil
 }
 
+// DecodeGRPCGetMessageSummaryRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC getmessagesummary request to a user-domain getmessagesummary request. Primarily useful in a server.
+func DecodeGRPCGetMessageSummaryRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.GetMessageSummaryRequest)
+	return req, nil
+}
+
 // DecodeGRPCListCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC listcomment request to a user-domain listcomment request. Primarily useful in a server.
 func DecodeGRPCListCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -773,6 +795,13 @@ func EncodeGRPCListMessageResponse(_ context.Context, response interface{}) (int
 // user-domain readmessage response to a gRPC readmessage reply. Primarily useful in a server.
 func EncodeGRPCReadMessageResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.SimpleResponse)
+	return resp, nil
+}
+
+// EncodeGRPCGetMessageSummaryResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain getmessagesummary response to a gRPC getmessagesummary reply. Primarily useful in a server.
+func EncodeGRPCGetMessageSummaryResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.MessageSummaryResponse)
 	return resp, nil
 }
 

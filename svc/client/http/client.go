@@ -251,6 +251,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var GetMessageSummaryZeroEndpoint endpoint.Endpoint
+	{
+		GetMessageSummaryZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/message/summary/"),
+			EncodeHTTPGetMessageSummaryZeroRequest,
+			DecodeHTTPGetMessageSummaryResponse,
+			options...,
+		).Endpoint()
+	}
 	var ListCommentZeroEndpoint endpoint.Endpoint
 	{
 		ListCommentZeroEndpoint = httptransport.NewClient(
@@ -343,6 +353,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		UnFollowEndpoint:          UnFollowZeroEndpoint,
 		ListMessageEndpoint:       ListMessageZeroEndpoint,
 		ReadMessageEndpoint:       ReadMessageZeroEndpoint,
+		GetMessageSummaryEndpoint: GetMessageSummaryZeroEndpoint,
 		ListCommentEndpoint:       ListCommentZeroEndpoint,
 		CreateCommentEndpoint:     CreateCommentZeroEndpoint,
 		LikeCommentEndpoint:       LikeCommentZeroEndpoint,
@@ -909,6 +920,33 @@ func DecodeHTTPReadMessageResponse(_ context.Context, r *http.Response) (interfa
 	}
 
 	var resp pb.SimpleResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPGetMessageSummaryResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded MessageSummaryResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPGetMessageSummaryResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.MessageSummaryResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -2967,6 +3005,79 @@ func EncodeHTTPReadMessageOneRequest(_ context.Context, r *http.Request, request
 		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
 	}
 	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPGetMessageSummaryZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a getmessagesummary request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetMessageSummaryZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetMessageSummaryRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"message",
+		"summary",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetMessageSummaryOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a getmessagesummary request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetMessageSummaryOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetMessageSummaryRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"message",
+		"summary",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	r.URL.RawQuery = values.Encode()
 	return nil
 }
 

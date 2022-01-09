@@ -90,8 +90,9 @@ func CreateFollow(ctx context.Context, fromUID, toUID uint64, isFriend bool) (*F
 	if err != nil {
 		return nil, err
 	}
+
 	follow.ID = result.InsertedID.(primitive.ObjectID)
-	return follow, nil
+	return follow, follow.AfterCreate(ctx)
 }
 
 func (f *Follow) SetFriend(ctx context.Context, isFriend bool) error {
@@ -143,6 +144,11 @@ func EnsureDeleteFollow(ctx context.Context, fromUID, toUID uint64) error {
 func DeleteFollow(ctx context.Context, fromUID, toUID uint64) error {
 	_, err := db.DB().Collection("follows").DeleteOne(ctx, bson.M{"from_uid": fromUID, "to_uid": toUID})
 	return err
+}
+
+func UnreadUsersCount(ctx context.Context, uid uint64) (uint32, error) {
+	var c int64
+	return uint32(c), db.ODM(ctx).Model(&Follow{}).Where(bson.M{"from_uid": uid, "is_read": false}).Count(&c).Error
 }
 
 func ListFollowingUserIDs(ctx context.Context, uid uint64) ([]uint64, error) {

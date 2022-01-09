@@ -23,8 +23,8 @@ func CreateBlacklist(ctx context.Context, uid, targetUID uint64) (*models.Blackl
 		return nil, err
 	}
 	blacklist, err := models.CreateBlacklist(ctx, uid, targetUser.UID)
-	if err == nil {
-		return blacklist, nil
+	if err != nil {
+		return nil, err
 	}
 	// delete follow
 	if err = models.EnsureDeleteFollow(ctx, uid, targetUID); err != nil {

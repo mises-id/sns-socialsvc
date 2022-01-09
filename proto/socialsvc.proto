@@ -293,6 +293,19 @@ service Social {
     };
   }
 
+  rpc GetMessageSummary (GetMessageSummaryRequest) returns (MessageSummaryResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/message/summary"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/message/summary/"
+      }
+    };
+  }
+
+  
 
   rpc ListComment (ListCommentRequest) returns (ListCommentResponse) {
     option (google.api.http) = {
@@ -662,6 +675,22 @@ message ReadMessageRequest {
   uint64 current_uid = 1;
   string latestID = 2;
   repeated string ids = 3;
+}
+
+message GetMessageSummaryRequest {
+  uint64 current_uid = 1;
+}
+
+message MessageSummaryResponse {
+  uint64 code = 1;
+  MessageSummary summary = 2;
+}
+
+message MessageSummary {
+  Message latest_message = 1;
+  uint32 total = 2;
+  uint32 notifications_count = 3;
+  uint32 users_count = 4;
 }
 
 message LatestFollowingRequest {

@@ -296,6 +296,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var getmessagesummaryEndpoint endpoint.Endpoint
+	{
+		getmessagesummaryEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"GetMessageSummary",
+			EncodeGRPCGetMessageSummaryRequest,
+			DecodeGRPCGetMessageSummaryResponse,
+			pb.MessageSummaryResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	var listcommentEndpoint endpoint.Endpoint
 	{
 		listcommentEndpoint = grpctransport.NewClient(
@@ -408,6 +421,7 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		UnFollowEndpoint:          unfollowEndpoint,
 		ListMessageEndpoint:       listmessageEndpoint,
 		ReadMessageEndpoint:       readmessageEndpoint,
+		GetMessageSummaryEndpoint: getmessagesummaryEndpoint,
 		ListCommentEndpoint:       listcommentEndpoint,
 		CreateCommentEndpoint:     createcommentEndpoint,
 		LikeCommentEndpoint:       likecommentEndpoint,
@@ -557,6 +571,13 @@ func DecodeGRPCListMessageResponse(_ context.Context, grpcReply interface{}) (in
 // gRPC readmessage reply to a user-domain readmessage response. Primarily useful in a client.
 func DecodeGRPCReadMessageResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.SimpleResponse)
+	return reply, nil
+}
+
+// DecodeGRPCGetMessageSummaryResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC getmessagesummary reply to a user-domain getmessagesummary response. Primarily useful in a client.
+func DecodeGRPCGetMessageSummaryResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.MessageSummaryResponse)
 	return reply, nil
 }
 
@@ -748,6 +769,13 @@ func EncodeGRPCListMessageRequest(_ context.Context, request interface{}) (inter
 // user-domain readmessage request to a gRPC readmessage request. Primarily useful in a client.
 func EncodeGRPCReadMessageRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.ReadMessageRequest)
+	return req, nil
+}
+
+// EncodeGRPCGetMessageSummaryRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain getmessagesummary request to a gRPC getmessagesummary request. Primarily useful in a client.
+func EncodeGRPCGetMessageSummaryRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.GetMessageSummaryRequest)
 	return req, nil
 }
 
