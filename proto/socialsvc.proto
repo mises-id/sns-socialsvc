@@ -354,11 +354,11 @@ service Social {
   rpc ListBlacklist (ListBlacklistRequest) returns (ListBlacklistResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
-      get: "/blacklist/list"
+      get: "/user/blacklist/list"
 
       additional_bindings {
         // Trailing slashes are different routes
-        get: "/blacklist/list"
+        get: "/user/blacklist/list"
       }
     };
   }
@@ -366,12 +366,12 @@ service Social {
   rpc CreateBlacklist (CreateBlacklistRequest) returns (SimpleResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
-      post: "/blacklist/create"
+      post: "/user/blacklist/create"
       body: "*"
 
       additional_bindings {
         // Trailing slashes are different routes
-        post: "/blacklist/create/"
+        post: "/user/blacklist/create/"
         body: "*"
       }
     };
@@ -380,12 +380,12 @@ service Social {
   rpc DeleteBlacklist (DeleteBlacklistRequest) returns (SimpleResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
-      post: "/blacklist/delete"
+      post: "/user/blacklist/delete"
       body: "*"
 
       additional_bindings {
         // Trailing slashes are different routes
-        post: "/blacklist/delete/"
+        post: "/user/blacklist/delete/"
         body: "*"
       }
     };

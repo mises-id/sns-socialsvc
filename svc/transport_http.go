@@ -370,39 +370,39 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
-	m.Methods("GET").Path("/blacklist/list").Handler(httptransport.NewServer(
+	m.Methods("GET").Path("/user/blacklist/list").Handler(httptransport.NewServer(
 		endpoints.ListBlacklistEndpoint,
 		DecodeHTTPListBlacklistZeroRequest,
 		responseEncoder,
 		serverOptions...,
 	))
-	m.Methods("GET").Path("/blacklist/list").Handler(httptransport.NewServer(
+	m.Methods("GET").Path("/user/blacklist/list").Handler(httptransport.NewServer(
 		endpoints.ListBlacklistEndpoint,
 		DecodeHTTPListBlacklistOneRequest,
 		responseEncoder,
 		serverOptions...,
 	))
 
-	m.Methods("POST").Path("/blacklist/create/").Handler(httptransport.NewServer(
+	m.Methods("POST").Path("/user/blacklist/create/").Handler(httptransport.NewServer(
 		endpoints.CreateBlacklistEndpoint,
 		DecodeHTTPCreateBlacklistZeroRequest,
 		responseEncoder,
 		serverOptions...,
 	))
-	m.Methods("POST").Path("/blacklist/create").Handler(httptransport.NewServer(
+	m.Methods("POST").Path("/user/blacklist/create").Handler(httptransport.NewServer(
 		endpoints.CreateBlacklistEndpoint,
 		DecodeHTTPCreateBlacklistOneRequest,
 		responseEncoder,
 		serverOptions...,
 	))
 
-	m.Methods("POST").Path("/blacklist/delete/").Handler(httptransport.NewServer(
+	m.Methods("POST").Path("/user/blacklist/delete/").Handler(httptransport.NewServer(
 		endpoints.DeleteBlacklistEndpoint,
 		DecodeHTTPDeleteBlacklistZeroRequest,
 		responseEncoder,
 		serverOptions...,
 	))
-	m.Methods("POST").Path("/blacklist/delete").Handler(httptransport.NewServer(
+	m.Methods("POST").Path("/user/blacklist/delete").Handler(httptransport.NewServer(
 		endpoints.DeleteBlacklistEndpoint,
 		DecodeHTTPDeleteBlacklistOneRequest,
 		responseEncoder,

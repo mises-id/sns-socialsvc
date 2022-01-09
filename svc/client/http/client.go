@@ -295,7 +295,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 	{
 		ListBlacklistZeroEndpoint = httptransport.NewClient(
 			"GET",
-			copyURL(u, "/blacklist/list"),
+			copyURL(u, "/user/blacklist/list"),
 			EncodeHTTPListBlacklistZeroRequest,
 			DecodeHTTPListBlacklistResponse,
 			options...,
@@ -305,7 +305,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 	{
 		CreateBlacklistZeroEndpoint = httptransport.NewClient(
 			"POST",
-			copyURL(u, "/blacklist/create/"),
+			copyURL(u, "/user/blacklist/create/"),
 			EncodeHTTPCreateBlacklistZeroRequest,
 			DecodeHTTPCreateBlacklistResponse,
 			options...,
@@ -315,7 +315,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 	{
 		DeleteBlacklistZeroEndpoint = httptransport.NewClient(
 			"POST",
-			copyURL(u, "/blacklist/delete/"),
+			copyURL(u, "/user/blacklist/delete/"),
 			EncodeHTTPDeleteBlacklistZeroRequest,
 			DecodeHTTPDeleteBlacklistResponse,
 			options...,
@@ -3383,6 +3383,7 @@ func EncodeHTTPListBlacklistZeroRequest(_ context.Context, r *http.Request, requ
 	// Set the path parameters
 	path := strings.Join([]string{
 		"",
+		"user",
 		"blacklist",
 		"list",
 	}, "/")
@@ -3426,6 +3427,7 @@ func EncodeHTTPListBlacklistOneRequest(_ context.Context, r *http.Request, reque
 	// Set the path parameters
 	path := strings.Join([]string{
 		"",
+		"user",
 		"blacklist",
 		"list",
 	}, "/")
@@ -3469,6 +3471,7 @@ func EncodeHTTPCreateBlacklistZeroRequest(_ context.Context, r *http.Request, re
 	// Set the path parameters
 	path := strings.Join([]string{
 		"",
+		"user",
 		"blacklist",
 		"create",
 		"",
@@ -3518,6 +3521,7 @@ func EncodeHTTPCreateBlacklistOneRequest(_ context.Context, r *http.Request, req
 	// Set the path parameters
 	path := strings.Join([]string{
 		"",
+		"user",
 		"blacklist",
 		"create",
 	}, "/")
@@ -3566,6 +3570,7 @@ func EncodeHTTPDeleteBlacklistZeroRequest(_ context.Context, r *http.Request, re
 	// Set the path parameters
 	path := strings.Join([]string{
 		"",
+		"user",
 		"blacklist",
 		"delete",
 		"",
@@ -3615,6 +3620,7 @@ func EncodeHTTPDeleteBlacklistOneRequest(_ context.Context, r *http.Request, req
 	// Set the path parameters
 	path := strings.Join([]string{
 		"",
+		"user",
 		"blacklist",
 		"delete",
 	}, "/")
