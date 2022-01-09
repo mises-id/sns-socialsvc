@@ -35,6 +35,7 @@ func (a *Follow) BeforeCreate(ctx context.Context) error {
 func (a *Follow) AfterCreate(ctx context.Context) error {
 	_, err := CreateMessage(ctx, &CreateMessageParams{
 		UID:         a.ToUID,
+		FromUID:     a.FromUID,
 		MessageType: enum.NewFans,
 		MetaData: &message.MetaData{
 			FansMeta: &message.FansMeta{

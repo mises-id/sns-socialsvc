@@ -57,6 +57,7 @@ func (c *Comment) BeforeCreate(ctx context.Context) error {
 func (c *Comment) AfterCreate(ctx context.Context) error {
 	_, err := CreateMessage(ctx, &CreateMessageParams{
 		UID:         c.OpponentID,
+		FromUID:     c.UID,
 		MessageType: enum.NewComment,
 		MetaData: &message.MetaData{
 			CommentMeta: &message.CommentMeta{
