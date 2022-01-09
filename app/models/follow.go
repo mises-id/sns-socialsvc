@@ -15,15 +15,16 @@ import (
 )
 
 type Follow struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty"`
-	FromUID   uint64             `bson:"from_uid,omitempty"`
-	ToUID     uint64             `bson:"to_uid,omitempty"`
-	IsFriend  bool               `bson:"is_friend,omitempty"`
-	ReadTime  time.Time          `bson:"read_time,omitempty"`
-	CreatedAt time.Time          `bson:"created_at,omitempty"`
-	UpdatedAt time.Time          `bson:"updated_at,omitempty"`
-	FromUser  *User              `bson:"-"`
-	ToUser    *User              `bson:"-"`
+	ID             primitive.ObjectID `bson:"_id,omitempty"`
+	FromUID        uint64             `bson:"from_uid,omitempty"`
+	ToUID          uint64             `bson:"to_uid,omitempty"`
+	IsFriend       bool               `bson:"is_friend,omitempty"`
+	IsRead         bool               `bson:"is_read"`
+	LatestPostTime *time.Time         `bson:"latest_post_time"`
+	CreatedAt      time.Time          `bson:"created_at,omitempty"`
+	UpdatedAt      time.Time          `bson:"updated_at,omitempty"`
+	FromUser       *User              `bson:"-"`
+	ToUser         *User              `bson:"-"`
 }
 
 func (a *Follow) BeforeCreate(ctx context.Context) error {
@@ -49,7 +50,8 @@ func (a *Follow) AfterCreate(ctx context.Context) error {
 func LatestFollowing(ctx context.Context, uid uint64) ([]*Follow, error) {
 	follows := make([]*Follow, 0)
 	err := db.ODM(ctx).Where(bson.M{"from_uid": uid}).
-		Sort(bson.M{"read_time": -1}).Find(&follows).Error
+		Sort(bson.D{{Key: "is_read", Value: 1}, {Key: "latest_post_time", Value: -1}}).
+		Limit(20).Find(&follows).Error
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +81,7 @@ func CreateFollow(ctx context.Context, fromUID, toUID uint64, isFriend bool) (*F
 		FromUID:  fromUID,
 		ToUID:    toUID,
 		IsFriend: isFriend,
-		ReadTime: time.Now(),
+		IsRead:   true,
 	}
 	if err := follow.BeforeCreate(ctx); err != nil {
 		return nil, err
@@ -161,6 +163,22 @@ func ListFollowingUserIDs(ctx context.Context, uid uint64) ([]uint64, error) {
 		ids[i] = follow.ToUID
 	}
 	return ids, nil
+}
+
+func MarkFollowRead(ctx context.Context, fromUID, toUID uint64) error {
+	t := time.Now()
+	_, err := db.DB().Collection("follows").UpdateMany(ctx, bson.M{"from_uid": fromUID, "to_uid": toUID},
+		bson.D{{
+			Key: "$set",
+			Value: bson.D{{
+				Key:   "is_read",
+				Value: true,
+			}, {
+				Key:   "updated_at",
+				Value: t,
+			}}},
+		})
+	return err
 }
 
 func preloadFollowUser(ctx context.Context, follows []*Follow) error {

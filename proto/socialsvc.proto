@@ -494,7 +494,7 @@ message PageQuick {
 message ListStatusRequest {
   uint64 current_uid = 1;
   uint64 target_uid = 2;
-  string parrent_id = 3;
+  string parent_id = 3;
   repeated string from_types = 4;
   PageQuick paginator = 5;
 }

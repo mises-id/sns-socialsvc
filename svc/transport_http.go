@@ -1402,10 +1402,10 @@ func DecodeHTTPListStatusZeroRequest(_ context.Context, r *http.Request) (interf
 		req.TargetUid = TargetUidListStatus
 	}
 
-	if ParrentIdListStatusStrArr, ok := queryParams["parrent_id"]; ok {
-		ParrentIdListStatusStr := ParrentIdListStatusStrArr[0]
-		ParrentIdListStatus := ParrentIdListStatusStr
-		req.ParrentId = ParrentIdListStatus
+	if ParentIdListStatusStrArr, ok := queryParams["parent_id"]; ok {
+		ParentIdListStatusStr := ParentIdListStatusStrArr[0]
+		ParentIdListStatus := ParentIdListStatusStr
+		req.ParentId = ParentIdListStatus
 	}
 
 	if FromTypesListStatusStrArr, ok := queryParams["from_types"]; ok {
@@ -1484,10 +1484,10 @@ func DecodeHTTPListStatusOneRequest(_ context.Context, r *http.Request) (interfa
 		req.TargetUid = TargetUidListStatus
 	}
 
-	if ParrentIdListStatusStrArr, ok := queryParams["parrent_id"]; ok {
-		ParrentIdListStatusStr := ParrentIdListStatusStrArr[0]
-		ParrentIdListStatus := ParrentIdListStatusStr
-		req.ParrentId = ParrentIdListStatus
+	if ParentIdListStatusStrArr, ok := queryParams["parent_id"]; ok {
+		ParentIdListStatusStr := ParentIdListStatusStrArr[0]
+		ParentIdListStatus := ParentIdListStatusStr
+		req.ParentId = ParentIdListStatus
 	}
 
 	if FromTypesListStatusStrArr, ok := queryParams["from_types"]; ok {
@@ -1566,10 +1566,10 @@ func DecodeHTTPListRecommendedZeroRequest(_ context.Context, r *http.Request) (i
 		req.TargetUid = TargetUidListRecommended
 	}
 
-	if ParrentIdListRecommendedStrArr, ok := queryParams["parrent_id"]; ok {
-		ParrentIdListRecommendedStr := ParrentIdListRecommendedStrArr[0]
-		ParrentIdListRecommended := ParrentIdListRecommendedStr
-		req.ParrentId = ParrentIdListRecommended
+	if ParentIdListRecommendedStrArr, ok := queryParams["parent_id"]; ok {
+		ParentIdListRecommendedStr := ParentIdListRecommendedStrArr[0]
+		ParentIdListRecommended := ParentIdListRecommendedStr
+		req.ParentId = ParentIdListRecommended
 	}
 
 	if FromTypesListRecommendedStrArr, ok := queryParams["from_types"]; ok {
@@ -1648,10 +1648,10 @@ func DecodeHTTPListRecommendedOneRequest(_ context.Context, r *http.Request) (in
 		req.TargetUid = TargetUidListRecommended
 	}
 
-	if ParrentIdListRecommendedStrArr, ok := queryParams["parrent_id"]; ok {
-		ParrentIdListRecommendedStr := ParrentIdListRecommendedStrArr[0]
-		ParrentIdListRecommended := ParrentIdListRecommendedStr
-		req.ParrentId = ParrentIdListRecommended
+	if ParentIdListRecommendedStrArr, ok := queryParams["parent_id"]; ok {
+		ParentIdListRecommendedStr := ParentIdListRecommendedStrArr[0]
+		ParentIdListRecommended := ParentIdListRecommendedStr
+		req.ParentId = ParentIdListRecommended
 	}
 
 	if FromTypesListRecommendedStrArr, ok := queryParams["from_types"]; ok {
@@ -1730,10 +1730,10 @@ func DecodeHTTPListUserTimelineZeroRequest(_ context.Context, r *http.Request) (
 		req.TargetUid = TargetUidListUserTimeline
 	}
 
-	if ParrentIdListUserTimelineStrArr, ok := queryParams["parrent_id"]; ok {
-		ParrentIdListUserTimelineStr := ParrentIdListUserTimelineStrArr[0]
-		ParrentIdListUserTimeline := ParrentIdListUserTimelineStr
-		req.ParrentId = ParrentIdListUserTimeline
+	if ParentIdListUserTimelineStrArr, ok := queryParams["parent_id"]; ok {
+		ParentIdListUserTimelineStr := ParentIdListUserTimelineStrArr[0]
+		ParentIdListUserTimeline := ParentIdListUserTimelineStr
+		req.ParentId = ParentIdListUserTimeline
 	}
 
 	if FromTypesListUserTimelineStrArr, ok := queryParams["from_types"]; ok {
@@ -1812,10 +1812,10 @@ func DecodeHTTPListUserTimelineOneRequest(_ context.Context, r *http.Request) (i
 		req.TargetUid = TargetUidListUserTimeline
 	}
 
-	if ParrentIdListUserTimelineStrArr, ok := queryParams["parrent_id"]; ok {
-		ParrentIdListUserTimelineStr := ParrentIdListUserTimelineStrArr[0]
-		ParrentIdListUserTimeline := ParrentIdListUserTimelineStr
-		req.ParrentId = ParrentIdListUserTimeline
+	if ParentIdListUserTimelineStrArr, ok := queryParams["parent_id"]; ok {
+		ParentIdListUserTimelineStr := ParentIdListUserTimelineStrArr[0]
+		ParentIdListUserTimeline := ParentIdListUserTimelineStr
+		req.ParentId = ParentIdListUserTimeline
 	}
 
 	if FromTypesListUserTimelineStrArr, ok := queryParams["from_types"]; ok {

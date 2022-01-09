@@ -2158,7 +2158,7 @@ func EncodeHTTPListStatusZeroRequest(_ context.Context, r *http.Request, request
 
 	values.Add("target_uid", fmt.Sprint(req.TargetUid))
 
-	values.Add("parrent_id", fmt.Sprint(req.ParrentId))
+	values.Add("parent_id", fmt.Sprint(req.ParentId))
 
 	values["from_types"] = req.FromTypes
 
@@ -2207,7 +2207,7 @@ func EncodeHTTPListStatusOneRequest(_ context.Context, r *http.Request, request 
 
 	values.Add("target_uid", fmt.Sprint(req.TargetUid))
 
-	values.Add("parrent_id", fmt.Sprint(req.ParrentId))
+	values.Add("parent_id", fmt.Sprint(req.ParentId))
 
 	values["from_types"] = req.FromTypes
 
@@ -2257,7 +2257,7 @@ func EncodeHTTPListRecommendedZeroRequest(_ context.Context, r *http.Request, re
 
 	values.Add("target_uid", fmt.Sprint(req.TargetUid))
 
-	values.Add("parrent_id", fmt.Sprint(req.ParrentId))
+	values.Add("parent_id", fmt.Sprint(req.ParentId))
 
 	values["from_types"] = req.FromTypes
 
@@ -2306,7 +2306,7 @@ func EncodeHTTPListRecommendedOneRequest(_ context.Context, r *http.Request, req
 
 	values.Add("target_uid", fmt.Sprint(req.TargetUid))
 
-	values.Add("parrent_id", fmt.Sprint(req.ParrentId))
+	values.Add("parent_id", fmt.Sprint(req.ParentId))
 
 	values["from_types"] = req.FromTypes
 
@@ -2356,7 +2356,7 @@ func EncodeHTTPListUserTimelineZeroRequest(_ context.Context, r *http.Request, r
 
 	values.Add("target_uid", fmt.Sprint(req.TargetUid))
 
-	values.Add("parrent_id", fmt.Sprint(req.ParrentId))
+	values.Add("parent_id", fmt.Sprint(req.ParentId))
 
 	values["from_types"] = req.FromTypes
 
@@ -2405,7 +2405,7 @@ func EncodeHTTPListUserTimelineOneRequest(_ context.Context, r *http.Request, re
 
 	values.Add("target_uid", fmt.Sprint(req.TargetUid))
 
-	values.Add("parrent_id", fmt.Sprint(req.ParrentId))
+	values.Add("parent_id", fmt.Sprint(req.ParentId))
 
 	values["from_types"] = req.FromTypes
 
