@@ -429,7 +429,7 @@ func (s socialService) CreateComment(ctx context.Context, in *pb.CreateCommentRe
 	}
 	var parentID primitive.ObjectID
 	if in.GetParentId() != "" {
-		parentID, err = primitive.ObjectIDFromHex(in.GetStatusId())
+		parentID, err = primitive.ObjectIDFromHex(in.GetParentId())
 		if err != nil {
 			return nil, err
 		}

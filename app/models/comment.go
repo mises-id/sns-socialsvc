@@ -133,7 +133,10 @@ func ListComment(ctx context.Context, params *ListCommentParams) ([]*Comment, pa
 	}
 	if params.GroupID != primitive.NilObjectID {
 		chain = chain.Where(bson.M{"group_id": params.GroupID})
+	} else {
+		chain = chain.Where(bson.M{"group_id": bson.M{"$exists": false}})
 	}
+	chain = chain.Sort(bson.M{"_id": 1})
 	paginator := pagination.NewQuickPaginator(params.PageParams.Limit, params.PageParams.NextID, chain)
 	page, err := paginator.Paginate(&comments)
 	if err != nil {
