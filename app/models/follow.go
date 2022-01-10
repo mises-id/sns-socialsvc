@@ -19,6 +19,7 @@ type Follow struct {
 	FromUID        uint64             `bson:"from_uid,omitempty"`
 	ToUID          uint64             `bson:"to_uid,omitempty"`
 	IsFriend       bool               `bson:"is_friend,omitempty"`
+	IsNew          bool               `bson:"is_new"`
 	IsRead         bool               `bson:"is_read"`
 	LatestPostTime *time.Time         `bson:"latest_post_time"`
 	CreatedAt      time.Time          `bson:"created_at,omitempty"`
@@ -44,7 +45,51 @@ func (a *Follow) AfterCreate(ctx context.Context) error {
 			},
 		},
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	if err = a.incrUserCounter(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *Follow) incrUserCounter(ctx context.Context) error {
+	err := db.DB().Collection("users").FindOneAndUpdate(ctx, bson.M{"_id": a.FromUID},
+		bson.D{{
+			Key: "$inc",
+			Value: bson.D{{
+				Key:   "following_count",
+				Value: 1,
+			}}},
+		}).Err()
+	if err != nil {
+		return err
+	}
+	err = db.DB().Collection("users").FindOneAndUpdate(ctx, bson.M{"_id": a.ToUID},
+		bson.D{{
+			Key: "$inc",
+			Value: bson.D{{
+				Key:   "fans_count",
+				Value: 1,
+			}}},
+		}).Err()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ReadNewFans(ctx context.Context, uid uint64) error {
+	return db.DB().Collection("follows").FindOneAndUpdate(ctx, bson.M{
+		"to_uid": uid, "is_new": true,
+	}, bson.D{{
+		Key: "$set",
+		Value: bson.D{{
+			Key:   "is_new",
+			Value: false,
+		}}},
+	}).Err()
 }
 
 func LatestFollowing(ctx context.Context, uid uint64) ([]*Follow, error) {
@@ -146,6 +191,11 @@ func DeleteFollow(ctx context.Context, fromUID, toUID uint64) error {
 	return err
 }
 
+func NewFansCount(ctx context.Context, uid uint64) (uint32, error) {
+	var c int64
+	return uint32(c), db.ODM(ctx).Model(&Follow{}).Where(bson.M{"to_uid": uid, "is_new": true}).Count(&c).Error
+}
+
 func UnreadUsersCount(ctx context.Context, uid uint64) (uint32, error) {
 	var c int64
 	return uint32(c), db.ODM(ctx).Model(&Follow{}).Where(bson.M{"from_uid": uid, "is_read": false}).Count(&c).Error
@@ -192,15 +242,8 @@ func preloadFollowUser(ctx context.Context, follows []*Follow) error {
 	for _, follow := range follows {
 		userIds = append(userIds, follow.FromUID, follow.ToUID)
 	}
-	users := make([]*User, 0)
-	err := db.ODM(ctx).Where(bson.M{"_id": bson.M{"$in": userIds}}).Find(&users).Error
+	users, err := FindUserByIDs(ctx, userIds...)
 	if err != nil {
-		return err
-	}
-	if err = PreloadUserAvatar(ctx, users...); err != nil {
-		return err
-	}
-	if err = BatchSetFolloweState(ctx, users...); err != nil {
 		return err
 	}
 	userMap := make(map[uint64]*User)
@@ -210,29 +253,6 @@ func preloadFollowUser(ctx context.Context, follows []*Follow) error {
 	for _, follow := range follows {
 		follow.FromUser = userMap[follow.FromUID]
 		follow.ToUser = userMap[follow.ToUID]
-	}
-	return nil
-}
-
-func BatchSetFolloweState(ctx context.Context, users ...*User) error {
-	currentUID := ctx.Value("CurrentUID")
-	if currentUID == nil {
-		return nil
-	}
-	uid := currentUID.(uint64)
-	if uid == 0 {
-		return nil
-	}
-	toUIDs := make([]uint64, len(users))
-	for i, user := range users {
-		toUIDs[i] = user.UID
-	}
-	followMap, err := GetFollowMap(ctx, uid, toUIDs)
-	if err != nil {
-		return err
-	}
-	for _, user := range users {
-		user.IsFollowed = followMap[user.UID] != nil
 	}
 	return nil
 }

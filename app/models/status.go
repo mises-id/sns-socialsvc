@@ -307,15 +307,8 @@ func preloadStatusUser(ctx context.Context, statuses ...*Status) error {
 	for _, status := range statuses {
 		userIds = append(userIds, status.UID)
 	}
-	users := make([]*User, 0)
-	err := db.ODM(ctx).Where(bson.M{"_id": bson.M{"$in": userIds}}).Find(&users).Error
+	users, err := FindUserByIDs(ctx, userIds...)
 	if err != nil {
-		return err
-	}
-	if err = PreloadUserAvatar(ctx, users...); err != nil {
-		return err
-	}
-	if err = BatchSetFolloweState(ctx, users...); err != nil {
 		return err
 	}
 	userMap := make(map[uint64]*User)
