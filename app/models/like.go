@@ -38,10 +38,28 @@ func (l *Like) AfterCreate(ctx context.Context) error {
 			},
 		},
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	if err = l.incrUserCounter(ctx); err != nil {
+		return err
+	}
+	return nil
 }
 
-func CreateLike(ctx context.Context, ownerID, uid uint64, targetID primitive.ObjectID, targetType enum.LikeTargetType) (*Like, error) {
+func (l *Like) incrUserCounter(ctx context.Context) error {
+	result := db.DB().Collection("users").FindOneAndUpdate(ctx, bson.M{"_id": l.OwnerID},
+		bson.D{{
+			Key: "$inc",
+			Value: bson.D{{
+				Key:   "liked_count",
+				Value: 1,
+			}}},
+		})
+	return result.Err()
+}
+
+func CreateLike(ctx context.Context, uid, ownerID uint64, targetID primitive.ObjectID, targetType enum.LikeTargetType) (*Like, error) {
 	like := &Like{
 		OwnerID:    ownerID,
 		UID:        uid,
@@ -81,6 +99,24 @@ func GetStatusLikeMap(ctx context.Context, uid uint64, statusIDs []primitive.Obj
 		"uid":         uid,
 		"target_id":   bson.M{"$in": statusIDs},
 		"target_type": enum.LikeStatus,
+		"deleted_at":  nil,
+	}).Find(&likes).Error
+	if err != nil {
+		return nil, err
+	}
+	likeMap := make(map[primitive.ObjectID]*Like)
+	for _, like := range likes {
+		likeMap[like.TargetID] = like
+	}
+	return likeMap, nil
+}
+
+func GetLikeMap(ctx context.Context, uid uint64, targetIDs []primitive.ObjectID, targetType enum.LikeTargetType) (map[primitive.ObjectID]*Like, error) {
+	likes := make([]*Like, 0)
+	err := db.ODM(ctx).Where(bson.M{
+		"uid":         uid,
+		"target_id":   bson.M{"$in": targetIDs},
+		"target_type": targetType,
 		"deleted_at":  nil,
 	}).Find(&likes).Error
 	if err != nil {
