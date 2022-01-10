@@ -47,7 +47,7 @@ func AdminPageUser(ctx context.Context, params IAdminPageParams) ([]*User, pagin
 	users := make([]*User, 0)
 	chain := params.BuildAdminSearch(db.ODM(ctx))
 	pageParams := params.GetPageParams()
-	paginator := pagination.NewTraditionalPaginator(pageParams.PageNum, pageParams.PageSize, chain)
+	paginator := pagination.NewTraditionalPaginatorAdmin(pageParams.PageNum, pageParams.PageSize, chain)
 	page, err := paginator.Paginate(&users)
 	if err != nil {
 		return nil, nil, err

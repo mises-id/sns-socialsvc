@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
@@ -12,17 +11,15 @@ import (
 )
 
 type (
-	AdminStatusParams struct {
+	AdminTagParams struct {
 		//search
-		ID        primitive.ObjectID
-		IDs       []primitive.ObjectID
-		UIDs      []uint64
-		FromTypes []enum.FromType
-		Tags      []enum.TagType
-		StartTime *time.Time `json:"start_time" query:"start_time"`
-		EndTime   *time.Time `json:"end_time" query:"end_time"`
-		Tag       enum.TagType
-		OnlyShow  bool
+		ID          primitive.ObjectID
+		IDs         []primitive.ObjectID
+		TagableIDs  []string
+		TagableType enum.TagableType
+		TagTypes    []enum.TagType
+		StartTime   *time.Time `json:"start_time" query:"start_time"`
+		EndTime     *time.Time `json:"end_time" query:"end_time"`
 		//sort
 		SortKey  string `json:"sort_key" query:"sort_key" validate:"omitempty,oneof=created_at comments_count likes_count forwards_count"` //发布时间/评论数/点赞数/转发数
 		SortType int    `json:"sort_type" query:"sort_type" validate:"omitempty,oneof=-1 1"`
@@ -35,7 +32,7 @@ type (
 	}
 )
 
-func (params *AdminStatusParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
+func (params *AdminTagParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	//base
 	chain = chain.Sort(bson.M{"_id": -1})
 	//where
@@ -45,32 +42,23 @@ func (params *AdminStatusParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.IDs != nil && len(params.IDs) > 0 {
 		chain = chain.Where(bson.M{"_id": bson.M{"$in": params.IDs}})
 	}
-	if params.UIDs != nil && len(params.UIDs) > 0 {
-		chain = chain.Where(bson.M{"uid": bson.M{"$in": params.UIDs}})
+	if params.TagableIDs != nil && len(params.TagableIDs) > 0 {
+		chain = chain.Where(bson.M{"tagable_id": bson.M{"$in": params.TagableIDs}})
 	}
-	if params.FromTypes != nil {
-		chain = chain.Where(bson.M{"from_type": bson.M{"$in": params.FromTypes}})
+	if params.TagTypes != nil && len(params.TagTypes) > 0 {
+		chain = chain.Where(bson.M{"tag_type": bson.M{"$in": params.TagTypes}})
 	}
-	if params.Tag != enum.TagBlank {
-		params.Tags = []enum.TagType{params.Tag}
-	}
-	if params.Tags != nil {
-		chain = chain.Where(bson.M{"tags": bson.M{"$in": params.Tags}})
+	if params.TagableType != "" {
+		chain = chain.Where(bson.M{"tagable_type": params.TagableType})
 	}
 	if params.StartTime != nil && params.EndTime == nil {
-		fmt.Println("st:", params.StartTime)
 		chain = chain.Where(bson.M{"created_at": bson.M{"$gte": params.StartTime}})
 	}
 	if params.StartTime == nil && params.EndTime != nil {
-		fmt.Println("et:", params.EndTime)
 		chain = chain.Where(bson.M{"created_at": bson.M{"$lte": params.EndTime}})
 	}
 	if params.StartTime != nil && params.EndTime != nil {
-		fmt.Println("et:", params.EndTime)
 		chain = chain.Where(bson.M{"$and": bson.A{bson.M{"created_at": bson.M{"$gte": params.StartTime}}, bson.M{"created_at": bson.M{"$lte": params.EndTime}}}})
-	}
-	if params.OnlyShow {
-		chain = chain.Where(bson.M{"$or": bson.A{bson.M{"hide_time": nil}, bson.M{"hide_time": bson.M{"$gt": time.Now()}}}})
 	}
 	//sort
 	if params.SortKey != "" && params.SortType != 0 {
@@ -83,7 +71,7 @@ func (params *AdminStatusParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	return chain
 }
 
-func (params *AdminStatusParams) GetPageParams() *pagination.TraditionalParams {
+func (params *AdminTagParams) GetPageParams() *pagination.TraditionalParams {
 	if params.PageNum <= 0 || params.PageSize <= 0 {
 		return pagination.DefaultTraditionalParams()
 	}

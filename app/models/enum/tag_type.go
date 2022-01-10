@@ -28,6 +28,10 @@ func init() {
 	}
 }
 
+func (tp TagType) String() string {
+	return tagTypeMap[tp]
+}
+
 func TagTypeFromString(tp string) (TagType, error) {
 	tagType, ok := tagTypeStringMap[tp]
 	if !ok {

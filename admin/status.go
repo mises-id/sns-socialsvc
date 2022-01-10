@@ -17,7 +17,6 @@ type (
 		PageStatus(ctx context.Context, params *AdminStatusParams) ([]*Status, pagination.Pagination, error)
 		ListStatus(ctx context.Context, params *AdminStatusParams) ([]*Status, error)
 		FindStatus(ctx context.Context, params *AdminStatusParams) (*Status, error)
-		//ListTag(ctx context.Context, params *ListStatusTagParams) ([]*StatusTag, pagination.Pagination, error)
 		CreateTag(ctx context.Context, id primitive.ObjectID, tag enum.TagType) (*StatusTag, error)
 		DeleteTag(ctx context.Context, id primitive.ObjectID, tag enum.TagType) (*StatusTag, error)
 	}

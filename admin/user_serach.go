@@ -12,6 +12,7 @@ import (
 type (
 	AdminUserParams struct {
 		//search
+		ID        uint64
 		IDs       []uint64
 		FromTypes []enum.FromType
 		Tags      []enum.TagType
@@ -29,7 +30,12 @@ type (
 )
 
 func (params *AdminUserParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
+	//base
+	chain = chain.Sort(bson.M{"_id": -1})
 	//where
+	if params.ID != 0 {
+		params.IDs = []uint64{params.ID}
+	}
 	if params.IDs != nil && len(params.IDs) > 0 {
 		chain = chain.Where(bson.M{"_id": bson.M{"$in": params.IDs}})
 	}
@@ -39,11 +45,14 @@ func (params *AdminUserParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.Tags != nil {
 		chain = chain.Where(bson.M{"tags": bson.M{"$in": params.Tags}})
 	}
-	if params.StartTime != nil {
-		chain = chain.Where(bson.M{"create_at": bson.M{"$gte": params.StartTime}})
+	if params.StartTime != nil && params.EndTime == nil {
+		chain = chain.Where(bson.M{"created_at": bson.M{"$gte": params.StartTime}})
 	}
-	if params.EndTime != nil {
-		chain = chain.Where(bson.M{"create_at": bson.M{"$lte": params.EndTime}})
+	if params.StartTime == nil && params.EndTime != nil {
+		chain = chain.Where(bson.M{"created_at": bson.M{"$lte": params.EndTime}})
+	}
+	if params.StartTime != nil && params.EndTime != nil {
+		chain = chain.Where(bson.M{"$and": bson.A{bson.M{"created_at": bson.M{"$gte": params.StartTime}}, bson.M{"created_at": bson.M{"$lte": params.EndTime}}}})
 	}
 	//sort
 	//limit

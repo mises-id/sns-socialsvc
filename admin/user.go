@@ -3,7 +3,6 @@ package admin
 import (
 	"context"
 	"errors"
-	"strconv"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
@@ -29,7 +28,9 @@ type UserApi interface {
 	PageUser(ctx context.Context, params *AdminUserParams) ([]*User, pagination.Pagination, error)
 	ListUser(ctx context.Context, params *AdminUserParams) ([]*User, error)
 	FindUser(ctx context.Context, params *AdminUserParams) (*User, error)
-	//ListTag(ctx context.Context, params *ListUserTagParams) ([]*UserTag, pagination.Pagination, error)
+	//user tag
+	ListTag(ctx context.Context, params *AdminTagParams) ([]*UserTag, error)
+	FindTag(ctx context.Context, params *AdminTagParams) (*UserTag, error)
 	CreateTag(ctx context.Context, uid uint64, in *CreateUserTagInput) (*UserTag, error)
 	DeleteTag(ctx context.Context, uid uint64, tagArr ...enum.TagType) (*UserTag, error)
 }
@@ -41,6 +42,7 @@ func NewUserApi() UserApi {
 	return &userApi{}
 }
 
+//get one user
 func (a *userApi) FindUser(ctx context.Context, params *AdminUserParams) (*User, error) {
 	user, err := models.AdminFindUser(ctx, params)
 	if err != nil {
@@ -48,6 +50,8 @@ func (a *userApi) FindUser(ctx context.Context, params *AdminUserParams) (*User,
 	}
 	return &User{user}, nil
 }
+
+//get list user
 func (a *userApi) ListUser(ctx context.Context, params *AdminUserParams) ([]*User, error) {
 	users, err := models.AdminListUser(ctx, params)
 	if err != nil {
@@ -60,6 +64,7 @@ func (a *userApi) ListUser(ctx context.Context, params *AdminUserParams) ([]*Use
 	return result, nil
 }
 
+//get page user
 func (a *userApi) PageUser(ctx context.Context, params *AdminUserParams) ([]*User, pagination.Pagination, error) {
 
 	users, page, err := models.AdminPageUser(ctx, params)
@@ -73,40 +78,6 @@ func (a *userApi) PageUser(ctx context.Context, params *AdminUserParams) ([]*Use
 	return result, page, nil
 }
 
-	if params.Tag == enum.TagBlank {
-		return a.listAllUser(ctx, params.TraditionalParams)
-	}
-	tags, page, err := models.PageTag(ctx, &models.PageTagParams{
-		PageParams: params.TraditionalParams,
-		TagParams: models.TagParams{
-			TagableType: enum.TagableUser,
-			TagType:     params.Tag,
-		},
-	})
-	if err != nil {
-		return nil, nil, err
-	}
-	userIDs := make([]uint64, len(tags))
-	for i, tag := range tags {
-		uid, _ := strconv.Atoi(tag.TagableID)
-		userIDs[i] = uint64(uid)
-	}
-	users, err := models.ListUserByIDs(ctx, userIDs...)
-	if err != nil {
-		return nil, nil, err
-	}
-	userMap := make(map[uint64]*models.User)
-	for _, user := range users {
-		userMap[user.UID] = user
-	}
-	result := make([]*UserTag, len(users))
-	for i, tag := range tags {
-		uid, _ := strconv.Atoi(tag.TagableID)
-		result[i] = buildUserTag(userMap[uint64(uid)], tag)
-	}
-	return result, page, nil
-}
-*/
 //create tag
 func (a *userApi) CreateTag(ctx context.Context, uid uint64, in *CreateUserTagInput) (*UserTag, error) {
 
@@ -181,37 +152,31 @@ func (a *userApi) DeleteTag(ctx context.Context, uid uint64, tagArr ...enum.TagT
 	return nil, nil
 }
 
-func (a *userApi) listAllUser(ctx context.Context, params *pagination.TraditionalParams) ([]*UserTag, pagination.Pagination, error) {
-	users := make([]*models.User, 0)
-	chain := db.ODM(ctx)
-	paginator := pagination.NewTraditionalPaginator(params.PageNum, params.PageSize, chain)
-	page, err := paginator.Paginate(&users)
+//get user tags
+func (a *userApi) ListTag(ctx context.Context, params *AdminTagParams) ([]*UserTag, error) {
+
+	params.TagableType = enum.TagableUser
+	tags, err := models.AdminListTag(ctx, params)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	userIDs := make([]string, len(users))
-	for i, user := range users {
-		userIDs[i] = strconv.Itoa(int(user.UID))
+	result := make([]*UserTag, len(tags))
+	for i, tag := range tags {
+		result[i] = &UserTag{Tag: tag}
 	}
-	tags, err := models.ListTagByTagables(ctx, enum.TagableUser, userIDs...)
-	if err != nil {
-		return nil, nil, err
-	}
-	tagMap := make(map[uint64]*models.Tag)
-	for _, tag := range tags {
-		uid, _ := strconv.Atoi(tag.TagableID)
-		tagMap[uint64(uid)] = tag
-	}
-	result := make([]*UserTag, len(users))
-	for i, user := range users {
-		result[i] = buildUserTag(user, tagMap[user.UID])
-	}
-	return result, page, nil
+	return result, nil
+
 }
 
-func buildUserTag(user *models.User, tag *models.Tag) *UserTag {
-	return &UserTag{
-		User: user,
-		Tag:  tag,
+//find one tag
+func (a *userApi) FindTag(ctx context.Context, params *AdminTagParams) (*UserTag, error) {
+
+	params.TagableType = enum.TagableUser
+	tag, err := models.AdminFindTag(ctx, params)
+	if err != nil {
+		return nil, err
 	}
+
+	return &UserTag{Tag: tag}, nil
+
 }
