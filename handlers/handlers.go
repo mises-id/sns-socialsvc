@@ -380,6 +380,10 @@ func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentReques
 	if err != nil {
 		return nil, err
 	}
+	ctxWithUID := ctx
+	if in.CurrentUid > 0 {
+		ctxWithUID = context.WithValue(ctx, utils.CurrentUIDKey{}, in.CurrentUid)
+	}
 	var groupID primitive.ObjectID
 	if in.GetTopicId() != "" {
 		groupID, err = primitive.ObjectIDFromHex(in.GetTopicId())
@@ -387,7 +391,7 @@ func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentReques
 			return nil, err
 		}
 	}
-	comments, page, err := commentSVC.ListComment(ctx, &commentSVC.ListCommentParams{
+	comments, page, err := commentSVC.ListComment(ctxWithUID, &commentSVC.ListCommentParams{
 		ListCommentParams: models.ListCommentParams{
 			StatusID: statusID,
 			GroupID:  groupID,

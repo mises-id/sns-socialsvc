@@ -8,6 +8,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -48,6 +49,7 @@ type Comment struct {
 	Opponent      *User                `bson:"-"`
 	Comments      []*Comment           `bson:"-"`
 	Status        *Status              `bson:"-"`
+	IsLiked       bool                 `bson:"-"`
 }
 
 func (c *Comment) BeforeCreate(ctx context.Context) error {
@@ -210,7 +212,29 @@ func PreloadCommentData(ctx context.Context, comments ...*Comment) error {
 	if err := preloadCommentUser(ctx, comments...); err != nil {
 		return err
 	}
+	if err := preloadCommentLikeState(ctx, comments...); err != nil {
+		return err
+	}
 	return preloadCommentChildren(ctx, comments...)
+}
+
+func preloadCommentLikeState(ctx context.Context, comments ...*Comment) error {
+	currentUID, ok := ctx.Value(utils.CurrentUIDKey{}).(uint64)
+	if !ok || currentUID == 0 {
+		return nil
+	}
+	ids := make([]primitive.ObjectID, len(comments))
+	for i, comment := range comments {
+		ids[i] = comment.ID
+	}
+	likeMap, err := GetLikeMap(ctx, currentUID, ids, enum.LikeComment)
+	if err != nil {
+		return err
+	}
+	for _, comment := range comments {
+		comment.IsLiked = likeMap[comment.ID] != nil
+	}
+	return nil
 }
 
 func preloadCommentChildren(ctx context.Context, comments ...*Comment) error {

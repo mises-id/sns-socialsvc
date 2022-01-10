@@ -21,6 +21,10 @@ func FindUser(ctx context.Context, uid uint64) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
+	user.NewFansCount, err = models.NewFansCount(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
 	return user, preloadAvatar(ctx, user)
 }
 
