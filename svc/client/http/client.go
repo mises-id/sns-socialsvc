@@ -1248,6 +1248,8 @@ func EncodeHTTPFindUserZeroRequest(_ context.Context, r *http.Request, request i
 
 	values.Add("uid", fmt.Sprint(req.Uid))
 
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
 	r.URL.RawQuery = values.Encode()
 	return nil
 }
@@ -1282,6 +1284,8 @@ func EncodeHTTPFindUserOneRequest(_ context.Context, r *http.Request, request in
 	_ = tmp
 
 	values.Add("uid", fmt.Sprint(req.Uid))
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
 
 	r.URL.RawQuery = values.Encode()
 	return nil
@@ -2031,6 +2035,8 @@ func EncodeHTTPListLikeStatusZeroRequest(_ context.Context, r *http.Request, req
 
 	values.Add("uid", fmt.Sprint(req.Uid))
 
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
 	tmp, err = json.Marshal(req.Paginator)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal req.Paginator")
@@ -2074,6 +2080,8 @@ func EncodeHTTPListLikeStatusOneRequest(_ context.Context, r *http.Request, requ
 	_ = tmp
 
 	values.Add("uid", fmt.Sprint(req.Uid))
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
 
 	tmp, err = json.Marshal(req.Paginator)
 	if err != nil {

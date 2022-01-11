@@ -600,6 +600,15 @@ func DecodeHTTPFindUserZeroRequest(_ context.Context, r *http.Request) (interfac
 		req.Uid = UidFindUser
 	}
 
+	if CurrentUidFindUserStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidFindUserStr := CurrentUidFindUserStrArr[0]
+		CurrentUidFindUser, err := strconv.ParseUint(CurrentUidFindUserStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidFindUser from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidFindUser
+	}
+
 	return &req, err
 }
 
@@ -643,6 +652,15 @@ func DecodeHTTPFindUserOneRequest(_ context.Context, r *http.Request) (interface
 			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidFindUser from query, queryParams: %v", queryParams))
 		}
 		req.Uid = UidFindUser
+	}
+
+	if CurrentUidFindUserStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidFindUserStr := CurrentUidFindUserStrArr[0]
+		CurrentUidFindUser, err := strconv.ParseUint(CurrentUidFindUserStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidFindUser from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidFindUser
 	}
 
 	return &req, err
@@ -1194,6 +1212,15 @@ func DecodeHTTPListLikeStatusZeroRequest(_ context.Context, r *http.Request) (in
 		req.Uid = UidListLikeStatus
 	}
 
+	if CurrentUidListLikeStatusStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListLikeStatusStr := CurrentUidListLikeStatusStrArr[0]
+		CurrentUidListLikeStatus, err := strconv.ParseUint(CurrentUidListLikeStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListLikeStatus from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListLikeStatus
+	}
+
 	if PaginatorListLikeStatusStrArr, ok := queryParams["paginator"]; ok {
 		PaginatorListLikeStatusStr := PaginatorListLikeStatusStrArr[0]
 
@@ -1247,6 +1274,15 @@ func DecodeHTTPListLikeStatusOneRequest(_ context.Context, r *http.Request) (int
 			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidListLikeStatus from query, queryParams: %v", queryParams))
 		}
 		req.Uid = UidListLikeStatus
+	}
+
+	if CurrentUidListLikeStatusStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListLikeStatusStr := CurrentUidListLikeStatusStrArr[0]
+		CurrentUidListLikeStatus, err := strconv.ParseUint(CurrentUidListLikeStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListLikeStatus from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListLikeStatus
 	}
 
 	if PaginatorListLikeStatusStrArr, ok := queryParams["paginator"]; ok {

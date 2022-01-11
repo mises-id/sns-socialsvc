@@ -37,7 +37,7 @@ func GetStatus(ctx context.Context, currentUID uint64, id primitive.ObjectID) (*
 	if err != nil {
 		return nil, err
 	}
-	return status, batchSetIsLiked(ctx, currentUID, status)
+	return status, nil
 }
 
 func ListStatus(ctx context.Context, params *ListStatusParams) ([]*models.Status, pagination.Pagination, error) {
@@ -61,7 +61,7 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*models.Status
 	if err != nil {
 		return nil, nil, err
 	}
-	return statues, page, batchSetIsLiked(ctx, params.CurrentUID, statues...)
+	return statues, page, nil
 }
 
 func UserTimeline(ctx context.Context, uid uint64, pageParams *pagination.PageQuickParams) ([]*models.Status, pagination.Pagination, error) {
@@ -85,7 +85,7 @@ func UserTimeline(ctx context.Context, uid uint64, pageParams *pagination.PageQu
 	if err != nil {
 		return nil, nil, err
 	}
-	return statues, page, batchSetIsLiked(ctx, uid, statues...)
+	return statues, page, nil
 }
 
 func RecommendStatus(ctx context.Context, uid uint64, pageParams *pagination.PageQuickParams) ([]*models.Status, pagination.Pagination, error) {
@@ -100,7 +100,7 @@ func RecommendStatus(ctx context.Context, uid uint64, pageParams *pagination.Pag
 	if err != nil {
 		return nil, nil, err
 	}
-	return statues, page, batchSetIsLiked(ctx, uid, statues...)
+	return statues, page, nil
 }
 
 func CreateStatus(ctx context.Context, uid uint64, params *CreateStatusParams) (*models.Status, error) {
@@ -182,22 +182,4 @@ func DeleteStatus(ctx context.Context, uid uint64, id primitive.ObjectID) error 
 		return codes.ErrForbidden
 	}
 	return models.DeleteStatus(ctx, id)
-}
-
-func batchSetIsLiked(ctx context.Context, uid uint64, statuses ...*models.Status) error {
-	if uid == 0 {
-		return nil
-	}
-	statusIDs := make([]primitive.ObjectID, len(statuses))
-	for i, status := range statuses {
-		statusIDs[i] = status.ID
-	}
-	likeMap, err := models.GetStatusLikeMap(ctx, uid, statusIDs)
-	if err != nil {
-		return err
-	}
-	for _, status := range statuses {
-		status.IsLiked = likeMap[status.ID] != nil
-	}
-	return nil
 }
