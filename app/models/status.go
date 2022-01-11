@@ -11,6 +11,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"github.com/mises-id/sns-socialsvc/lib/storage"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -159,16 +160,49 @@ func FindStatus(ctx context.Context, id primitive.ObjectID) (*Status, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = preloadRelatedStatus(ctx, status); err != nil {
-		return nil, err
+	return status, PreloadStatusData(ctx, true, status)
+}
+
+func PreloadStatusData(ctx context.Context, loadRelated bool, statuses ...*Status) error {
+	err := preloadAttachment(ctx, statuses...)
+	if err != nil {
+		return err
 	}
-	if err = preloadAttachment(ctx, status); err != nil {
-		return nil, err
+	if err = preloadImage(ctx, statuses...); err != nil {
+		return err
 	}
-	if err = preloadImage(ctx, status); err != nil {
-		return nil, err
+	if err = preloadStatusUser(ctx, statuses...); err != nil {
+		return err
 	}
-	return status, preloadStatusUser(ctx, status)
+	if err = preloadStatusLikeState(ctx, statuses...); err != nil {
+		return err
+	}
+	if loadRelated {
+		err = preloadRelatedStatus(ctx, statuses...)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func preloadStatusLikeState(ctx context.Context, statuses ...*Status) error {
+	currentUID, ok := ctx.Value(utils.CurrentUIDKey{}).(uint64)
+	if !ok || currentUID == 0 {
+		return nil
+	}
+	statusIDs := make([]primitive.ObjectID, len(statuses))
+	for i, status := range statuses {
+		statusIDs[i] = status.ID
+	}
+	likeMap, err := GetLikeMap(ctx, currentUID, statusIDs, enum.LikeStatus)
+	if err != nil {
+		return err
+	}
+	for _, status := range statuses {
+		status.IsLiked = likeMap[status.ID] != nil
+	}
+	return nil
 }
 
 type CreateStatusParams struct {
@@ -252,16 +286,7 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*Status, pagin
 	if err != nil {
 		return nil, nil, err
 	}
-	if err = preloadRelatedStatus(ctx, statuses...); err != nil {
-		return nil, nil, err
-	}
-	if err = preloadAttachment(ctx, statuses...); err != nil {
-		return nil, nil, err
-	}
-	if err = preloadImage(ctx, statuses...); err != nil {
-		return nil, nil, err
-	}
-	return statuses, page, preloadStatusUser(ctx, statuses...)
+	return statuses, page, PreloadStatusData(ctx, true, statuses...)
 }
 
 func FindStatusByIDs(ctx context.Context, ids ...primitive.ObjectID) ([]*Status, error) {
@@ -270,13 +295,7 @@ func FindStatusByIDs(ctx context.Context, ids ...primitive.ObjectID) ([]*Status,
 	if err != nil {
 		return nil, err
 	}
-	if err = preloadAttachment(ctx, statuses...); err != nil {
-		return nil, err
-	}
-	if err = preloadImage(ctx, statuses...); err != nil {
-		return nil, err
-	}
-	return statuses, preloadStatusUser(ctx, statuses...)
+	return statuses, PreloadStatusData(ctx, true, statuses...)
 }
 
 func ListCommentStatus(ctx context.Context, statusID primitive.ObjectID, pageParams *pagination.PageQuickParams) ([]*Status, pagination.Pagination, error) {
@@ -290,16 +309,7 @@ func ListCommentStatus(ctx context.Context, statusID primitive.ObjectID, pagePar
 	if err != nil {
 		return nil, nil, err
 	}
-	if err = preloadRelatedStatus(ctx, statuses...); err != nil {
-		return nil, nil, err
-	}
-	if err = preloadAttachment(ctx, statuses...); err != nil {
-		return nil, nil, err
-	}
-	if err = preloadImage(ctx, statuses...); err != nil {
-		return nil, nil, err
-	}
-	return statuses, page, preloadStatusUser(ctx, statuses...)
+	return statuses, page, PreloadStatusData(ctx, true, statuses...)
 }
 
 func preloadStatusUser(ctx context.Context, statuses ...*Status) error {
@@ -336,13 +346,8 @@ func preloadRelatedStatus(ctx context.Context, statuses ...*Status) error {
 	if err != nil {
 		return err
 	}
-	if err = preloadStatusUser(ctx, relatedStatuses...); err != nil {
-		return err
-	}
-	if err = preloadAttachment(ctx, relatedStatuses...); err != nil {
-		return err
-	}
-	if err = preloadImage(ctx, relatedStatuses...); err != nil {
+	err = PreloadStatusData(ctx, false, relatedStatuses...)
+	if err != nil {
 		return err
 	}
 	statusMap := make(map[primitive.ObjectID]*Status)

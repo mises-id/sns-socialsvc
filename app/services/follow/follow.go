@@ -82,7 +82,7 @@ func Follow(ctx context.Context, fromUID, toUID uint64) (*models.Follow, error) 
 }
 
 func Unfollow(ctx context.Context, fromUID, toUID uint64) error {
-	_, err := models.GetFollow(ctx, fromUID, toUID)
+	follow, err := models.GetFollow(ctx, fromUID, toUID)
 	if err != nil {
 		return nil
 	}
@@ -94,5 +94,5 @@ func Unfollow(ctx context.Context, fromUID, toUID uint64) error {
 	} else if err != mongo.ErrNoDocuments {
 		return err
 	}
-	return models.DeleteFollow(ctx, fromUID, toUID)
+	return follow.Delete(ctx)
 }

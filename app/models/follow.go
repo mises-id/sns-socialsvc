@@ -28,39 +28,39 @@ type Follow struct {
 	ToUser         *User              `bson:"-"`
 }
 
-func (a *Follow) BeforeCreate(ctx context.Context) error {
-	a.CreatedAt = time.Now()
-	a.UpdatedAt = time.Now()
+func (f *Follow) BeforeCreate(ctx context.Context) error {
+	f.CreatedAt = time.Now()
+	f.UpdatedAt = time.Now()
 	return nil
 }
 
-func (a *Follow) AfterCreate(ctx context.Context) error {
+func (f *Follow) AfterCreate(ctx context.Context) error {
 	_, err := CreateMessage(ctx, &CreateMessageParams{
-		UID:         a.ToUID,
-		FromUID:     a.FromUID,
+		UID:         f.ToUID,
+		FromUID:     f.FromUID,
 		MessageType: enum.NewFans,
 		MetaData: &message.MetaData{
 			FansMeta: &message.FansMeta{
-				UID: a.FromUID,
+				UID: f.FromUID,
 			},
 		},
 	})
 	if err != nil {
 		return err
 	}
-	if err = a.incrUserCounter(ctx); err != nil {
+	if err = f.incrUserCounter(ctx, 1); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (a *Follow) incrUserCounter(ctx context.Context) error {
+func (a *Follow) incrUserCounter(ctx context.Context, c int) error {
 	err := db.DB().Collection("users").FindOneAndUpdate(ctx, bson.M{"_id": a.FromUID},
 		bson.D{{
 			Key: "$inc",
 			Value: bson.D{{
 				Key:   "following_count",
-				Value: 1,
+				Value: c,
 			}}},
 		}).Err()
 	if err != nil {
@@ -71,7 +71,7 @@ func (a *Follow) incrUserCounter(ctx context.Context) error {
 			Key: "$inc",
 			Value: bson.D{{
 				Key:   "fans_count",
-				Value: 1,
+				Value: c,
 			}}},
 		}).Err()
 	if err != nil {
@@ -136,7 +136,6 @@ func CreateFollow(ctx context.Context, fromUID, toUID uint64, isFriend bool) (*F
 	if err != nil {
 		return nil, err
 	}
-
 	follow.ID = result.InsertedID.(primitive.ObjectID)
 	return follow, follow.AfterCreate(ctx)
 }
@@ -177,9 +176,9 @@ func GetFollow(ctx context.Context, fromUID, toUID uint64) (*Follow, error) {
 }
 
 func EnsureDeleteFollow(ctx context.Context, fromUID, toUID uint64) error {
-	_, err := GetFollow(ctx, fromUID, toUID)
+	f, err := GetFollow(ctx, fromUID, toUID)
 	if err == nil {
-		return DeleteFollow(ctx, fromUID, toUID)
+		return f.Delete(ctx)
 	}
 	if err == mongo.ErrNoDocuments {
 		return nil
@@ -187,9 +186,15 @@ func EnsureDeleteFollow(ctx context.Context, fromUID, toUID uint64) error {
 	return err
 }
 
-func DeleteFollow(ctx context.Context, fromUID, toUID uint64) error {
-	_, err := db.DB().Collection("follows").DeleteOne(ctx, bson.M{"from_uid": fromUID, "to_uid": toUID})
-	return err
+func (f *Follow) Delete(ctx context.Context) error {
+	_, err := db.DB().Collection("follows").DeleteOne(ctx, bson.M{"_id": f.ID})
+	if err != nil {
+		return err
+	}
+	if err = f.incrUserCounter(ctx, -1); err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewFansCount(ctx context.Context, uid uint64) (uint32, error) {

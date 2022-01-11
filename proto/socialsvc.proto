@@ -433,6 +433,7 @@ message UserInfo {
 
 message FindUserRequest {
   uint64 uid = 1;
+  uint64 current_uid = 2;
 }
 
 message FindUserResponse {
@@ -745,7 +746,8 @@ message DeleteBlacklistRequest {
 
 message ListLikeRequest {
   uint64 uid = 1;
-  PageQuick paginator = 2;
+  uint64 current_uid = 2;
+  PageQuick paginator = 3;
 }
 
 message StatusLike {
