@@ -137,7 +137,7 @@ func ListLike(ctx context.Context, uid uint64, tp enum.LikeTargetType, pageParam
 	chain := db.ODM(ctx).Where(bson.M{"uid": uid, "target_type": tp})
 	paginator := pagination.NewQuickPaginator(pageParams.Limit, pageParams.NextID, chain)
 	page, err := paginator.Paginate(&likes)
-	if err == nil {
+	if err != nil {
 		return nil, nil, err
 	}
 	return likes, page, preloadLikeStatus(ctx, likes...)
