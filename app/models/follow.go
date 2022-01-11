@@ -81,7 +81,7 @@ func (a *Follow) incrUserCounter(ctx context.Context) error {
 }
 
 func ReadNewFans(ctx context.Context, uid uint64) error {
-	return db.DB().Collection("follows").FindOneAndUpdate(ctx, bson.M{
+	_, err := db.DB().Collection("follows").UpdateMany(ctx, bson.M{
 		"to_uid": uid, "is_new": true,
 	}, bson.D{{
 		Key: "$set",
@@ -89,7 +89,8 @@ func ReadNewFans(ctx context.Context, uid uint64) error {
 			Key:   "is_new",
 			Value: false,
 		}}},
-	}).Err()
+	})
+	return err
 }
 
 func LatestFollowing(ctx context.Context, uid uint64) ([]*Follow, error) {
