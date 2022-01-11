@@ -3,6 +3,7 @@ package admin
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
@@ -85,6 +86,15 @@ func (a *statusApi) CreateTag(ctx context.Context, id primitive.ObjectID, tag en
 		return nil, errors.New("tag exists")
 	}
 	//TODO private status
+
+	switch tag {
+	case enum.TagRecommendStatus:
+		hide_time := status.HideTime
+		if hide_time != nil && time.Now().Unix() > hide_time.Unix() {
+			return nil, errors.New("private cannot recommend")
+		}
+	}
+
 	tags = append(tags, tag)
 	status.Tags = tags
 	if err := models.UpdateStatusTag(ctx, status); err != nil {
