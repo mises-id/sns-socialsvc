@@ -89,3 +89,19 @@ func preloadBlacklistUser(ctx context.Context, blacklists ...*Blacklist) error {
 	}
 	return nil
 }
+
+func GetBlacklistMap(ctx context.Context, uid uint64, targetUIDs []uint64) (map[uint64]*Blacklist, error) {
+	blacklists := make([]*Blacklist, 0)
+	err := db.ODM(ctx).Where(bson.M{
+		"uid":        uid,
+		"target_uid": bson.M{"$in": targetUIDs},
+	}).Find(&blacklists).Error
+	if err != nil {
+		return nil, err
+	}
+	blacklistMap := make(map[uint64]*Blacklist)
+	for _, blacklist := range blacklists {
+		blacklistMap[blacklist.TargetUID] = blacklist
+	}
+	return blacklistMap, nil
+}

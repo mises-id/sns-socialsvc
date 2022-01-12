@@ -7,6 +7,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -24,7 +25,18 @@ func ListFriendship(ctx context.Context, uid uint64, relationType enum.RelationT
 	if err != nil {
 		return nil, nil, err
 	}
-	return models.ListFollow(ctx, uid, relationType, pageParams)
+	follows, page, err := models.ListFollow(ctx, uid, relationType, pageParams)
+	if err != nil {
+		return nil, nil, err
+	}
+	currentUID, ok := ctx.Value(utils.CurrentUIDKey{}).(uint64)
+	if ok && currentUID == uid {
+		err = models.ReadNewFans(ctx, uid)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	return follows, page, nil
 }
 
 func Follow(ctx context.Context, fromUID, toUID uint64) (*models.Follow, error) {
@@ -70,7 +82,7 @@ func Follow(ctx context.Context, fromUID, toUID uint64) (*models.Follow, error) 
 }
 
 func Unfollow(ctx context.Context, fromUID, toUID uint64) error {
-	_, err := models.GetFollow(ctx, fromUID, toUID)
+	follow, err := models.GetFollow(ctx, fromUID, toUID)
 	if err != nil {
 		return nil
 	}
@@ -82,5 +94,5 @@ func Unfollow(ctx context.Context, fromUID, toUID uint64) error {
 	} else if err != mongo.ErrNoDocuments {
 		return err
 	}
-	return models.DeleteFollow(ctx, fromUID, toUID)
+	return follow.Delete(ctx)
 }

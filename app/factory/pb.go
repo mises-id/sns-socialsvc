@@ -14,15 +14,20 @@ func NewUserInfo(user *models.User) *pb.UserInfo {
 		return nil
 	}
 	userinfo := pb.UserInfo{
-		Uid:        user.UID,
-		Username:   user.Username,
-		Misesid:    user.Misesid,
-		Gender:     user.Gender.String(),
-		Mobile:     user.Mobile,
-		Email:      user.Email,
-		Address:    user.Address,
-		Avatar:     user.AvatarUrl,
-		IsFollowed: user.IsFollowed,
+		Uid:             user.UID,
+		Username:        user.Username,
+		Misesid:         user.Misesid,
+		Gender:          user.Gender.String(),
+		Mobile:          user.Mobile,
+		Email:           user.Email,
+		Address:         user.Address,
+		Avatar:          user.AvatarUrl,
+		IsFollowed:      user.IsFollowed,
+		IsBlocked:       user.IsBlocked,
+		FollowingsCount: user.FollowingCount,
+		FansCount:       user.FansCount,
+		LikedCount:      user.LikedCount,
+		NewFansCount:    user.NewFansCount,
 	}
 	return &userinfo
 }
@@ -69,6 +74,10 @@ func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 		ForwardCount: status.ForwardsCount,
 		IsLiked:      status.IsLiked,
 		CreatedAt:    uint64(status.CreatedAt.Unix()),
+		IsPublic:     status.HideTime == nil,
+	}
+	if !statusinfo.IsPublic {
+		statusinfo.HideTime = uint64(status.HideTime.Unix())
 	}
 	switch status.StatusType {
 	case enum.LinkStatus:
@@ -184,6 +193,8 @@ func NewComment(comment *models.Comment) *pb.Comment {
 		Content:      comment.Content,
 		CommentCount: comment.CommentsCount,
 		LikeCount:    comment.LikesCount,
+		CreatedAt:    uint64(comment.CreatedAt.Unix()),
+		IsLiked:      comment.IsLiked,
 	}
 	if comment.Comments != nil {
 		result.Comments = NewCommentSlice(comment.Comments)

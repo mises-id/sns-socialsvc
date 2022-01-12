@@ -22,6 +22,17 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+type requestWithCurrentUID interface {
+	GetCurrentUid() uint64
+}
+
+func contextWithCurrentUID(parent context.Context, in requestWithCurrentUID) context.Context {
+	if in.GetCurrentUid() == 0 {
+		return parent
+	}
+	return context.WithValue(parent, utils.CurrentUIDKey{}, in.GetCurrentUid())
+}
+
 // NewService returns a naïve, stateless implementation of Service.
 func NewService() pb.SocialServer {
 	return socialService{}
@@ -41,7 +52,7 @@ func (s socialService) SignIn(ctx context.Context, in *pb.SignInRequest) (*pb.Si
 
 func (s socialService) FindUser(ctx context.Context, in *pb.FindUserRequest) (*pb.FindUserResponse, error) {
 	var resp pb.FindUserResponse
-	user, err := userSVC.FindUser(ctx, in.Uid)
+	user, err := userSVC.FindUser(contextWithCurrentUID(ctx, in), in.Uid)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +136,7 @@ func (s socialService) ListStatus(ctx context.Context, in *pb.ListStatusRequest)
 			Limit:  int64(in.Paginator.Limit),
 			NextID: in.Paginator.NextId,
 		},
-		CurrentUID: in.CurrentUid,
+		CurrentUID: in.GetCurrentUid(),
 		UID:        in.TargetUid,
 		FromTypes:  fromTypes,
 	})
@@ -255,12 +266,7 @@ func (s socialService) ListRelationship(ctx context.Context, in *pb.ListRelation
 	if err != nil {
 		return nil, err
 	}
-	ctxWithUID := ctx
-	if in.CurrentUid > 0 {
-		ctxWithUID = context.WithValue(ctx, utils.CurrentUIDKey{}, in.CurrentUid)
-	}
-
-	relations, page, err := friendshipSVC.ListFriendship(ctxWithUID, in.Uid, relationType, &pagination.QuickPagination{
+	relations, page, err := friendshipSVC.ListFriendship(contextWithCurrentUID(ctx, in), in.Uid, relationType, &pagination.QuickPagination{
 		Limit:  int64(in.Paginator.Limit),
 		NextID: in.Paginator.NextId,
 	})
@@ -387,7 +393,7 @@ func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentReques
 			return nil, err
 		}
 	}
-	comments, page, err := commentSVC.ListComment(ctx, &commentSVC.ListCommentParams{
+	comments, page, err := commentSVC.ListComment(contextWithCurrentUID(ctx, in), &commentSVC.ListCommentParams{
 		ListCommentParams: models.ListCommentParams{
 			StatusID: statusID,
 			GroupID:  groupID,
@@ -479,7 +485,7 @@ func (s socialService) UnlikeComment(ctx context.Context, in *pb.UnlikeCommentRe
 
 func (s socialService) ListLikeStatus(ctx context.Context, in *pb.ListLikeRequest) (*pb.ListLikeResponse, error) {
 	var resp pb.ListLikeResponse
-	likes, page, err := statusSVC.ListLikeStatus(ctx, &statusSVC.ListLikeStatusParams{
+	likes, page, err := statusSVC.ListLikeStatus(contextWithCurrentUID(ctx, in), &statusSVC.ListLikeStatusParams{
 		UID: in.GetUid(),
 		PageParams: &pagination.PageQuickParams{
 			Limit:  int64(in.Paginator.Limit),
