@@ -67,38 +67,6 @@ func (u *User) BeforeUpdate(ctx context.Context) error {
 	return nil
 }
 
-func (u *User) IncFollowingCount(ctx context.Context) error {
-	return db.DB().Collection("users").FindOneAndUpdate(ctx, bson.M{"_id": u.UID},
-		bson.D{{
-			Key: "$inc",
-			Value: bson.D{{
-				Key:   "following_count",
-				Value: 1,
-			}}}, {
-			Key: "$set",
-			Value: bson.D{{
-				Key:   "updated_at",
-				Value: time.Now(),
-			}}},
-		}).Err()
-}
-
-func (u *User) IncFansCount(ctx context.Context) error {
-	return db.DB().Collection("users").FindOneAndUpdate(ctx, bson.M{"_id": u.UID},
-		bson.D{{
-			Key: "$inc",
-			Value: bson.D{{
-				Key:   "fans_count",
-				Value: 1,
-			}}}, {
-			Key: "$set",
-			Value: bson.D{{
-				Key:   "updated_at",
-				Value: time.Now(),
-			}}},
-		}).Err()
-}
-
 func (u *User) UpdatePostTime(ctx context.Context, t time.Time) error {
 	return db.DB().Collection("users").FindOneAndUpdate(ctx, bson.M{"_id": u.UID},
 		bson.D{{
