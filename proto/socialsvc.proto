@@ -614,8 +614,7 @@ message ListCommentRequest {
   uint64 current_uid = 1;
   string status_id = 2;
   string topic_id = 3;
-  string last_id = 4;
-  PageQuick paginator = 5;
+  PageQuick paginator = 4;
 }
 
 message ListCommentResponse {

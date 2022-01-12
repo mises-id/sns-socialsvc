@@ -92,8 +92,8 @@ func TestCreateComment(t *testing.T) {
 		if comment.GroupID.Hex() != firstComment.ID.Hex() {
 			t.Error("wrong group id for second level comment")
 		}
-		if comment.Opponent == nil {
-			t.Errorf("blank comment.opponent after created")
+		if comment.Opponent != nil {
+			t.Errorf("unexpect comment.opponent after created")
 		}
 		s := &models.Status{}
 		db.ODM(context.TODO()).Where(bson.M{"_id": status.ID}).First(s)
