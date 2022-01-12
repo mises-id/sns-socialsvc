@@ -3126,8 +3126,6 @@ func EncodeHTTPListCommentZeroRequest(_ context.Context, r *http.Request, reques
 
 	values.Add("topic_id", fmt.Sprint(req.TopicId))
 
-	values.Add("last_id", fmt.Sprint(req.LastId))
-
 	tmp, err = json.Marshal(req.Paginator)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal req.Paginator")
@@ -3174,8 +3172,6 @@ func EncodeHTTPListCommentOneRequest(_ context.Context, r *http.Request, request
 	values.Add("status_id", fmt.Sprint(req.StatusId))
 
 	values.Add("topic_id", fmt.Sprint(req.TopicId))
-
-	values.Add("last_id", fmt.Sprint(req.LastId))
 
 	tmp, err = json.Marshal(req.Paginator)
 	if err != nil {

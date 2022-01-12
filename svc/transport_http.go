@@ -2592,12 +2592,6 @@ func DecodeHTTPListCommentZeroRequest(_ context.Context, r *http.Request) (inter
 		req.TopicId = TopicIdListComment
 	}
 
-	if LastIdListCommentStrArr, ok := queryParams["last_id"]; ok {
-		LastIdListCommentStr := LastIdListCommentStrArr[0]
-		LastIdListComment := LastIdListCommentStr
-		req.LastId = LastIdListComment
-	}
-
 	if PaginatorListCommentStrArr, ok := queryParams["paginator"]; ok {
 		PaginatorListCommentStr := PaginatorListCommentStrArr[0]
 
@@ -2663,12 +2657,6 @@ func DecodeHTTPListCommentOneRequest(_ context.Context, r *http.Request) (interf
 		TopicIdListCommentStr := TopicIdListCommentStrArr[0]
 		TopicIdListComment := TopicIdListCommentStr
 		req.TopicId = TopicIdListComment
-	}
-
-	if LastIdListCommentStrArr, ok := queryParams["last_id"]; ok {
-		LastIdListCommentStr := LastIdListCommentStrArr[0]
-		LastIdListComment := LastIdListCommentStr
-		req.LastId = LastIdListComment
 	}
 
 	if PaginatorListCommentStrArr, ok := queryParams["paginator"]; ok {
