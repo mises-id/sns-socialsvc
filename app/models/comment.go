@@ -284,7 +284,9 @@ func preloadCommentUser(ctx context.Context, comments ...*Comment) error {
 	}
 	for _, comment := range comments {
 		comment.User = users[comment.UID]
-		comment.Opponent = users[comment.OpponentID]
+		if !comment.GroupID.IsZero() && comment.ParentID != comment.GroupID {
+			comment.Opponent = users[comment.OpponentID]
+		}
 	}
 	return nil
 }
