@@ -216,7 +216,7 @@ func preloadStatusLikeState(ctx context.Context, statuses ...*Status) error {
 	for i, status := range statuses {
 		statusIDs[i] = status.ID
 	}
-	likeMap, err := GetLikeMap(ctx, currentUID, statusIDs, enum.LikeStatus)
+	likeMap, err := GetLikeMap(ctx, currentUID, statusIDs, enum.LikeStatus, false)
 	if err != nil {
 		return err
 	}
