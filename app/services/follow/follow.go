@@ -43,11 +43,12 @@ func Follow(ctx context.Context, fromUID, toUID uint64) (*models.Follow, error) 
 	if fromUID == toUID {
 		return nil, codes.ErrInvalidArgument
 	}
-	fromUser, err := models.FindUser(ctx, fromUID)
+	// check user exsist
+	_, err := models.FindUser(ctx, fromUID)
 	if err != nil {
 		return nil, err
 	}
-	toUser, err := models.FindUser(ctx, toUID)
+	_, err = models.FindUser(ctx, toUID)
 	if err != nil {
 		return nil, err
 	}
@@ -71,13 +72,6 @@ func Follow(ctx context.Context, fromUID, toUID uint64) (*models.Follow, error) 
 	if follow != nil {
 		return follow, follow.SetFriend(ctx, isFriend)
 	}
-	if err = fromUser.IncFollowingCount(ctx); err != nil {
-		return nil, err
-	}
-	if err = toUser.IncFansCount(ctx); err != nil {
-		return nil, err
-	}
-
 	return models.CreateFollow(ctx, fromUID, toUID, isFriend)
 }
 
