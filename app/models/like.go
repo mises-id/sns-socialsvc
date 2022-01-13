@@ -127,7 +127,7 @@ func FindLike(ctx context.Context, uid uint64, targetID primitive.ObjectID, targ
 	return like, err
 }
 
-func GetLikeMap(ctx context.Context, uid uint64, targetIDs []primitive.ObjectID, targetType enum.LikeTargetType) (map[primitive.ObjectID]*Like, error) {
+func GetLikeMap(ctx context.Context, uid uint64, targetIDs []primitive.ObjectID, targetType enum.LikeTargetType, preloadData bool) (map[primitive.ObjectID]*Like, error) {
 	likes := make([]*Like, 0)
 	err := db.ODM(ctx).Where(bson.M{
 		"uid":         uid,
@@ -138,8 +138,10 @@ func GetLikeMap(ctx context.Context, uid uint64, targetIDs []primitive.ObjectID,
 	if err != nil {
 		return nil, err
 	}
-	if err = PreloadLikeData(ctx, likes...); err != nil {
-		return nil, err
+	if preloadData {
+		if err = PreloadLikeData(ctx, likes...); err != nil {
+			return nil, err
+		}
 	}
 	likeMap := make(map[primitive.ObjectID]*Like)
 	for _, like := range likes {
