@@ -35,7 +35,11 @@ func (f *Follow) BeforeCreate(ctx context.Context) error {
 }
 
 func (f *Follow) AfterCreate(ctx context.Context) error {
-	_, err := CreateMessage(ctx, &CreateMessageParams{
+	err := f.incrUserCounter(ctx, 1)
+	if err != nil {
+		return err
+	}
+	_, err = CreateMessage(ctx, &CreateMessageParams{
 		UID:         f.ToUID,
 		FromUID:     f.FromUID,
 		MessageType: enum.NewFans,
@@ -46,9 +50,6 @@ func (f *Follow) AfterCreate(ctx context.Context) error {
 		},
 	})
 	if err != nil {
-		return err
-	}
-	if err = f.incrUserCounter(ctx, 1); err != nil {
 		return err
 	}
 	return nil

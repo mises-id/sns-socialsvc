@@ -69,6 +69,21 @@ func (s *Status) BeforeCreate(ctx context.Context) error {
 	return s.validate(ctx)
 }
 
+func (s *Status) ContentSummary() string {
+	content := []rune(s.Content)
+	if len(content) < 40 {
+		return string(content)
+	}
+	return string(content[:40])
+}
+
+func (s *Status) FirstImage() string {
+	if s.ImageMeta != nil && len(s.ImageMeta.Images) > 0 {
+		return s.ImageMeta.Images[0]
+	}
+	return ""
+}
+
 func (s *Status) AfterCreate(ctx context.Context) error {
 	var err error
 	counterKey := s.FromType.CounterKey()
@@ -77,18 +92,21 @@ func (s *Status) AfterCreate(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		_, err = CreateMessage(ctx, &CreateMessageParams{
+		message := &CreateMessageParams{
 			UID:         s.ParentStatus.UID,
 			FromUID:     s.UID,
 			MessageType: enum.NewForward,
 			MetaData: &message.MetaData{
 				ForwardMeta: &message.ForwardMeta{
-					UID:      s.UID,
-					StatusID: s.ID,
-					Content:  s.Content,
+					UID:            s.UID,
+					StatusID:       s.ID,
+					ForwardContent: s.Content,
+					ContentSummary: s.ParentStatus.ContentSummary(),
+					ImagePath:      s.ParentStatus.FirstImage(),
 				},
 			},
-		})
+		}
+		_, err = CreateMessage(ctx, message)
 		if err != nil {
 			return err
 		}

@@ -26,22 +26,50 @@ type Like struct {
 }
 
 func (l *Like) AfterCreate(ctx context.Context) error {
-	_, err := CreateMessage(ctx, &CreateMessageParams{
-		UID:         l.OwnerID,
-		FromUID:     l.UID,
-		MessageType: enum.NewLike,
-		MetaData: &message.MetaData{
-			LikeMeta: &message.LikeMeta{
-				UID:        l.UID,
-				TargetID:   l.TargetID,
-				TargetType: l.TargetType,
-			},
-		},
-	})
+	err := l.incrUserCounter(ctx)
 	if err != nil {
 		return err
 	}
-	if err = l.incrUserCounter(ctx); err != nil {
+	if err = PreloadLikeData(ctx, l); err != nil {
+		return err
+	}
+	err = l.notifyLikeUser(ctx)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (l *Like) notifyLikeUser(ctx context.Context) error {
+	err := PreloadLikeData(ctx, l)
+	if err != nil {
+		return err
+	}
+	metaData := &message.MetaData{}
+	messageType := enum.NewLikeStatus
+	if l.TargetType == enum.LikeStatus {
+		metaData.LikeStatusMeta = &message.LikeStatusMeta{
+			UID:             l.UID,
+			StatusID:        l.TargetID,
+			StatusContent:   l.Status.ContentSummary(),
+			StatusImagePath: l.Status.FirstImage(),
+		}
+	} else if l.TargetType == enum.LikeComment {
+		metaData.LikeCommentMeta = &message.LikeCommentMeta{
+			UID:             l.UID,
+			CommentID:       l.TargetID,
+			CommentUsername: l.Comment.User.Username,
+			CommentContent:  l.Comment.Content,
+		}
+		messageType = enum.NewLikeComment
+	}
+	_, err = CreateMessage(ctx, &CreateMessageParams{
+		UID:         l.OwnerID,
+		FromUID:     l.UID,
+		MessageType: messageType,
+		MetaData:    metaData,
+	})
+	if err != nil {
 		return err
 	}
 	return nil
@@ -90,25 +118,13 @@ func FindLike(ctx context.Context, uid uint64, targetID primitive.ObjectID, targ
 		"target_type": targetType,
 		"deleted_at":  nil,
 	}).First(like).Error
-	return like, err
-}
-
-func GetStatusLikeMap(ctx context.Context, uid uint64, statusIDs []primitive.ObjectID) (map[primitive.ObjectID]*Like, error) {
-	likes := make([]*Like, 0)
-	err := db.ODM(ctx).Where(bson.M{
-		"uid":         uid,
-		"target_id":   bson.M{"$in": statusIDs},
-		"target_type": enum.LikeStatus,
-		"deleted_at":  nil,
-	}).Find(&likes).Error
 	if err != nil {
 		return nil, err
 	}
-	likeMap := make(map[primitive.ObjectID]*Like)
-	for _, like := range likes {
-		likeMap[like.TargetID] = like
+	if err = PreloadLikeData(ctx, like); err != nil {
+		return nil, err
 	}
-	return likeMap, nil
+	return like, err
 }
 
 func GetLikeMap(ctx context.Context, uid uint64, targetIDs []primitive.ObjectID, targetType enum.LikeTargetType) (map[primitive.ObjectID]*Like, error) {
@@ -120,6 +136,9 @@ func GetLikeMap(ctx context.Context, uid uint64, targetIDs []primitive.ObjectID,
 		"deleted_at":  nil,
 	}).Find(&likes).Error
 	if err != nil {
+		return nil, err
+	}
+	if err = PreloadLikeData(ctx, likes...); err != nil {
 		return nil, err
 	}
 	likeMap := make(map[primitive.ObjectID]*Like)
@@ -140,7 +159,19 @@ func ListLike(ctx context.Context, uid uint64, tp enum.LikeTargetType, pageParam
 	if err != nil {
 		return nil, nil, err
 	}
-	return likes, page, preloadLikeStatus(ctx, likes...)
+	return likes, page, PreloadLikeData(ctx, likes...)
+}
+
+func PreloadLikeData(ctx context.Context, likes ...*Like) error {
+	err := preloadLikeComment(ctx, likes...)
+	if err != nil {
+		return err
+	}
+	err = preloadLikeStatus(ctx, likes...)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func preloadLikeStatus(ctx context.Context, likes ...*Like) error {
@@ -164,6 +195,34 @@ func preloadLikeStatus(ctx context.Context, likes ...*Like) error {
 			continue
 		}
 		like.Status = statusMap[like.TargetID]
+	}
+	return nil
+}
+
+func preloadLikeComment(ctx context.Context, likes ...*Like) error {
+	commentIDs := make([]primitive.ObjectID, 0)
+	for _, like := range likes {
+		if like.TargetType != enum.LikeComment {
+			continue
+		}
+		commentIDs = append(commentIDs, like.TargetID)
+	}
+	comments, err := FindCommentByIDs(ctx, commentIDs...)
+	if err != nil {
+		return err
+	}
+	if err = PreloadCommentData(ctx, comments...); err != nil {
+		return err
+	}
+	commentMap := make(map[primitive.ObjectID]*Comment)
+	for _, comment := range comments {
+		commentMap[comment.ID] = comment
+	}
+	for _, like := range likes {
+		if like.TargetType != enum.LikeComment {
+			continue
+		}
+		like.Comment = commentMap[like.TargetID]
 	}
 	return nil
 }

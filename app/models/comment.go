@@ -50,6 +50,7 @@ type Comment struct {
 	Comments      []*Comment           `bson:"-"`
 	Status        *Status              `bson:"-"`
 	IsLiked       bool                 `bson:"-"`
+	Parent        *Comment             `bson:"-"`
 }
 
 func (c *Comment) BeforeCreate(ctx context.Context) error {
@@ -59,7 +60,48 @@ func (c *Comment) BeforeCreate(ctx context.Context) error {
 }
 
 func (c *Comment) AfterCreate(ctx context.Context) error {
-	err := c.notifyCommentUser(ctx)
+	var err error
+	if c.ParentID.IsZero() {
+		err = c.notifyStatusUser(ctx)
+	} else {
+		err = c.notifyCommentUser(ctx)
+	}
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *Comment) ParentContent() string {
+	if c.ParentID.IsZero() {
+		return ""
+	}
+	return c.Parent.Content
+}
+
+func (c *Comment) ParentUserName() string {
+	if c.ParentID.IsZero() {
+		return ""
+	}
+	return c.Parent.User.Username
+}
+
+func (c *Comment) notifyStatusUser(ctx context.Context) error {
+	_, err := CreateMessage(ctx, &CreateMessageParams{
+		UID:         c.Status.UID,
+		FromUID:     c.UID,
+		MessageType: enum.NewComment,
+		MetaData: &message.MetaData{
+			CommentMeta: &message.CommentMeta{
+				UID:                  c.UID,
+				GroupID:              c.GroupID,
+				CommentID:            c.ID,
+				Content:              c.Content,
+				StatusContentSummary: c.Status.ContentSummary(),
+				StatusImagePath:      c.Status.FirstImage(),
+			},
+		},
+	})
 	if err != nil {
 		return err
 	}
@@ -67,44 +109,33 @@ func (c *Comment) AfterCreate(ctx context.Context) error {
 }
 
 func (c *Comment) notifyCommentUser(ctx context.Context) error {
-	var err error
-	// notify parent comment user
-	if c.ParentID != primitive.NilObjectID {
-		_, err := CreateMessage(ctx, &CreateMessageParams{
-			UID:         c.OpponentID,
-			FromUID:     c.UID,
-			MessageType: enum.NewComment,
-			MetaData: &message.MetaData{
-				CommentMeta: &message.CommentMeta{
-					UID:       c.UID,
-					GroupID:   c.GroupID,
-					CommentID: c.ID,
-					Content:   c.Content,
-				},
-			},
-		})
-		if err != nil {
-			return err
-		}
+	if c.UID == c.OpponentID {
+		return nil
 	}
-	// notify status user
-	if c.Status != nil && c.Status.UID != c.OpponentID {
-		_, err = CreateMessage(ctx, &CreateMessageParams{
-			UID:         c.Status.UID,
-			FromUID:     c.UID,
-			MessageType: enum.NewComment,
-			MetaData: &message.MetaData{
-				CommentMeta: &message.CommentMeta{
-					UID:       c.UID,
-					GroupID:   c.GroupID,
-					CommentID: c.ID,
-					Content:   c.Content,
-				},
+	var err error
+	c.Parent, err = FindComment(ctx, c.ParentID)
+	if err != nil {
+		return err
+	}
+	_, err = CreateMessage(ctx, &CreateMessageParams{ // notify parent comment user
+		UID:         c.OpponentID,
+		FromUID:     c.UID,
+		MessageType: enum.NewComment,
+		MetaData: &message.MetaData{
+			CommentMeta: &message.CommentMeta{
+				UID:                  c.UID,
+				GroupID:              c.GroupID,
+				CommentID:            c.ID,
+				Content:              c.Content,
+				ParentContent:        c.ParentContent(),
+				ParentUserName:       c.ParentUserName(),
+				StatusContentSummary: c.Status.ContentSummary(),
+				StatusImagePath:      c.Status.FirstImage(),
 			},
-		})
-		if err != nil {
-			return err
-		}
+		},
+	})
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -152,7 +183,7 @@ func FindComment(ctx context.Context, id primitive.ObjectID) (*Comment, error) {
 	if err != nil {
 		return nil, err
 	}
-	return comment, nil
+	return comment, PreloadCommentData(ctx, comment)
 }
 
 func ListComment(ctx context.Context, params *ListCommentParams) ([]*Comment, pagination.Pagination, error) {
@@ -204,7 +235,7 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*Comment, 
 	if err = comment.AfterCreate(ctx); err != nil {
 		return nil, err
 	}
-	return comment, nil
+	return comment, PreloadCommentData(ctx, comment)
 
 }
 
@@ -245,7 +276,7 @@ func preloadCommentChildren(ctx context.Context, comments ...*Comment) error {
 		}
 		ids = append(ids, comment.CommentIDs...)
 	}
-	children, err := findCommentByIDs(ctx, ids)
+	children, err := FindCommentByIDs(ctx, ids...)
 	if err != nil {
 		return err
 	}
@@ -291,7 +322,7 @@ func preloadCommentUser(ctx context.Context, comments ...*Comment) error {
 	return nil
 }
 
-func findCommentByIDs(ctx context.Context, ids []primitive.ObjectID) ([]*Comment, error) {
+func FindCommentByIDs(ctx context.Context, ids ...primitive.ObjectID) ([]*Comment, error) {
 	comments := make([]*Comment, 0)
 	return comments, db.ODM(ctx).Where(bson.M{"_id": bson.M{"$in": ids}}).Find(&comments).Error
 }

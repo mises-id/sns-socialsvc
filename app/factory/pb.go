@@ -126,11 +126,22 @@ func newCommentMeta(meta *message.CommentMeta) *pb.NewCommentMeta {
 	}
 }
 
-func newLikeMeta(meta *message.LikeMeta) *pb.NewLikeMeta {
-	return &pb.NewLikeMeta{
-		Uid:        meta.UID,
-		TargetId:   docID(meta.TargetID),
-		TargetType: meta.TargetType.String(),
+func newLikeStatusMeta(meta *message.LikeStatusMeta) *pb.NewLikeStatusMeta {
+	return &pb.NewLikeStatusMeta{
+		Uid:             meta.UID,
+		StatusId:        meta.StatusID.Hex(),
+		StatusContent:   meta.StatusContent,
+		StatusImagePath: meta.StatusImagePath,
+	}
+
+}
+
+func newLikeCommentMeta(meta *message.LikeCommentMeta) *pb.NewLikeCommentMeta {
+	return &pb.NewLikeCommentMeta{
+		Uid:             meta.UID,
+		CommentId:       meta.CommentID.Hex(),
+		CommentUsername: meta.CommentUsername,
+		CommentContent:  meta.CommentContent,
 	}
 }
 
@@ -142,9 +153,11 @@ func newFansMeta(meta *message.FansMeta) *pb.NewFansMeta {
 
 func newForwardMeta(meta *message.ForwardMeta) *pb.NewForwardMeta {
 	return &pb.NewForwardMeta{
-		Uid:      meta.UID,
-		StatusId: docID(meta.StatusID),
-		Content:  meta.Content,
+		Uid:            meta.UID,
+		StatusId:       meta.StatusID.Hex(),
+		ForwardContent: meta.ForwardContent,
+		ContentSummary: meta.ContentSummary,
+		ImagePath:      meta.ImagePath,
 	}
 }
 func NewMessage(message *models.Message) *pb.Message {
@@ -161,8 +174,10 @@ func NewMessage(message *models.Message) *pb.Message {
 	switch message.MessageType {
 	case enum.NewComment:
 		result.NewCommentMeta = newCommentMeta(message.CommentMeta)
-	case enum.NewLike:
-		result.NewLikeMeta = newLikeMeta(message.LikeMeta)
+	case enum.NewLikeStatus:
+		result.NewLikeStatusMeta = newLikeStatusMeta(message.LikeStatusMeta)
+	case enum.NewLikeComment:
+		result.NewLikeCommentMeta = newLikeCommentMeta(message.LikeCommentMeta)
 	case enum.NewFans:
 		result.NewFansMeta = newFansMeta(message.FansMeta)
 	case enum.NewForward:
