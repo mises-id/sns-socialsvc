@@ -95,6 +95,7 @@ func (a *statusApi) CreateTag(ctx context.Context, id primitive.ObjectID, tag en
 		}
 	}
 
+	//TODO problem user
 	tags = append(tags, tag)
 	status.Tags = tags
 	if err := models.UpdateStatusTag(ctx, status); err != nil {
