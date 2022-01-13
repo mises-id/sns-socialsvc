@@ -60,7 +60,6 @@ func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 	if status == nil {
 		return nil
 	}
-
 	statusinfo := pb.StatusInfo{
 		Id:           docID(status.ID),
 		User:         NewUserInfo(status.User),
@@ -75,9 +74,7 @@ func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 		IsLiked:      status.IsLiked,
 		CreatedAt:    uint64(status.CreatedAt.Unix()),
 		IsPublic:     status.HideTime == nil,
-	}
-	if !statusinfo.IsPublic {
-		statusinfo.HideTime = uint64(status.HideTime.Unix())
+		HideTime:     status.GetHideTime(),
 	}
 	switch status.StatusType {
 	case enum.LinkStatus:

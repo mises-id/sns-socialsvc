@@ -65,6 +65,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCCreateStatusResponse,
 			serverOptions...,
 		),
+		updatestatus: grpctransport.NewServer(
+			endpoints.UpdateStatusEndpoint,
+			DecodeGRPCUpdateStatusRequest,
+			EncodeGRPCUpdateStatusResponse,
+			serverOptions...,
+		),
 		deletestatus: grpctransport.NewServer(
 			endpoints.DeleteStatusEndpoint,
 			DecodeGRPCDeleteStatusRequest,
@@ -208,6 +214,7 @@ type grpcServer struct {
 	updateuseravatar  grpctransport.Handler
 	updateusername    grpctransport.Handler
 	createstatus      grpctransport.Handler
+	updatestatus      grpctransport.Handler
 	deletestatus      grpctransport.Handler
 	likestatus        grpctransport.Handler
 	unlikestatus      grpctransport.Handler
@@ -280,6 +287,14 @@ func (s *grpcServer) CreateStatus(ctx context.Context, req *pb.CreateStatusReque
 		return nil, err
 	}
 	return rep.(*pb.CreateStatusResponse), nil
+}
+
+func (s *grpcServer) UpdateStatus(ctx context.Context, req *pb.UpdateStatusRequest) (*pb.UpdateStatusResponse, error) {
+	_, rep, err := s.updatestatus.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.UpdateStatusResponse), nil
 }
 
 func (s *grpcServer) DeleteStatus(ctx context.Context, req *pb.DeleteStatusRequest) (*pb.SimpleResponse, error) {
@@ -502,6 +517,13 @@ func DecodeGRPCCreateStatusRequest(_ context.Context, grpcReq interface{}) (inte
 	return req, nil
 }
 
+// DecodeGRPCUpdateStatusRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC updatestatus request to a user-domain updatestatus request. Primarily useful in a server.
+func DecodeGRPCUpdateStatusRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.UpdateStatusRequest)
+	return req, nil
+}
+
 // DecodeGRPCDeleteStatusRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC deletestatus request to a user-domain deletestatus request. Primarily useful in a server.
 func DecodeGRPCDeleteStatusRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -697,6 +719,13 @@ func EncodeGRPCUpdateUserNameResponse(_ context.Context, response interface{}) (
 // user-domain createstatus response to a gRPC createstatus reply. Primarily useful in a server.
 func EncodeGRPCCreateStatusResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.CreateStatusResponse)
+	return resp, nil
+}
+
+// EncodeGRPCUpdateStatusResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain updatestatus response to a gRPC updatestatus reply. Primarily useful in a server.
+func EncodeGRPCUpdateStatusResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.UpdateStatusResponse)
 	return resp, nil
 }
 

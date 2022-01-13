@@ -114,6 +114,30 @@ func (s *Status) AfterCreate(ctx context.Context) error {
 	return s.notifyFans(ctx)
 }
 
+func (s *Status) GetHideTime() uint64 {
+	if s.HideTime == nil {
+		return 0
+	}
+	return uint64(s.HideTime.Unix())
+}
+
+func (s *Status) UpdateHideTime(ctx context.Context, isPrivate bool, showDuration int64) error {
+	var t *time.Time
+	if isPrivate {
+		hideTime := time.Now().Add(time.Second * time.Duration(showDuration))
+		t = &hideTime
+	}
+	_, err := db.DB().Collection("follows").UpdateMany(ctx, bson.M{"_id": s.ID},
+		bson.D{{
+			Key: "$set",
+			Value: bson.D{{
+				Key:   "hide_time",
+				Value: t,
+			}}},
+		})
+	return err
+}
+
 func (s *Status) notifyFans(ctx context.Context) error {
 	t := time.Now()
 	_, err := db.DB().Collection("follows").UpdateMany(ctx, bson.M{"to_uid": s.UID},
@@ -130,27 +154,6 @@ func (s *Status) notifyFans(ctx context.Context) error {
 				Value: t,
 			}}},
 		})
-	return err
-}
-
-func (s *Status) Hide(ctx context.Context, duration int64) error {
-	if duration < 0 {
-		s.HideTime = nil
-	} else {
-		t := time.Now().Add(time.Second * time.Duration(duration))
-		s.HideTime = &t
-	}
-	err := db.DB().Collection("statuses").FindOneAndUpdate(ctx, bson.M{"_id": s.ID},
-		bson.D{{
-			Key: "$set",
-			Value: bson.D{{
-				Key:   "hide_time",
-				Value: s.HideTime,
-			}, {
-				Key:   "updated_at",
-				Value: time.Now(),
-			}}},
-		}).Err()
 	return err
 }
 
@@ -229,6 +232,7 @@ type CreateStatusParams struct {
 	StatusType   enum.StatusType
 	FromType     enum.FromType
 	Content      string
+	IsPrivate    bool
 	ShowDuration int64
 	MetaData     meta.MetaData
 }

@@ -157,8 +157,10 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 	var resp pb.CreateStatusResponse
 
 	param := &statusSVC.CreateStatusParams{
-		StatusType: in.StatusType,
-		Content:    in.Content,
+		StatusType:   in.StatusType,
+		Content:      in.Content,
+		IsPrivate:    in.IsPrivate,
+		ShowDuration: int64(in.ShowDuration),
 	}
 	fromType, err := enum.FromTypeFromString(in.FromType)
 	if err != nil {
@@ -193,6 +195,26 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 
 	status, err := statusSVC.CreateStatus(ctx, in.CurrentUid, param)
 
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Status = factory.NewStatusInfo(status)
+	return &resp, nil
+}
+
+func (s socialService) UpdateStatus(ctx context.Context, in *pb.UpdateStatusRequest) (*pb.UpdateStatusResponse, error) {
+	var resp pb.UpdateStatusResponse
+	statusID, err := primitive.ObjectIDFromHex(in.StatusId)
+	if err != nil {
+		return nil, err
+	}
+	param := &statusSVC.UpdateStatusParams{
+		ID:           statusID,
+		IsPrivate:    in.IsPrivate,
+		ShowDuration: int64(in.ShowDuration),
+	}
+	status, err := statusSVC.UpdateStatus(ctx, in.CurrentUid, param)
 	if err != nil {
 		return nil, err
 	}

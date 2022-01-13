@@ -59,6 +59,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		updateuseravatarEndpoint  = svc.MakeUpdateUserAvatarEndpoint(service)
 		updateusernameEndpoint    = svc.MakeUpdateUserNameEndpoint(service)
 		createstatusEndpoint      = svc.MakeCreateStatusEndpoint(service)
+		updatestatusEndpoint      = svc.MakeUpdateStatusEndpoint(service)
 		deletestatusEndpoint      = svc.MakeDeleteStatusEndpoint(service)
 		likestatusEndpoint        = svc.MakeLikeStatusEndpoint(service)
 		unlikestatusEndpoint      = svc.MakeUnLikeStatusEndpoint(service)
@@ -90,6 +91,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		UpdateUserAvatarEndpoint:  updateuseravatarEndpoint,
 		UpdateUserNameEndpoint:    updateusernameEndpoint,
 		CreateStatusEndpoint:      createstatusEndpoint,
+		UpdateStatusEndpoint:      updatestatusEndpoint,
 		DeleteStatusEndpoint:      deletestatusEndpoint,
 		LikeStatusEndpoint:        likestatusEndpoint,
 		UnLikeStatusEndpoint:      unlikestatusEndpoint,

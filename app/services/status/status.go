@@ -13,6 +13,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type UpdateStatusParams struct {
+	ID           primitive.ObjectID
+	IsPrivate    bool
+	ShowDuration int64
+}
+
 type CreateStatusParams struct {
 	StatusType   string
 	ParentID     primitive.ObjectID
@@ -101,6 +107,20 @@ func RecommendStatus(ctx context.Context, uid uint64, pageParams *pagination.Pag
 		return nil, nil, err
 	}
 	return statues, page, nil
+}
+
+func UpdateStatus(ctx context.Context, uid uint64, params *UpdateStatusParams) (*models.Status, error) {
+	status, err := models.FindStatus(ctx, params.ID)
+	if err != nil {
+		return nil, err
+	}
+	if status.UID != uid {
+		return nil, mongo.ErrNoDocuments
+	}
+	if err = status.UpdateHideTime(ctx, params.IsPrivate, params.ShowDuration); err != nil {
+		return nil, err
+	}
+	return status, nil
 }
 
 func CreateStatus(ctx context.Context, uid uint64, params *CreateStatusParams) (*models.Status, error) {

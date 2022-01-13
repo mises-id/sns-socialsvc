@@ -39,6 +39,7 @@ type Endpoints struct {
 	UpdateUserAvatarEndpoint  endpoint.Endpoint
 	UpdateUserNameEndpoint    endpoint.Endpoint
 	CreateStatusEndpoint      endpoint.Endpoint
+	UpdateStatusEndpoint      endpoint.Endpoint
 	DeleteStatusEndpoint      endpoint.Endpoint
 	LikeStatusEndpoint        endpoint.Endpoint
 	UnLikeStatusEndpoint      endpoint.Endpoint
@@ -111,6 +112,14 @@ func (e Endpoints) CreateStatus(ctx context.Context, in *pb.CreateStatusRequest)
 		return nil, err
 	}
 	return response.(*pb.CreateStatusResponse), nil
+}
+
+func (e Endpoints) UpdateStatus(ctx context.Context, in *pb.UpdateStatusRequest) (*pb.UpdateStatusResponse, error) {
+	response, err := e.UpdateStatusEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.UpdateStatusResponse), nil
 }
 
 func (e Endpoints) DeleteStatus(ctx context.Context, in *pb.DeleteStatusRequest) (*pb.SimpleResponse, error) {
@@ -350,6 +359,17 @@ func MakeCreateStatusEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.CreateStatusRequest)
 		v, err := s.CreateStatus(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeUpdateStatusEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.UpdateStatusRequest)
+		v, err := s.UpdateStatus(ctx, req)
 		if err != nil {
 			return nil, err
 		}
@@ -612,6 +632,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"UpdateUserAvatar":  {},
 		"UpdateUserName":    {},
 		"CreateStatus":      {},
+		"UpdateStatus":      {},
 		"DeleteStatus":      {},
 		"LikeStatus":        {},
 		"UnLikeStatus":      {},
@@ -661,6 +682,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		}
 		if inc == "CreateStatus" {
 			e.CreateStatusEndpoint = middleware(e.CreateStatusEndpoint)
+		}
+		if inc == "UpdateStatus" {
+			e.UpdateStatusEndpoint = middleware(e.UpdateStatusEndpoint)
 		}
 		if inc == "DeleteStatus" {
 			e.DeleteStatusEndpoint = middleware(e.DeleteStatusEndpoint)
@@ -748,6 +772,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"UpdateUserAvatar":  {},
 		"UpdateUserName":    {},
 		"CreateStatus":      {},
+		"UpdateStatus":      {},
 		"DeleteStatus":      {},
 		"LikeStatus":        {},
 		"UnLikeStatus":      {},
@@ -797,6 +822,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "CreateStatus" {
 			e.CreateStatusEndpoint = middleware("CreateStatus", e.CreateStatusEndpoint)
+		}
+		if inc == "UpdateStatus" {
+			e.UpdateStatusEndpoint = middleware("UpdateStatus", e.UpdateStatusEndpoint)
 		}
 		if inc == "DeleteStatus" {
 			e.DeleteStatusEndpoint = middleware("DeleteStatus", e.DeleteStatusEndpoint)

@@ -114,6 +114,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var updatestatusEndpoint endpoint.Endpoint
+	{
+		updatestatusEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"UpdateStatus",
+			EncodeGRPCUpdateStatusRequest,
+			DecodeGRPCUpdateStatusResponse,
+			pb.UpdateStatusResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	var deletestatusEndpoint endpoint.Endpoint
 	{
 		deletestatusEndpoint = grpctransport.NewClient(
@@ -407,6 +420,7 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		UpdateUserAvatarEndpoint:  updateuseravatarEndpoint,
 		UpdateUserNameEndpoint:    updateusernameEndpoint,
 		CreateStatusEndpoint:      createstatusEndpoint,
+		UpdateStatusEndpoint:      updatestatusEndpoint,
 		DeleteStatusEndpoint:      deletestatusEndpoint,
 		LikeStatusEndpoint:        likestatusEndpoint,
 		UnLikeStatusEndpoint:      unlikestatusEndpoint,
@@ -473,6 +487,13 @@ func DecodeGRPCUpdateUserNameResponse(_ context.Context, grpcReply interface{}) 
 // gRPC createstatus reply to a user-domain createstatus response. Primarily useful in a client.
 func DecodeGRPCCreateStatusResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.CreateStatusResponse)
+	return reply, nil
+}
+
+// DecodeGRPCUpdateStatusResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC updatestatus reply to a user-domain updatestatus response. Primarily useful in a client.
+func DecodeGRPCUpdateStatusResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.UpdateStatusResponse)
 	return reply, nil
 }
 
@@ -671,6 +692,13 @@ func EncodeGRPCUpdateUserNameRequest(_ context.Context, request interface{}) (in
 // user-domain createstatus request to a gRPC createstatus request. Primarily useful in a client.
 func EncodeGRPCCreateStatusRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.CreateStatusRequest)
+	return req, nil
+}
+
+// EncodeGRPCUpdateStatusRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain updatestatus request to a gRPC updatestatus request. Primarily useful in a client.
+func EncodeGRPCUpdateStatusRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.UpdateStatusRequest)
 	return req, nil
 }
 

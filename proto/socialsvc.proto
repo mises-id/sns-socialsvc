@@ -97,6 +97,21 @@ service Social {
     };
   }
 
+  // update status
+  rpc UpdateStatus (UpdateStatusRequest) returns (UpdateStatusResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/status/update"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/status/update/"
+        body: "*"
+      }
+    };
+  }
+
   //delete a status
   rpc DeleteStatus (DeleteStatusRequest) returns (SimpleResponse) {
     option (google.api.http) = {
@@ -535,6 +550,15 @@ message CreateStatusRequest {
 	string meta = 5;
 	string from_type = 6;
   repeated string images = 7;
+  bool is_private = 8;
+	uint64 show_duration = 9; // 开放时长 秒
+}
+
+message UpdateStatusRequest {
+  uint64 current_uid = 1;
+	string status_id = 2;
+  bool is_private = 3;
+	uint64 show_duration = 4; // 开放时长 秒
 }
 
 message CreateStatusResponse {
@@ -542,7 +566,10 @@ message CreateStatusResponse {
   StatusInfo status = 2;
 }
 
-
+message UpdateStatusResponse {
+  uint64 code = 1;
+  StatusInfo status = 2;
+}
 
 message DeleteStatusRequest {
   uint64 current_uid = 1;

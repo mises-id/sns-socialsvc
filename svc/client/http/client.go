@@ -111,6 +111,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var UpdateStatusZeroEndpoint endpoint.Endpoint
+	{
+		UpdateStatusZeroEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, "/status/update/"),
+			EncodeHTTPUpdateStatusZeroRequest,
+			DecodeHTTPUpdateStatusResponse,
+			options...,
+		).Endpoint()
+	}
 	var DeleteStatusZeroEndpoint endpoint.Endpoint
 	{
 		DeleteStatusZeroEndpoint = httptransport.NewClient(
@@ -339,6 +349,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		UpdateUserAvatarEndpoint:  UpdateUserAvatarZeroEndpoint,
 		UpdateUserNameEndpoint:    UpdateUserNameZeroEndpoint,
 		CreateStatusEndpoint:      CreateStatusZeroEndpoint,
+		UpdateStatusEndpoint:      UpdateStatusZeroEndpoint,
 		DeleteStatusEndpoint:      DeleteStatusZeroEndpoint,
 		LikeStatusEndpoint:        LikeStatusZeroEndpoint,
 		UnLikeStatusEndpoint:      UnLikeStatusZeroEndpoint,
@@ -542,6 +553,33 @@ func DecodeHTTPCreateStatusResponse(_ context.Context, r *http.Response) (interf
 	}
 
 	var resp pb.CreateStatusResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPUpdateStatusResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded UpdateStatusResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPUpdateStatusResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.UpdateStatusResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -1644,6 +1682,10 @@ func EncodeHTTPCreateStatusZeroRequest(_ context.Context, r *http.Request, reque
 
 	toRet.Images = req.Images
 
+	toRet.IsPrivate = req.IsPrivate
+
+	toRet.ShowDuration = req.ShowDuration
+
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(toRet); err != nil {
@@ -1701,6 +1743,115 @@ func EncodeHTTPCreateStatusOneRequest(_ context.Context, r *http.Request, reques
 	toRet.FromType = req.FromType
 
 	toRet.Images = req.Images
+
+	toRet.IsPrivate = req.IsPrivate
+
+	toRet.ShowDuration = req.ShowDuration
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPUpdateStatusZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a updatestatus request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUpdateStatusZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UpdateStatusRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"status",
+		"update",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.UpdateStatusRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.StatusId = req.StatusId
+
+	toRet.IsPrivate = req.IsPrivate
+
+	toRet.ShowDuration = req.ShowDuration
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPUpdateStatusOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a updatestatus request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUpdateStatusOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UpdateStatusRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"status",
+		"update",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.UpdateStatusRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.StatusId = req.StatusId
+
+	toRet.IsPrivate = req.IsPrivate
+
+	toRet.ShowDuration = req.ShowDuration
 
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
