@@ -115,6 +115,9 @@ func NewRelationInfoSlice(relationType enum.RelationType, follows []*models.Foll
 }
 
 func newCommentMeta(meta *message.CommentMeta) *pb.NewCommentMeta {
+	if meta == nil {
+		return &pb.NewCommentMeta{}
+	}
 	return &pb.NewCommentMeta{
 		Uid:       meta.UID,
 		GroupId:   docID(meta.GroupID),
@@ -124,6 +127,9 @@ func newCommentMeta(meta *message.CommentMeta) *pb.NewCommentMeta {
 }
 
 func newLikeStatusMeta(meta *message.LikeStatusMeta) *pb.NewLikeStatusMeta {
+	if meta == nil {
+		return &pb.NewLikeStatusMeta{}
+	}
 	return &pb.NewLikeStatusMeta{
 		Uid:             meta.UID,
 		StatusId:        meta.StatusID.Hex(),
@@ -134,6 +140,9 @@ func newLikeStatusMeta(meta *message.LikeStatusMeta) *pb.NewLikeStatusMeta {
 }
 
 func newLikeCommentMeta(meta *message.LikeCommentMeta) *pb.NewLikeCommentMeta {
+	if meta == nil {
+		return &pb.NewLikeCommentMeta{}
+	}
 	return &pb.NewLikeCommentMeta{
 		Uid:             meta.UID,
 		CommentId:       meta.CommentID.Hex(),
@@ -143,12 +152,18 @@ func newLikeCommentMeta(meta *message.LikeCommentMeta) *pb.NewLikeCommentMeta {
 }
 
 func newFansMeta(meta *message.FansMeta) *pb.NewFansMeta {
+	if meta == nil {
+		return &pb.NewFansMeta{}
+	}
 	return &pb.NewFansMeta{
 		Uid: meta.UID,
 	}
 }
 
 func newForwardMeta(meta *message.ForwardMeta) *pb.NewForwardMeta {
+	if meta == nil {
+		return &pb.NewForwardMeta{}
+	}
 	return &pb.NewForwardMeta{
 		Uid:            meta.UID,
 		StatusId:       meta.StatusID.Hex(),

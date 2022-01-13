@@ -21,7 +21,15 @@ import (
 	"github.com/mises-id/sns-socialsvc/handlers"
 	pb "github.com/mises-id/sns-socialsvc/proto"
 	"github.com/mises-id/sns-socialsvc/svc"
+
+
+	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
+	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 )
+
+const MaxRecvMsgSize = 52428800
 
 var DefaultConfig svc.Config
 
@@ -169,7 +177,8 @@ func Run(cfg svc.Config) {
 		}
 
 		srv := svc.MakeGRPCServer(endpoints)
-		s := grpc.NewServer()
+		opts := grpcOpts()
+		s := grpc.NewServer(opts...)
 		pb.RegisterSocialServer(s, srv)
 
 		errc <- s.Serve(ln)
@@ -177,4 +186,24 @@ func Run(cfg svc.Config) {
 
 	// Run!
 	log.Println("exit", <-errc)
+}
+
+func grpcOpts() []grpc.ServerOption {
+	var opts []grpc.ServerOption
+	streamServerInterceptors := []grpc.StreamServerInterceptor{
+		grpc_ctxtags.StreamServerInterceptor(),
+		grpc_validator.StreamServerInterceptor(),
+		grpc_recovery.StreamServerInterceptor(),
+	}
+
+	unaryServerInterceptors := []grpc.UnaryServerInterceptor{
+		grpc_ctxtags.UnaryServerInterceptor(),
+		grpc_validator.UnaryServerInterceptor(),
+		grpc_recovery.UnaryServerInterceptor(),
+	}
+
+	opts = append(opts, grpc.MaxRecvMsgSize(MaxRecvMsgSize))
+	opts = append(opts, grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(streamServerInterceptors...)))
+	opts = append(opts, grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(unaryServerInterceptors...)))
+	return opts
 }

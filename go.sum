@@ -458,6 +458,7 @@ github.com/grpc-ecosystem/go-grpc-middleware v1.0.1-0.20190118093823-f849b5445de
 github.com/grpc-ecosystem/go-grpc-middleware v1.2.2/go.mod h1:EaizFBKfUKtMIF5iaDEhniwNedqGo9FuLFzppDr3uwI=
 github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 h1:+9834+KizmvFV7pXQGSXQTsaWhq2GjuNUt0aUU0YBYw=
 github.com/grpc-ecosystem/go-grpc-middleware v1.3.0/go.mod h1:z0ButlSOZa5vEBq9m2m2hlwIgKw+rp3sdCBRoJY+30Y=
+github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 h1:Ovs26xHkKqVztRpIrF/92BcuyuQ/YW4NSIpoGtfXNho=
 github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0/go.mod h1:8NvIoxWQoOIhqOTXgfV/d3M/q6VIi02HzZEHgUlZvzk=
 github.com/grpc-ecosystem/grpc-gateway v1.8.5/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
 github.com/grpc-ecosystem/grpc-gateway v1.9.0/go.mod h1:vNeuVxBJEsws4ogUvrchl83t/GYV9WGTSLVdBhOQFDY=
@@ -635,8 +636,6 @@ github.com/mises-id/cosmos-sdk v0.44.6-0.20211209094558-a7c9c77cfc17/go.mod h1:m
 github.com/mises-id/mises-tm v0.0.0-20211229034748-9cc59047a831/go.mod h1:N7XxmfWQlphHhbsKyIPxUb542YHDQBVwVdryuHV5nWY=
 github.com/mises-id/mises-tm v0.0.0-20211229053907-7f70cc1f8835 h1:9e1auQyGkhhHrZ+LijOPdY5B4TSoWBTho3rIeSrmYOA=
 github.com/mises-id/mises-tm v0.0.0-20211229053907-7f70cc1f8835/go.mod h1:N7XxmfWQlphHhbsKyIPxUb542YHDQBVwVdryuHV5nWY=
-github.com/mises-id/sdk v0.0.0-20211230080547-c4ca8c16a10e h1:O5Y/rn6U+lNdNu7xNMu+TpnaZHHiHgTl/wYFPQLjKyA=
-github.com/mises-id/sdk v0.0.0-20211230080547-c4ca8c16a10e/go.mod h1:7HLWQbY3sxTPQR/P3osQoDraHfYxMDblrz5rxQN96VI=
 github.com/mises-id/sdk v0.0.0-20220112092616-f50463033a82 h1:/dqbrWK9tOrchAITj4WDWt4x8uNFb4sqkgHDynvmZeE=
 github.com/mises-id/sdk v0.0.0-20220112092616-f50463033a82/go.mod h1:7HLWQbY3sxTPQR/P3osQoDraHfYxMDblrz5rxQN96VI=
 github.com/mises-id/sns-storagesvc/sdk v0.0.0-20211221064425-26bd51fd6a98 h1:YyD6tOjWBarXN6eyxed2rGcpTD42IBCD1XIhyXNwKMM=
