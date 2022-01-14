@@ -133,12 +133,14 @@ func CreateStatus(ctx context.Context, uid uint64, params *CreateStatusParams) (
 		return nil, err
 	}
 	status, err := models.CreateStatus(ctx, &models.CreateStatusParams{
-		UID:        uid,
-		StatusType: statusType,
-		Content:    params.Content,
-		ParentID:   params.ParentID,
-		FromType:   params.FromType,
-		MetaData:   params.Meta,
+		UID:          uid,
+		StatusType:   statusType,
+		Content:      params.Content,
+		ParentID:     params.ParentID,
+		FromType:     params.FromType,
+		MetaData:     params.Meta,
+		IsPrivate:    params.IsPrivate,
+		ShowDuration: params.ShowDuration,
 	})
 	if err != nil {
 		return nil, err

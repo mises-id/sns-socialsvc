@@ -116,7 +116,7 @@ func FindLike(ctx context.Context, uid uint64, targetID primitive.ObjectID, targ
 		"uid":         uid,
 		"target_id":   targetID,
 		"target_type": targetType,
-		"deleted_at":  nil,
+		"deleted_at":  bson.M{"$exists": false},
 	}).First(like).Error
 	if err != nil {
 		return nil, err
@@ -127,7 +127,7 @@ func FindLike(ctx context.Context, uid uint64, targetID primitive.ObjectID, targ
 	return like, err
 }
 
-func GetLikeMap(ctx context.Context, uid uint64, targetIDs []primitive.ObjectID, targetType enum.LikeTargetType) (map[primitive.ObjectID]*Like, error) {
+func GetLikeMap(ctx context.Context, uid uint64, targetIDs []primitive.ObjectID, targetType enum.LikeTargetType, preloadData bool) (map[primitive.ObjectID]*Like, error) {
 	likes := make([]*Like, 0)
 	err := db.ODM(ctx).Where(bson.M{
 		"uid":         uid,
@@ -138,8 +138,10 @@ func GetLikeMap(ctx context.Context, uid uint64, targetIDs []primitive.ObjectID,
 	if err != nil {
 		return nil, err
 	}
-	if err = PreloadLikeData(ctx, likes...); err != nil {
-		return nil, err
+	if preloadData {
+		if err = PreloadLikeData(ctx, likes...); err != nil {
+			return nil, err
+		}
 	}
 	likeMap := make(map[primitive.ObjectID]*Like)
 	for _, like := range likes {
@@ -153,7 +155,7 @@ func ListLike(ctx context.Context, uid uint64, tp enum.LikeTargetType, pageParam
 		pageParams = pagination.DefaultQuickParams()
 	}
 	likes := make([]*Like, 0)
-	chain := db.ODM(ctx).Where(bson.M{"uid": uid, "target_type": tp})
+	chain := db.ODM(ctx).Where(bson.M{"uid": uid, "target_type": tp, "deleted_at": nil})
 	paginator := pagination.NewQuickPaginator(pageParams.Limit, pageParams.NextID, chain)
 	page, err := paginator.Paginate(&likes)
 	if err != nil {

@@ -127,7 +127,7 @@ func (s *Status) UpdateHideTime(ctx context.Context, isPrivate bool, showDuratio
 		hideTime := time.Now().Add(time.Second * time.Duration(showDuration))
 		t = &hideTime
 	}
-	_, err := db.DB().Collection("follows").UpdateMany(ctx, bson.M{"_id": s.ID},
+	_, err := db.DB().Collection("statuses").UpdateMany(ctx, bson.M{"_id": s.ID},
 		bson.D{{
 			Key: "$set",
 			Value: bson.D{{
@@ -216,7 +216,7 @@ func preloadStatusLikeState(ctx context.Context, statuses ...*Status) error {
 	for i, status := range statuses {
 		statusIDs[i] = status.ID
 	}
-	likeMap, err := GetLikeMap(ctx, currentUID, statusIDs, enum.LikeStatus)
+	likeMap, err := GetLikeMap(ctx, currentUID, statusIDs, enum.LikeStatus, false)
 	if err != nil {
 		return err
 	}
@@ -250,12 +250,12 @@ func CreateStatus(ctx context.Context, params *CreateStatusParams) (*Status, err
 	if err = status.BeforeCreate(ctx); err != nil {
 		return nil, err
 	}
+	if params.IsPrivate {
+		t := status.CreatedAt.Add(time.Duration(params.ShowDuration - 10))
+		status.HideTime = &t
+	}
 	if err = db.ODM(ctx).Create(status).Error; err != nil {
 		return nil, err
-	}
-	if params.ShowDuration != 0 {
-		t := status.CreatedAt.Add(time.Second * time.Duration(params.ShowDuration))
-		status.HideTime = &t
 	}
 	if err = status.AfterCreate(ctx); err != nil {
 		return nil, err
