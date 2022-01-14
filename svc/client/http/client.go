@@ -3379,7 +3379,7 @@ func EncodeHTTPListCommentOneRequest(_ context.Context, r *http.Request, request
 func EncodeHTTPNewRecommendStatusZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
 	strval := ""
 	_ = strval
-	req := request.(*pb.NewRecommendStatusResquest)
+	req := request.(*pb.NewRecommendStatusRequest)
 	_ = req
 
 	r.Header.Set("transport", "HTTPJSON")
@@ -3405,8 +3405,6 @@ func EncodeHTTPNewRecommendStatusZeroRequest(_ context.Context, r *http.Request,
 	_ = tmp
 
 	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
-
-	values.Add("req_type", fmt.Sprint(req.ReqType))
 
 	values.Add("last_recommend_time", fmt.Sprint(req.LastRecommendTime))
 
@@ -3422,7 +3420,7 @@ func EncodeHTTPNewRecommendStatusZeroRequest(_ context.Context, r *http.Request,
 func EncodeHTTPNewRecommendStatusOneRequest(_ context.Context, r *http.Request, request interface{}) error {
 	strval := ""
 	_ = strval
-	req := request.(*pb.NewRecommendStatusResquest)
+	req := request.(*pb.NewRecommendStatusRequest)
 	_ = req
 
 	r.Header.Set("transport", "HTTPJSON")
@@ -3447,8 +3445,6 @@ func EncodeHTTPNewRecommendStatusOneRequest(_ context.Context, r *http.Request, 
 	_ = tmp
 
 	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
-
-	values.Add("req_type", fmt.Sprint(req.ReqType))
 
 	values.Add("last_recommend_time", fmt.Sprint(req.LastRecommendTime))
 

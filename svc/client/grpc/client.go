@@ -838,7 +838,7 @@ func EncodeGRPCListCommentRequest(_ context.Context, request interface{}) (inter
 // EncodeGRPCNewRecommendStatusRequest is a transport/grpc.EncodeRequestFunc that converts a
 // user-domain newrecommendstatus request to a gRPC newrecommendstatus request. Primarily useful in a client.
 func EncodeGRPCNewRecommendStatusRequest(_ context.Context, request interface{}) (interface{}, error) {
-	req := request.(*pb.NewRecommendStatusResquest)
+	req := request.(*pb.NewRecommendStatusRequest)
 	return req, nil
 }
 

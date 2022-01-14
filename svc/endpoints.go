@@ -251,7 +251,7 @@ func (e Endpoints) ListComment(ctx context.Context, in *pb.ListCommentRequest) (
 	return response.(*pb.ListCommentResponse), nil
 }
 
-func (e Endpoints) NewRecommendStatus(ctx context.Context, in *pb.NewRecommendStatusResquest) (*pb.NewRecommendStatusResponse, error) {
+func (e Endpoints) NewRecommendStatus(ctx context.Context, in *pb.NewRecommendStatusRequest) (*pb.NewRecommendStatusResponse, error) {
 	response, err := e.NewRecommendStatusEndpoint(ctx, in)
 	if err != nil {
 		return nil, err
@@ -564,7 +564,7 @@ func MakeListCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
 
 func MakeNewRecommendStatusEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(*pb.NewRecommendStatusResquest)
+		req := request.(*pb.NewRecommendStatusRequest)
 		v, err := s.NewRecommendStatus(ctx, req)
 		if err != nil {
 			return nil, err

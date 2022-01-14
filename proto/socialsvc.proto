@@ -333,7 +333,7 @@ service Social {
       }
     };
   }
-  rpc NewRecommendStatus (NewRecommendStatusResquest) returns (NewRecommendStatusResponse) {
+  rpc NewRecommendStatus (NewRecommendStatusRequest) returns (NewRecommendStatusResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
       get: "/status/new_recommend"
@@ -553,23 +553,22 @@ message ListStatusResponse {
   PageQuick paginator = 3;
 }
 
-message CgNext {
+message NewRecommendNext {
   uint64 limit = 1;
   int64 last_recommend_time = 2;
   int64 last_common_time = 3;
 }
 
-message NewRecommendStatusResquest {
+message NewRecommendStatusRequest {
   uint64 current_uid = 1;
-  string req_type = 2;
-  int64 last_recommend_time = 3;
-  int64 last_common_time = 4;
+  int64 last_recommend_time = 2;
+  int64 last_common_time = 3;
 }
 
 message NewRecommendStatusResponse {
   uint64 code = 1;
   repeated StatusInfo statuses = 2;
-  CgNext next = 3;
+  NewRecommendNext next = 3;
   uint64 num = 4;
 }
 

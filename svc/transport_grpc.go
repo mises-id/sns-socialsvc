@@ -432,7 +432,7 @@ func (s *grpcServer) ListComment(ctx context.Context, req *pb.ListCommentRequest
 	return rep.(*pb.ListCommentResponse), nil
 }
 
-func (s *grpcServer) NewRecommendStatus(ctx context.Context, req *pb.NewRecommendStatusResquest) (*pb.NewRecommendStatusResponse, error) {
+func (s *grpcServer) NewRecommendStatus(ctx context.Context, req *pb.NewRecommendStatusRequest) (*pb.NewRecommendStatusResponse, error) {
 	_, rep, err := s.newrecommendstatus.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, err
@@ -654,7 +654,7 @@ func DecodeGRPCListCommentRequest(_ context.Context, grpcReq interface{}) (inter
 // DecodeGRPCNewRecommendStatusRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC newrecommendstatus request to a user-domain newrecommendstatus request. Primarily useful in a server.
 func DecodeGRPCNewRecommendStatusRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*pb.NewRecommendStatusResquest)
+	req := grpcReq.(*pb.NewRecommendStatusRequest)
 	return req, nil
 }
 

@@ -2775,7 +2775,7 @@ func DecodeHTTPListCommentOneRequest(_ context.Context, r *http.Request) (interf
 // body. Primarily useful in a server.
 func DecodeHTTPNewRecommendStatusZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	defer r.Body.Close()
-	var req pb.NewRecommendStatusResquest
+	var req pb.NewRecommendStatusRequest
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot read body of http request")
@@ -2810,12 +2810,6 @@ func DecodeHTTPNewRecommendStatusZeroRequest(_ context.Context, r *http.Request)
 			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidNewRecommendStatus from query, queryParams: %v", queryParams))
 		}
 		req.CurrentUid = CurrentUidNewRecommendStatus
-	}
-
-	if ReqTypeNewRecommendStatusStrArr, ok := queryParams["req_type"]; ok {
-		ReqTypeNewRecommendStatusStr := ReqTypeNewRecommendStatusStrArr[0]
-		ReqTypeNewRecommendStatus := ReqTypeNewRecommendStatusStr
-		req.ReqType = ReqTypeNewRecommendStatus
 	}
 
 	if LastRecommendTimeNewRecommendStatusStrArr, ok := queryParams["last_recommend_time"]; ok {
@@ -2844,7 +2838,7 @@ func DecodeHTTPNewRecommendStatusZeroRequest(_ context.Context, r *http.Request)
 // body. Primarily useful in a server.
 func DecodeHTTPNewRecommendStatusOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	defer r.Body.Close()
-	var req pb.NewRecommendStatusResquest
+	var req pb.NewRecommendStatusRequest
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot read body of http request")
@@ -2879,12 +2873,6 @@ func DecodeHTTPNewRecommendStatusOneRequest(_ context.Context, r *http.Request) 
 			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidNewRecommendStatus from query, queryParams: %v", queryParams))
 		}
 		req.CurrentUid = CurrentUidNewRecommendStatus
-	}
-
-	if ReqTypeNewRecommendStatusStrArr, ok := queryParams["req_type"]; ok {
-		ReqTypeNewRecommendStatusStr := ReqTypeNewRecommendStatusStrArr[0]
-		ReqTypeNewRecommendStatus := ReqTypeNewRecommendStatusStr
-		req.ReqType = ReqTypeNewRecommendStatus
 	}
 
 	if LastRecommendTimeNewRecommendStatusStrArr, ok := queryParams["last_recommend_time"]; ok {

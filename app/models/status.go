@@ -29,6 +29,7 @@ type Status struct {
 	LikesCount    uint64             `bson:"likes_count,omitempty"`
 	ForwardsCount uint64             `bson:"forwards_count,omitempty"`
 	HideTime      *time.Time         `bson:"hide_time"`
+	Score         int64              `bson:"score"`
 	Tags          []enum.TagType     `bson:"tags"`
 	DeletedAt     *time.Time         `bson:"deleted_at,omitempty"`
 	CreatedAt     time.Time          `bson:"created_at,omitempty"`
@@ -49,6 +50,7 @@ func (s *Status) validate(ctx context.Context) error {
 
 func (s *Status) BeforeCreate(ctx context.Context) error {
 	s.CreatedAt = time.Now()
+	s.Score = time.Now().UnixMilli()
 	s.UpdatedAt = time.Now()
 	var err error
 	if !s.ParentID.IsZero() {

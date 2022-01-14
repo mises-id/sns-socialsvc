@@ -581,7 +581,7 @@ func (s socialService) GetMessageSummary(ctx context.Context, in *pb.GetMessageS
 	return &resp, nil
 }
 
-func (s socialService) NewRecommendStatus(ctx context.Context, in *pb.NewRecommendStatusResquest) (*pb.NewRecommendStatusResponse, error) {
+func (s socialService) NewRecommendStatus(ctx context.Context, in *pb.NewRecommendStatusRequest) (*pb.NewRecommendStatusResponse, error) {
 	var resp pb.NewRecommendStatusResponse
 	svcin := &statusSVC.NewRecommendInput{
 		LastRecommendTime: int64(in.LastRecommendTime),
@@ -594,7 +594,7 @@ func (s socialService) NewRecommendStatus(ctx context.Context, in *pb.NewRecomme
 	resp.Code = 0
 	resp.Statuses = factory.NewStatusInfoSlice(svcout.Data)
 	resp.Num = uint64(len(svcout.Data))
-	resp.Next = &pb.CgNext{
+	resp.Next = &pb.NewRecommendNext{
 		LastRecommendTime: (svcout.Next.LastRecommendTime),
 		LastCommonTime:    (svcout.Next.LastCommonTime),
 	}
