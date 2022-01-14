@@ -258,7 +258,7 @@ func preloadCommentLikeState(ctx context.Context, comments ...*Comment) error {
 	for i, comment := range comments {
 		ids[i] = comment.ID
 	}
-	likeMap, err := GetLikeMap(ctx, currentUID, ids, enum.LikeComment, true)
+	likeMap, err := GetLikeMap(ctx, currentUID, ids, enum.LikeComment, false)
 	if err != nil {
 		return err
 	}
