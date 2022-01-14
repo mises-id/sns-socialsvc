@@ -124,7 +124,7 @@ func newCommentMeta(meta *message.CommentMeta) *pb.NewCommentMeta {
 		CommentId:            docID(meta.CommentID),
 		Content:              meta.Content,
 		ParentContent:        meta.ParentContent,
-		ParentUserName:       meta.ParentUserName,
+		ParentUserName:       meta.ParentUsername,
 		StatusContentSummary: meta.StatusContentSummary,
 		StatusImageUrl:       meta.StatusImageURL,
 	}
@@ -188,6 +188,7 @@ func NewMessage(message *models.Message) *pb.Message {
 		FromUser:    NewUserInfo(message.FromUser),
 		State:       message.State(),
 		Status:      NewStatusInfo(message.Status),
+		CreatedAt:   uint64(message.CreatedAt.Unix()),
 	}
 	switch message.MessageType {
 	case enum.NewComment:
