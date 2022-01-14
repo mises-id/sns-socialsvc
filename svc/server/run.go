@@ -21,15 +21,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/handlers"
 	pb "github.com/mises-id/sns-socialsvc/proto"
 	"github.com/mises-id/sns-socialsvc/svc"
-
-
-	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
-	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
-	grpc_validator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 )
-
-const MaxRecvMsgSize = 52428800
 
 var DefaultConfig svc.Config
 
@@ -61,67 +53,69 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 
 	// Endpoint domain.
 	var (
-		signinEndpoint            = svc.MakeSignInEndpoint(service)
-		finduserEndpoint          = svc.MakeFindUserEndpoint(service)
-		updateuserprofileEndpoint = svc.MakeUpdateUserProfileEndpoint(service)
-		updateuseravatarEndpoint  = svc.MakeUpdateUserAvatarEndpoint(service)
-		updateusernameEndpoint    = svc.MakeUpdateUserNameEndpoint(service)
-		createstatusEndpoint      = svc.MakeCreateStatusEndpoint(service)
-		updatestatusEndpoint      = svc.MakeUpdateStatusEndpoint(service)
-		deletestatusEndpoint      = svc.MakeDeleteStatusEndpoint(service)
-		likestatusEndpoint        = svc.MakeLikeStatusEndpoint(service)
-		unlikestatusEndpoint      = svc.MakeUnLikeStatusEndpoint(service)
-		listlikestatusEndpoint    = svc.MakeListLikeStatusEndpoint(service)
-		getstatusEndpoint         = svc.MakeGetStatusEndpoint(service)
-		liststatusEndpoint        = svc.MakeListStatusEndpoint(service)
-		listrecommendedEndpoint   = svc.MakeListRecommendedEndpoint(service)
-		listusertimelineEndpoint  = svc.MakeListUserTimelineEndpoint(service)
-		latestfollowingEndpoint   = svc.MakeLatestFollowingEndpoint(service)
-		listrelationshipEndpoint  = svc.MakeListRelationshipEndpoint(service)
-		followEndpoint            = svc.MakeFollowEndpoint(service)
-		unfollowEndpoint          = svc.MakeUnFollowEndpoint(service)
-		listmessageEndpoint       = svc.MakeListMessageEndpoint(service)
-		readmessageEndpoint       = svc.MakeReadMessageEndpoint(service)
-		getmessagesummaryEndpoint = svc.MakeGetMessageSummaryEndpoint(service)
-		listcommentEndpoint       = svc.MakeListCommentEndpoint(service)
-		createcommentEndpoint     = svc.MakeCreateCommentEndpoint(service)
-		likecommentEndpoint       = svc.MakeLikeCommentEndpoint(service)
-		unlikecommentEndpoint     = svc.MakeUnlikeCommentEndpoint(service)
-		listblacklistEndpoint     = svc.MakeListBlacklistEndpoint(service)
-		createblacklistEndpoint   = svc.MakeCreateBlacklistEndpoint(service)
-		deleteblacklistEndpoint   = svc.MakeDeleteBlacklistEndpoint(service)
+		signinEndpoint             = svc.MakeSignInEndpoint(service)
+		finduserEndpoint           = svc.MakeFindUserEndpoint(service)
+		updateuserprofileEndpoint  = svc.MakeUpdateUserProfileEndpoint(service)
+		updateuseravatarEndpoint   = svc.MakeUpdateUserAvatarEndpoint(service)
+		updateusernameEndpoint     = svc.MakeUpdateUserNameEndpoint(service)
+		createstatusEndpoint       = svc.MakeCreateStatusEndpoint(service)
+		updatestatusEndpoint       = svc.MakeUpdateStatusEndpoint(service)
+		deletestatusEndpoint       = svc.MakeDeleteStatusEndpoint(service)
+		likestatusEndpoint         = svc.MakeLikeStatusEndpoint(service)
+		unlikestatusEndpoint       = svc.MakeUnLikeStatusEndpoint(service)
+		listlikestatusEndpoint     = svc.MakeListLikeStatusEndpoint(service)
+		getstatusEndpoint          = svc.MakeGetStatusEndpoint(service)
+		liststatusEndpoint         = svc.MakeListStatusEndpoint(service)
+		listrecommendedEndpoint    = svc.MakeListRecommendedEndpoint(service)
+		listusertimelineEndpoint   = svc.MakeListUserTimelineEndpoint(service)
+		latestfollowingEndpoint    = svc.MakeLatestFollowingEndpoint(service)
+		listrelationshipEndpoint   = svc.MakeListRelationshipEndpoint(service)
+		followEndpoint             = svc.MakeFollowEndpoint(service)
+		unfollowEndpoint           = svc.MakeUnFollowEndpoint(service)
+		listmessageEndpoint        = svc.MakeListMessageEndpoint(service)
+		readmessageEndpoint        = svc.MakeReadMessageEndpoint(service)
+		getmessagesummaryEndpoint  = svc.MakeGetMessageSummaryEndpoint(service)
+		listcommentEndpoint        = svc.MakeListCommentEndpoint(service)
+		newrecommendstatusEndpoint = svc.MakeNewRecommendStatusEndpoint(service)
+		createcommentEndpoint      = svc.MakeCreateCommentEndpoint(service)
+		likecommentEndpoint        = svc.MakeLikeCommentEndpoint(service)
+		unlikecommentEndpoint      = svc.MakeUnlikeCommentEndpoint(service)
+		listblacklistEndpoint      = svc.MakeListBlacklistEndpoint(service)
+		createblacklistEndpoint    = svc.MakeCreateBlacklistEndpoint(service)
+		deleteblacklistEndpoint    = svc.MakeDeleteBlacklistEndpoint(service)
 	)
 
 	endpoints := svc.Endpoints{
-		SignInEndpoint:            signinEndpoint,
-		FindUserEndpoint:          finduserEndpoint,
-		UpdateUserProfileEndpoint: updateuserprofileEndpoint,
-		UpdateUserAvatarEndpoint:  updateuseravatarEndpoint,
-		UpdateUserNameEndpoint:    updateusernameEndpoint,
-		CreateStatusEndpoint:      createstatusEndpoint,
-		UpdateStatusEndpoint:      updatestatusEndpoint,
-		DeleteStatusEndpoint:      deletestatusEndpoint,
-		LikeStatusEndpoint:        likestatusEndpoint,
-		UnLikeStatusEndpoint:      unlikestatusEndpoint,
-		ListLikeStatusEndpoint:    listlikestatusEndpoint,
-		GetStatusEndpoint:         getstatusEndpoint,
-		ListStatusEndpoint:        liststatusEndpoint,
-		ListRecommendedEndpoint:   listrecommendedEndpoint,
-		ListUserTimelineEndpoint:  listusertimelineEndpoint,
-		LatestFollowingEndpoint:   latestfollowingEndpoint,
-		ListRelationshipEndpoint:  listrelationshipEndpoint,
-		FollowEndpoint:            followEndpoint,
-		UnFollowEndpoint:          unfollowEndpoint,
-		ListMessageEndpoint:       listmessageEndpoint,
-		ReadMessageEndpoint:       readmessageEndpoint,
-		GetMessageSummaryEndpoint: getmessagesummaryEndpoint,
-		ListCommentEndpoint:       listcommentEndpoint,
-		CreateCommentEndpoint:     createcommentEndpoint,
-		LikeCommentEndpoint:       likecommentEndpoint,
-		UnlikeCommentEndpoint:     unlikecommentEndpoint,
-		ListBlacklistEndpoint:     listblacklistEndpoint,
-		CreateBlacklistEndpoint:   createblacklistEndpoint,
-		DeleteBlacklistEndpoint:   deleteblacklistEndpoint,
+		SignInEndpoint:             signinEndpoint,
+		FindUserEndpoint:           finduserEndpoint,
+		UpdateUserProfileEndpoint:  updateuserprofileEndpoint,
+		UpdateUserAvatarEndpoint:   updateuseravatarEndpoint,
+		UpdateUserNameEndpoint:     updateusernameEndpoint,
+		CreateStatusEndpoint:       createstatusEndpoint,
+		UpdateStatusEndpoint:       updatestatusEndpoint,
+		DeleteStatusEndpoint:       deletestatusEndpoint,
+		LikeStatusEndpoint:         likestatusEndpoint,
+		UnLikeStatusEndpoint:       unlikestatusEndpoint,
+		ListLikeStatusEndpoint:     listlikestatusEndpoint,
+		GetStatusEndpoint:          getstatusEndpoint,
+		ListStatusEndpoint:         liststatusEndpoint,
+		ListRecommendedEndpoint:    listrecommendedEndpoint,
+		ListUserTimelineEndpoint:   listusertimelineEndpoint,
+		LatestFollowingEndpoint:    latestfollowingEndpoint,
+		ListRelationshipEndpoint:   listrelationshipEndpoint,
+		FollowEndpoint:             followEndpoint,
+		UnFollowEndpoint:           unfollowEndpoint,
+		ListMessageEndpoint:        listmessageEndpoint,
+		ReadMessageEndpoint:        readmessageEndpoint,
+		GetMessageSummaryEndpoint:  getmessagesummaryEndpoint,
+		ListCommentEndpoint:        listcommentEndpoint,
+		NewRecommendStatusEndpoint: newrecommendstatusEndpoint,
+		CreateCommentEndpoint:      createcommentEndpoint,
+		LikeCommentEndpoint:        likecommentEndpoint,
+		UnlikeCommentEndpoint:      unlikecommentEndpoint,
+		ListBlacklistEndpoint:      listblacklistEndpoint,
+		CreateBlacklistEndpoint:    createblacklistEndpoint,
+		DeleteBlacklistEndpoint:    deleteblacklistEndpoint,
 	}
 
 	// Wrap selected Endpoints with middlewares. See handlers/middlewares.go
@@ -177,8 +171,7 @@ func Run(cfg svc.Config) {
 		}
 
 		srv := svc.MakeGRPCServer(endpoints)
-		opts := grpcOpts()
-		s := grpc.NewServer(opts...)
+		s := grpc.NewServer()
 		pb.RegisterSocialServer(s, srv)
 
 		errc <- s.Serve(ln)
@@ -186,24 +179,4 @@ func Run(cfg svc.Config) {
 
 	// Run!
 	log.Println("exit", <-errc)
-}
-
-func grpcOpts() []grpc.ServerOption {
-	var opts []grpc.ServerOption
-	streamServerInterceptors := []grpc.StreamServerInterceptor{
-		grpc_ctxtags.StreamServerInterceptor(),
-		grpc_validator.StreamServerInterceptor(),
-		grpc_recovery.StreamServerInterceptor(),
-	}
-
-	unaryServerInterceptors := []grpc.UnaryServerInterceptor{
-		grpc_ctxtags.UnaryServerInterceptor(),
-		grpc_validator.UnaryServerInterceptor(),
-		grpc_recovery.UnaryServerInterceptor(),
-	}
-
-	opts = append(opts, grpc.MaxRecvMsgSize(MaxRecvMsgSize))
-	opts = append(opts, grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(streamServerInterceptors...)))
-	opts = append(opts, grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(unaryServerInterceptors...)))
-	return opts
 }

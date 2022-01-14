@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/mises-id/sns-socialsvc/app/factory"
 	"github.com/mises-id/sns-socialsvc/app/models"
@@ -162,6 +163,7 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 		IsPrivate:    in.IsPrivate,
 		ShowDuration: int64(in.ShowDuration),
 	}
+	fmt.Println(in)
 	fromType, err := enum.FromTypeFromString(in.FromType)
 	if err != nil {
 		return nil, err
@@ -192,7 +194,6 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 		data.ImageMeta = &meta.ImageMeta{Images: in.Images}
 	}
 	param.Meta = data
-
 	status, err := statusSVC.CreateStatus(ctx, in.CurrentUid, param)
 
 	if err != nil {
@@ -577,5 +578,26 @@ func (s socialService) GetMessageSummary(ctx context.Context, in *pb.GetMessageS
 		UsersCount:         summary.UsersCount,
 	}
 	resp.Code = 0
+	return &resp, nil
+}
+
+func (s socialService) NewRecommendStatus(ctx context.Context, in *pb.NewRecommendStatusRequest) (*pb.NewRecommendStatusResponse, error) {
+	var resp pb.NewRecommendStatusResponse
+	svcin := &statusSVC.NewRecommendInput{
+		LastRecommendTime: int64(in.LastRecommendTime),
+		LastCommonTime:    int64(in.LastCommonTime),
+	}
+	svcout, err := statusSVC.NewRecommendStatus(ctx, in.CurrentUid, svcin)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Statuses = factory.NewStatusInfoSlice(svcout.Data)
+	resp.Num = uint64(len(svcout.Data))
+	resp.Next = &pb.NewRecommendNext{
+		LastRecommendTime: (svcout.Next.LastRecommendTime),
+		LastCommonTime:    (svcout.Next.LastCommonTime),
+	}
+
 	return &resp, nil
 }

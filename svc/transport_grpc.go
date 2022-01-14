@@ -167,6 +167,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCListCommentResponse,
 			serverOptions...,
 		),
+		newrecommendstatus: grpctransport.NewServer(
+			endpoints.NewRecommendStatusEndpoint,
+			DecodeGRPCNewRecommendStatusRequest,
+			EncodeGRPCNewRecommendStatusResponse,
+			serverOptions...,
+		),
 		createcomment: grpctransport.NewServer(
 			endpoints.CreateCommentEndpoint,
 			DecodeGRPCCreateCommentRequest,
@@ -208,35 +214,36 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 
 // grpcServer implements the SocialServer interface
 type grpcServer struct {
-	signin            grpctransport.Handler
-	finduser          grpctransport.Handler
-	updateuserprofile grpctransport.Handler
-	updateuseravatar  grpctransport.Handler
-	updateusername    grpctransport.Handler
-	createstatus      grpctransport.Handler
-	updatestatus      grpctransport.Handler
-	deletestatus      grpctransport.Handler
-	likestatus        grpctransport.Handler
-	unlikestatus      grpctransport.Handler
-	listlikestatus    grpctransport.Handler
-	getstatus         grpctransport.Handler
-	liststatus        grpctransport.Handler
-	listrecommended   grpctransport.Handler
-	listusertimeline  grpctransport.Handler
-	latestfollowing   grpctransport.Handler
-	listrelationship  grpctransport.Handler
-	follow            grpctransport.Handler
-	unfollow          grpctransport.Handler
-	listmessage       grpctransport.Handler
-	readmessage       grpctransport.Handler
-	getmessagesummary grpctransport.Handler
-	listcomment       grpctransport.Handler
-	createcomment     grpctransport.Handler
-	likecomment       grpctransport.Handler
-	unlikecomment     grpctransport.Handler
-	listblacklist     grpctransport.Handler
-	createblacklist   grpctransport.Handler
-	deleteblacklist   grpctransport.Handler
+	signin             grpctransport.Handler
+	finduser           grpctransport.Handler
+	updateuserprofile  grpctransport.Handler
+	updateuseravatar   grpctransport.Handler
+	updateusername     grpctransport.Handler
+	createstatus       grpctransport.Handler
+	updatestatus       grpctransport.Handler
+	deletestatus       grpctransport.Handler
+	likestatus         grpctransport.Handler
+	unlikestatus       grpctransport.Handler
+	listlikestatus     grpctransport.Handler
+	getstatus          grpctransport.Handler
+	liststatus         grpctransport.Handler
+	listrecommended    grpctransport.Handler
+	listusertimeline   grpctransport.Handler
+	latestfollowing    grpctransport.Handler
+	listrelationship   grpctransport.Handler
+	follow             grpctransport.Handler
+	unfollow           grpctransport.Handler
+	listmessage        grpctransport.Handler
+	readmessage        grpctransport.Handler
+	getmessagesummary  grpctransport.Handler
+	listcomment        grpctransport.Handler
+	newrecommendstatus grpctransport.Handler
+	createcomment      grpctransport.Handler
+	likecomment        grpctransport.Handler
+	unlikecomment      grpctransport.Handler
+	listblacklist      grpctransport.Handler
+	createblacklist    grpctransport.Handler
+	deleteblacklist    grpctransport.Handler
 }
 
 // Methods for grpcServer to implement SocialServer interface
@@ -423,6 +430,14 @@ func (s *grpcServer) ListComment(ctx context.Context, req *pb.ListCommentRequest
 		return nil, err
 	}
 	return rep.(*pb.ListCommentResponse), nil
+}
+
+func (s *grpcServer) NewRecommendStatus(ctx context.Context, req *pb.NewRecommendStatusRequest) (*pb.NewRecommendStatusResponse, error) {
+	_, rep, err := s.newrecommendstatus.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.NewRecommendStatusResponse), nil
 }
 
 func (s *grpcServer) CreateComment(ctx context.Context, req *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
@@ -636,6 +651,13 @@ func DecodeGRPCListCommentRequest(_ context.Context, grpcReq interface{}) (inter
 	return req, nil
 }
 
+// DecodeGRPCNewRecommendStatusRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC newrecommendstatus request to a user-domain newrecommendstatus request. Primarily useful in a server.
+func DecodeGRPCNewRecommendStatusRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.NewRecommendStatusRequest)
+	return req, nil
+}
+
 // DecodeGRPCCreateCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC createcomment request to a user-domain createcomment request. Primarily useful in a server.
 func DecodeGRPCCreateCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -838,6 +860,13 @@ func EncodeGRPCGetMessageSummaryResponse(_ context.Context, response interface{}
 // user-domain listcomment response to a gRPC listcomment reply. Primarily useful in a server.
 func EncodeGRPCListCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.ListCommentResponse)
+	return resp, nil
+}
+
+// EncodeGRPCNewRecommendStatusResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain newrecommendstatus response to a gRPC newrecommendstatus reply. Primarily useful in a server.
+func EncodeGRPCNewRecommendStatusResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.NewRecommendStatusResponse)
 	return resp, nil
 }
 

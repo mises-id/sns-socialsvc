@@ -20,23 +20,24 @@ var (
 )
 
 type User struct {
-	UID            uint64      `bson:"_id"`
-	Username       string      `bson:"username,omitempty"`
-	Misesid        string      `bson:"misesid,omitempty"`
-	Gender         enum.Gender `bson:"gender,misesid"`
-	Mobile         string      `bson:"mobile,omitempty"`
-	Email          string      `bson:"email,omitempty"`
-	Address        string      `bson:"address,omitempty"`
-	AvatarPath     string      `bson:"avatar_path,omitempty"`
-	FollowingCount uint32      `bson:"following_count,omitempty"`
-	FansCount      uint32      `bson:"fans_count,omitempty"`
-	LikedCount     uint32      `bson:"liked_count,omitempty"`
-	CreatedAt      time.Time   `bson:"created_at,omitempty"`
-	UpdatedAt      time.Time   `bson:"updated_at,omitempty"`
-	AvatarUrl      string      `bson:"-"`
-	IsFollowed     bool        `bson:"-"`
-	IsBlocked      bool        `bson:"-"`
-	NewFansCount   uint32      `bson:"-"`
+	UID            uint64         `bson:"_id"`
+	Username       string         `bson:"username,omitempty"`
+	Misesid        string         `bson:"misesid,omitempty"`
+	Gender         enum.Gender    `bson:"gender,misesid"`
+	Mobile         string         `bson:"mobile,omitempty"`
+	Email          string         `bson:"email,omitempty"`
+	Address        string         `bson:"address,omitempty"`
+	AvatarPath     string         `bson:"avatar_path,omitempty"`
+	FollowingCount uint32         `bson:"following_count,omitempty"`
+	FansCount      uint32         `bson:"fans_count,omitempty"`
+	LikedCount     uint32         `bson:"liked_count,omitempty"`
+	CreatedAt      time.Time      `bson:"created_at,omitempty"`
+	UpdatedAt      time.Time      `bson:"updated_at,omitempty"`
+	AvatarUrl      string         `bson:"-"`
+	IsFollowed     bool           `bson:"-"`
+	Tags           []enum.TagType `bson:"tags"`
+	IsBlocked      bool           `bson:"-"`
+	NewFansCount   uint32         `bson:"-"`
 }
 
 func (u *User) Validate(ctx context.Context) error {
@@ -79,6 +80,14 @@ func (u *User) UpdatePostTime(ctx context.Context, t time.Time) error {
 				Value: time.Now(),
 			}}},
 		}).Err()
+}
+
+func ListUserByIDs(ctx context.Context, uids ...uint64) ([]*User, error) {
+	users := make([]*User, 0)
+	chain := db.ODM(ctx).Where(bson.M{
+		"_id": bson.M{"$in": uids},
+	})
+	return users, chain.Find(&users).Error
 }
 
 func FindUser(ctx context.Context, uid uint64) (*User, error) {
