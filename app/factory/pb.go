@@ -119,10 +119,14 @@ func newCommentMeta(meta *message.CommentMeta) *pb.NewCommentMeta {
 		return &pb.NewCommentMeta{}
 	}
 	return &pb.NewCommentMeta{
-		Uid:       meta.UID,
-		GroupId:   docID(meta.GroupID),
-		CommentId: docID(meta.CommentID),
-		Content:   meta.Content,
+		Uid:                  meta.UID,
+		GroupId:              docID(meta.GroupID),
+		CommentId:            docID(meta.CommentID),
+		Content:              meta.Content,
+		ParentContent:        meta.ParentContent,
+		ParentUserName:       meta.ParentUserName,
+		StatusContentSummary: meta.StatusContentSummary,
+		StatusImageUrl:       meta.StatusImageURL,
 	}
 }
 
@@ -156,7 +160,8 @@ func newFansMeta(meta *message.FansMeta) *pb.NewFansMeta {
 		return &pb.NewFansMeta{}
 	}
 	return &pb.NewFansMeta{
-		Uid: meta.UID,
+		Uid:         meta.UID,
+		FanUsername: meta.FanUsername,
 	}
 }
 
