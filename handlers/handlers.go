@@ -2,10 +2,13 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/mises-id/sns-socialsvc/app/factory"
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/meta"
 	commentSVC "github.com/mises-id/sns-socialsvc/app/services/comment"
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
 	messageSVC "github.com/mises-id/sns-socialsvc/app/services/message"
@@ -144,6 +147,7 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 		StatusType: in.StatusType,
 		Content:    in.Content,
 	}
+	fmt.Println(in)
 	fromType, err := enum.FromTypeFromString(in.FromType)
 	if err != nil {
 		return nil, err
@@ -156,6 +160,24 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 		}
 		param.ParentID = parentID
 	}
+	statusType, err := enum.StatusTypeFromString(in.StatusType)
+	if err != nil {
+		return nil, err
+	}
+	var data meta.MetaData
+	switch statusType {
+	default:
+		data.TextMeta = &meta.TextMeta{}
+	case enum.TextStatus:
+		data.TextMeta = &meta.TextMeta{}
+		_ = json.Unmarshal([]byte(in.Meta), data.TextMeta)
+	case enum.LinkStatus:
+		data.LinkMeta = &meta.LinkMeta{}
+		_ = json.Unmarshal([]byte(in.Meta), data.LinkMeta)
+	case enum.ImageStatus:
+		data.ImageMeta = &meta.ImageMeta{Images: in.Images}
+	}
+	param.Meta = data
 	status, err := statusSVC.CreateStatus(ctx, in.CurrentUid, param)
 
 	if err != nil {
@@ -348,5 +370,26 @@ func (s socialService) LatestFollowing(ctx context.Context, in *pb.LatestFollowi
 
 func (s socialService) CreateComment(ctx context.Context, in *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
 	var resp pb.CreateCommentResponse
+	return &resp, nil
+}
+
+func (s socialService) NewRecommendStatus(ctx context.Context, in *pb.NewRecommendStatusResquest) (*pb.NewRecommendStatusResponse, error) {
+	var resp pb.NewRecommendStatusResponse
+	svcin := &statusSVC.NewRecommendInput{
+		LastRecommendTime: int64(in.LastRecommendTime),
+		LastCommonTime:    int64(in.LastCommonTime),
+	}
+	svcout, err := statusSVC.NewRecommendStatus(ctx, in.CurrentUid, svcin)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Statuses = factory.NewStatusInfoSlice(svcout.Data)
+	resp.Num = uint64(len(svcout.Data))
+	resp.Next = &pb.CgNext{
+		LastRecommendTime: (svcout.Next.LastRecommendTime),
+		LastCommonTime:    (svcout.Next.LastCommonTime),
+	}
+
 	return &resp, nil
 }

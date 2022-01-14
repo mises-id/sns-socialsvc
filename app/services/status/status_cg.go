@@ -203,7 +203,7 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 			fmt.Println("uids:", uids)
 			params.NInUIDs = uids //filter following2 user status
 		}
-		//find status recommend pool cursor
+		//find pool cursor
 		cursors = getUserCommonCursor(ctx, uid)
 		if cursors != nil {
 			params.ScoreMax = cursors.Max
@@ -224,7 +224,7 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 		return nil, err
 	}
 	max, min := getStatusListScoreMaxMin(status_list)
-	//update recommend pool status cursor
+	//update status cursor
 	if uid > 0 {
 		updateUserCommonCursor(ctx, uid, cursors, max, min)
 	} else {
