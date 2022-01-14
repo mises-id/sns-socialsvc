@@ -98,6 +98,7 @@ func (s *Status) AfterCreate(ctx context.Context) error {
 		message := &CreateMessageParams{
 			UID:         s.ParentStatus.UID,
 			FromUID:     s.UID,
+			StatusID:    s.ID,
 			MessageType: enum.NewForward,
 			MetaData: &message.MetaData{
 				ForwardMeta: &message.ForwardMeta{
