@@ -224,7 +224,7 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 		return nil, err
 	}
 	max, min := getStatusListScoreMaxMin(status_list)
-	//update status cursor
+	//update  status cursor
 	if uid > 0 {
 		updateUserCommonCursor(ctx, uid, cursors, max, min)
 	} else {
@@ -240,7 +240,8 @@ func getStatusListScoreMaxMin(statuses []*models.Status) (max int64, min int64) 
 		return max, min
 	}
 	for _, status := range statuses {
-		cmt := status.CreatedAt.UnixMilli()
+
+		cmt := status.Score
 		if cmt > max {
 			max = cmt
 		}
@@ -309,6 +310,10 @@ func getUserCommonCursor(ctx context.Context, uid uint64) *models.CommonPoolCurs
 
 //update user following2 cursor
 func updateUserFollowing2Cursor(ctx context.Context, uid uint64, pool_cursors *models.Following2PoolCursor, max, min int64) {
+
+	if max <= 0 || min <= 0 {
+		return
+	}
 	//init
 	if pool_cursors == nil || pool_cursors.Max == 0 || pool_cursors.Min == 0 {
 		pool_cursors = &models.Following2PoolCursor{}
@@ -329,6 +334,10 @@ func updateUserFollowing2Cursor(ctx context.Context, uid uint64, pool_cursors *m
 
 //update user recommend cursor
 func updateUserRecommendCursor(ctx context.Context, uid uint64, pool_cursors *models.RecommendStatusPoolCursor, max, min int64) {
+
+	if max <= 0 || min <= 0 {
+		return
+	}
 	//init
 	if pool_cursors == nil || pool_cursors.Max == 0 || pool_cursors.Min == 0 {
 		pool_cursors = &models.RecommendStatusPoolCursor{}
@@ -349,6 +358,10 @@ func updateUserRecommendCursor(ctx context.Context, uid uint64, pool_cursors *mo
 
 //update user common cursor
 func updateUserCommonCursor(ctx context.Context, uid uint64, pool_cursors *models.CommonPoolCursor, max, min int64) {
+
+	if max <= 0 || min <= 0 {
+		return
+	}
 	//init
 	if pool_cursors == nil || pool_cursors.Max == 0 || pool_cursors.Min == 0 {
 		pool_cursors = &models.CommonPoolCursor{}

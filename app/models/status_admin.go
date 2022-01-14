@@ -84,6 +84,7 @@ func UpdateStatusTag(ctx context.Context, status *Status) error {
 		Value: bson.M{
 			"tags":       status.Tags,
 			"updated_at": time.Now(),
+			"score":      time.Now().UnixMilli(),
 		}}})
 	return err
 }
