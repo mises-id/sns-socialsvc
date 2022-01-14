@@ -27,6 +27,7 @@ type ReadMessageParams struct {
 type CreateMessageParams struct {
 	UID         uint64
 	FromUID     uint64
+	StatusID    primitive.ObjectID
 	MessageType enum.MessageType
 	MetaData    *message.MetaData
 }
@@ -36,6 +37,7 @@ type Message struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty"`
 	UID         uint64             `bson:"uid,omitempty"`
 	FromUID     uint64             `bson:"from_uid,omitempty"`
+	StatusID    primitive.ObjectID `bson:"status_id,omitempty"`
 	MessageType enum.MessageType   `bson:"message_type,omitempty"`
 	ReadTime    *time.Time         `bson:"read_time"`
 	CreatedAt   time.Time          `bson:"created_at,omitempty"`
@@ -63,6 +65,7 @@ func CreateMessage(ctx context.Context, params *CreateMessageParams) (*Message, 
 	}
 	message := &Message{
 		UID:         params.UID,
+		StatusID:    params.StatusID,
 		FromUID:     params.FromUID,
 		MessageType: params.MessageType,
 		MetaData:    *params.MetaData,
@@ -88,7 +91,7 @@ func ListMessage(ctx context.Context, params *ListMessageParams) ([]*Message, pa
 	if err != nil {
 		return nil, nil, err
 	}
-	return messages, page, preloadMessageData(ctx, messages...)
+	return messages, page, PreloadMessageData(ctx, messages...)
 }
 
 func ReadMessages(ctx context.Context, params *ReadMessageParams) error {
@@ -119,10 +122,10 @@ func LatestUnreadMessage(ctx context.Context, uid uint64) (*Message, error) {
 	} else if err != nil {
 		return nil, err
 	}
-	return message, preloadMessageData(ctx, message)
+	return message, PreloadMessageData(ctx, message)
 }
 
-func preloadMessageData(ctx context.Context, messages ...*Message) error {
+func PreloadMessageData(ctx context.Context, messages ...*Message) error {
 	if err := preloadMessageUser(ctx, messages...); err != nil {
 		return err
 	}
@@ -150,8 +153,8 @@ func preloadMessageUser(ctx context.Context, messages ...*Message) error {
 func preloadMessageStatus(ctx context.Context, messages ...*Message) error {
 	statusIDs := make([]primitive.ObjectID, 0)
 	for _, message := range messages {
-		if message.MessageType == enum.NewForward {
-			statusIDs = append(statusIDs, message.ForwardMeta.StatusID)
+		if !message.StatusID.IsZero() {
+			statusIDs = append(statusIDs, message.StatusID)
 		}
 	}
 	statuses, err := FindStatusByIDs(ctx, statusIDs...)
@@ -163,8 +166,8 @@ func preloadMessageStatus(ctx context.Context, messages ...*Message) error {
 		statusMap[status.ID] = status
 	}
 	for _, message := range messages {
-		if message.MessageType == enum.NewForward {
-			message.Status = statusMap[message.ForwardMeta.StatusID]
+		if !message.StatusID.IsZero() {
+			message.Status = statusMap[message.StatusID]
 		}
 	}
 	return nil

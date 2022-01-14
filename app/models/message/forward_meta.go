@@ -8,4 +8,5 @@ type ForwardMeta struct {
 	ForwardContent string             `bson:"forward_content,omitempty"`
 	ContentSummary string             `bson:"content_summary,omitempty"`
 	ImagePath      string             `bson:"image_path,omitempty"`
+	ImageURL       string             `bson:"-"`
 }

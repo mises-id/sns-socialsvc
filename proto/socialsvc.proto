@@ -700,7 +700,7 @@ message NewCommentMeta {
   string parent_content=5;
   string parent_user_name=6;
   string status_content_summary=7;
-  string status_image_path=8;
+  string status_image_url=8;
 }
 
 message NewLikeCommentMeta {
@@ -714,7 +714,7 @@ message NewLikeStatusMeta {
   uint64 uid = 1;
   string status_id=2;
   string status_content=3;
-  string status_image_path=4;
+  string status_image_url=4;
 }
 
 message NewFansMeta {
@@ -727,7 +727,7 @@ message NewForwardMeta {
   string status_id=2;
   string forward_content=3;
   string content_summary=4;
-  string image_path=5;
+  string image_url=5;
 }
 
 message Message {
@@ -737,6 +737,7 @@ message Message {
 	string state = 4;
   UserInfo from_user = 5;
 	uint64 created_at = 6;
+  StatusInfo status = 7;
   NewCommentMeta new_comment_meta = 21;
   NewLikeStatusMeta new_like_status_meta = 22;
   NewFansMeta new_fans_meta = 23;
