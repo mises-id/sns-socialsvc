@@ -281,6 +281,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var NewRecommendStatusZeroEndpoint endpoint.Endpoint
+	{
+		NewRecommendStatusZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/status/new_recommend/"),
+			EncodeHTTPNewRecommendStatusZeroRequest,
+			DecodeHTTPNewRecommendStatusResponse,
+			options...,
+		).Endpoint()
+	}
 	var CreateCommentZeroEndpoint endpoint.Endpoint
 	{
 		CreateCommentZeroEndpoint = httptransport.NewClient(
@@ -343,35 +353,36 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 	}
 
 	return svc.Endpoints{
-		SignInEndpoint:            SignInZeroEndpoint,
-		FindUserEndpoint:          FindUserZeroEndpoint,
-		UpdateUserProfileEndpoint: UpdateUserProfileZeroEndpoint,
-		UpdateUserAvatarEndpoint:  UpdateUserAvatarZeroEndpoint,
-		UpdateUserNameEndpoint:    UpdateUserNameZeroEndpoint,
-		CreateStatusEndpoint:      CreateStatusZeroEndpoint,
-		UpdateStatusEndpoint:      UpdateStatusZeroEndpoint,
-		DeleteStatusEndpoint:      DeleteStatusZeroEndpoint,
-		LikeStatusEndpoint:        LikeStatusZeroEndpoint,
-		UnLikeStatusEndpoint:      UnLikeStatusZeroEndpoint,
-		ListLikeStatusEndpoint:    ListLikeStatusZeroEndpoint,
-		GetStatusEndpoint:         GetStatusZeroEndpoint,
-		ListStatusEndpoint:        ListStatusZeroEndpoint,
-		ListRecommendedEndpoint:   ListRecommendedZeroEndpoint,
-		ListUserTimelineEndpoint:  ListUserTimelineZeroEndpoint,
-		LatestFollowingEndpoint:   LatestFollowingZeroEndpoint,
-		ListRelationshipEndpoint:  ListRelationshipZeroEndpoint,
-		FollowEndpoint:            FollowZeroEndpoint,
-		UnFollowEndpoint:          UnFollowZeroEndpoint,
-		ListMessageEndpoint:       ListMessageZeroEndpoint,
-		ReadMessageEndpoint:       ReadMessageZeroEndpoint,
-		GetMessageSummaryEndpoint: GetMessageSummaryZeroEndpoint,
-		ListCommentEndpoint:       ListCommentZeroEndpoint,
-		CreateCommentEndpoint:     CreateCommentZeroEndpoint,
-		LikeCommentEndpoint:       LikeCommentZeroEndpoint,
-		UnlikeCommentEndpoint:     UnlikeCommentZeroEndpoint,
-		ListBlacklistEndpoint:     ListBlacklistZeroEndpoint,
-		CreateBlacklistEndpoint:   CreateBlacklistZeroEndpoint,
-		DeleteBlacklistEndpoint:   DeleteBlacklistZeroEndpoint,
+		SignInEndpoint:             SignInZeroEndpoint,
+		FindUserEndpoint:           FindUserZeroEndpoint,
+		UpdateUserProfileEndpoint:  UpdateUserProfileZeroEndpoint,
+		UpdateUserAvatarEndpoint:   UpdateUserAvatarZeroEndpoint,
+		UpdateUserNameEndpoint:     UpdateUserNameZeroEndpoint,
+		CreateStatusEndpoint:       CreateStatusZeroEndpoint,
+		UpdateStatusEndpoint:       UpdateStatusZeroEndpoint,
+		DeleteStatusEndpoint:       DeleteStatusZeroEndpoint,
+		LikeStatusEndpoint:         LikeStatusZeroEndpoint,
+		UnLikeStatusEndpoint:       UnLikeStatusZeroEndpoint,
+		ListLikeStatusEndpoint:     ListLikeStatusZeroEndpoint,
+		GetStatusEndpoint:          GetStatusZeroEndpoint,
+		ListStatusEndpoint:         ListStatusZeroEndpoint,
+		ListRecommendedEndpoint:    ListRecommendedZeroEndpoint,
+		ListUserTimelineEndpoint:   ListUserTimelineZeroEndpoint,
+		LatestFollowingEndpoint:    LatestFollowingZeroEndpoint,
+		ListRelationshipEndpoint:   ListRelationshipZeroEndpoint,
+		FollowEndpoint:             FollowZeroEndpoint,
+		UnFollowEndpoint:           UnFollowZeroEndpoint,
+		ListMessageEndpoint:        ListMessageZeroEndpoint,
+		ReadMessageEndpoint:        ReadMessageZeroEndpoint,
+		GetMessageSummaryEndpoint:  GetMessageSummaryZeroEndpoint,
+		ListCommentEndpoint:        ListCommentZeroEndpoint,
+		NewRecommendStatusEndpoint: NewRecommendStatusZeroEndpoint,
+		CreateCommentEndpoint:      CreateCommentZeroEndpoint,
+		LikeCommentEndpoint:        LikeCommentZeroEndpoint,
+		UnlikeCommentEndpoint:      UnlikeCommentZeroEndpoint,
+		ListBlacklistEndpoint:      ListBlacklistZeroEndpoint,
+		CreateBlacklistEndpoint:    CreateBlacklistZeroEndpoint,
+		DeleteBlacklistEndpoint:    DeleteBlacklistZeroEndpoint,
 	}, nil
 }
 
@@ -1012,6 +1023,33 @@ func DecodeHTTPListCommentResponse(_ context.Context, r *http.Response) (interfa
 	}
 
 	var resp pb.ListCommentResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPNewRecommendStatusResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded NewRecommendStatusResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPNewRecommendStatusResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.NewRecommendStatusResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -3330,6 +3368,87 @@ func EncodeHTTPListCommentOneRequest(_ context.Context, r *http.Request, request
 	}
 	strval = string(tmp)
 	values.Add("paginator", strval)
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPNewRecommendStatusZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a newrecommendstatus request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPNewRecommendStatusZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.NewRecommendStatusRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"status",
+		"new_recommend",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("last_recommend_time", fmt.Sprint(req.LastRecommendTime))
+
+	values.Add("last_common_time", fmt.Sprint(req.LastCommonTime))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPNewRecommendStatusOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a newrecommendstatus request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPNewRecommendStatusOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.NewRecommendStatusRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"status",
+		"new_recommend",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("last_recommend_time", fmt.Sprint(req.LastRecommendTime))
+
+	values.Add("last_common_time", fmt.Sprint(req.LastCommonTime))
 
 	r.URL.RawQuery = values.Encode()
 	return nil

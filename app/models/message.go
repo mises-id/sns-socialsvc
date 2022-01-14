@@ -166,8 +166,8 @@ func preloadMessageStatus(ctx context.Context, messages ...*Message) error {
 		statusMap[status.ID] = status
 	}
 	for _, message := range messages {
-		if message.MessageType == enum.NewForward {
-			message.Status = statusMap[message.ForwardMeta.StatusID]
+		if !message.StatusID.IsZero() {
+			message.Status = statusMap[message.StatusID]
 		}
 	}
 	return nil

@@ -357,6 +357,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("GET").Path("/status/new_recommend/").Handler(httptransport.NewServer(
+		endpoints.NewRecommendStatusEndpoint,
+		DecodeHTTPNewRecommendStatusZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/status/new_recommend").Handler(httptransport.NewServer(
+		endpoints.NewRecommendStatusEndpoint,
+		DecodeHTTPNewRecommendStatusOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("POST").Path("/comment/create/").Handler(httptransport.NewServer(
 		endpoints.CreateCommentEndpoint,
 		DecodeHTTPCreateCommentZeroRequest,
@@ -2752,6 +2765,132 @@ func DecodeHTTPListCommentOneRequest(_ context.Context, r *http.Request) (interf
 			return nil, errors.Wrapf(err, "couldn't decode PaginatorListComment from %v", PaginatorListCommentStr)
 		}
 
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPNewRecommendStatusZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded newrecommendstatus request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPNewRecommendStatusZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.NewRecommendStatusRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidNewRecommendStatusStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidNewRecommendStatusStr := CurrentUidNewRecommendStatusStrArr[0]
+		CurrentUidNewRecommendStatus, err := strconv.ParseUint(CurrentUidNewRecommendStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidNewRecommendStatus from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidNewRecommendStatus
+	}
+
+	if LastRecommendTimeNewRecommendStatusStrArr, ok := queryParams["last_recommend_time"]; ok {
+		LastRecommendTimeNewRecommendStatusStr := LastRecommendTimeNewRecommendStatusStrArr[0]
+		LastRecommendTimeNewRecommendStatus, err := strconv.ParseInt(LastRecommendTimeNewRecommendStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting LastRecommendTimeNewRecommendStatus from query, queryParams: %v", queryParams))
+		}
+		req.LastRecommendTime = LastRecommendTimeNewRecommendStatus
+	}
+
+	if LastCommonTimeNewRecommendStatusStrArr, ok := queryParams["last_common_time"]; ok {
+		LastCommonTimeNewRecommendStatusStr := LastCommonTimeNewRecommendStatusStrArr[0]
+		LastCommonTimeNewRecommendStatus, err := strconv.ParseInt(LastCommonTimeNewRecommendStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting LastCommonTimeNewRecommendStatus from query, queryParams: %v", queryParams))
+		}
+		req.LastCommonTime = LastCommonTimeNewRecommendStatus
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPNewRecommendStatusOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded newrecommendstatus request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPNewRecommendStatusOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.NewRecommendStatusRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidNewRecommendStatusStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidNewRecommendStatusStr := CurrentUidNewRecommendStatusStrArr[0]
+		CurrentUidNewRecommendStatus, err := strconv.ParseUint(CurrentUidNewRecommendStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidNewRecommendStatus from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidNewRecommendStatus
+	}
+
+	if LastRecommendTimeNewRecommendStatusStrArr, ok := queryParams["last_recommend_time"]; ok {
+		LastRecommendTimeNewRecommendStatusStr := LastRecommendTimeNewRecommendStatusStrArr[0]
+		LastRecommendTimeNewRecommendStatus, err := strconv.ParseInt(LastRecommendTimeNewRecommendStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting LastRecommendTimeNewRecommendStatus from query, queryParams: %v", queryParams))
+		}
+		req.LastRecommendTime = LastRecommendTimeNewRecommendStatus
+	}
+
+	if LastCommonTimeNewRecommendStatusStrArr, ok := queryParams["last_common_time"]; ok {
+		LastCommonTimeNewRecommendStatusStr := LastCommonTimeNewRecommendStatusStrArr[0]
+		LastCommonTimeNewRecommendStatus, err := strconv.ParseInt(LastCommonTimeNewRecommendStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting LastCommonTimeNewRecommendStatus from query, queryParams: %v", queryParams))
+		}
+		req.LastCommonTime = LastCommonTimeNewRecommendStatus
 	}
 
 	return &req, err
