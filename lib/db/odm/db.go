@@ -108,7 +108,6 @@ func (db *DB) Where(condition bson.M) *DB {
 	}
 	for key, value := range condition {
 		db.condition[key] = value
-
 	}
 	return db
 }
