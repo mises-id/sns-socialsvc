@@ -6,18 +6,29 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
 	pb "github.com/mises-id/sns-socialsvc/proto"
+	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func NewUserInfo(user *models.User) *pb.UserInfo {
+	if user == nil {
+		return nil
+	}
 	userinfo := pb.UserInfo{
-		Uid:      user.UID,
-		Username: user.Username,
-		Misesid:  user.Misesid,
-		Gender:   user.Gender.String(),
-		Mobile:   user.Mobile,
-		Email:    user.Email,
-		Address:  user.Address,
-		Avatar:   user.AvatarUrl,
+		Uid:             user.UID,
+		Username:        user.Username,
+		Misesid:         user.Misesid,
+		Gender:          user.Gender.String(),
+		Mobile:          user.Mobile,
+		Email:           user.Email,
+		Address:         user.Address,
+		Avatar:          user.AvatarUrl,
+		IsFollowed:      user.IsFollowed,
+		IsBlocked:       user.IsBlocked,
+		FollowingsCount: user.FollowingCount,
+		FansCount:       user.FansCount,
+		LikedCount:      user.LikedCount,
+		NewFansCount:    user.NewFansCount,
 	}
 	return &userinfo
 }
@@ -50,9 +61,10 @@ func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 	if status == nil {
 		return nil
 	}
-
+	logrus.Info("status.HideTime: ", status.HideTime)
+	logrus.Info("GetHideTime: ", status.GetHideTime())
 	statusinfo := pb.StatusInfo{
-		Id:           status.ID.Hex(),
+		Id:           docID(status.ID),
 		User:         NewUserInfo(status.User),
 		Content:      status.Content,
 		FromType:     status.FromType.String(),
@@ -64,6 +76,8 @@ func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 		ForwardCount: status.ForwardsCount,
 		IsLiked:      status.IsLiked,
 		CreatedAt:    uint64(status.CreatedAt.Unix()),
+		IsPublic:     status.HideTime == nil,
+		HideTime:     status.GetHideTime(),
 	}
 	switch status.StatusType {
 	case enum.LinkStatus:
@@ -103,42 +117,62 @@ func NewRelationInfoSlice(relationType enum.RelationType, follows []*models.Foll
 	return result
 }
 
-func newCommentMeta(meta *message.CommentMeta) *pb.Message_NewCommentMeta {
-	return &pb.Message_NewCommentMeta{
-		NewCommentMeta: &pb.NewCommentMeta{
-			Uid:       meta.UID,
-			GroupId:   meta.GroupID.Hex(),
-			CommentId: meta.CommentID.Hex(),
-			Content:   meta.Content,
-		},
+func newCommentMeta(meta *message.CommentMeta) *pb.NewCommentMeta {
+	if meta == nil {
+		return &pb.NewCommentMeta{}
+	}
+	return &pb.NewCommentMeta{
+		Uid:       meta.UID,
+		GroupId:   docID(meta.GroupID),
+		CommentId: docID(meta.CommentID),
+		Content:   meta.Content,
 	}
 }
 
-func newLikeMeta(meta *message.LikeMeta) *pb.Message_NewLikeMeta {
-	return &pb.Message_NewLikeMeta{
-		NewLikeMeta: &pb.NewLikeMeta{
-			Uid:        meta.UID,
-			TargetId:   meta.TargetID.Hex(),
-			TargetType: meta.TargetType.String(),
-		},
+func newLikeStatusMeta(meta *message.LikeStatusMeta) *pb.NewLikeStatusMeta {
+	if meta == nil {
+		return &pb.NewLikeStatusMeta{}
+	}
+	return &pb.NewLikeStatusMeta{
+		Uid:             meta.UID,
+		StatusId:        meta.StatusID.Hex(),
+		StatusContent:   meta.StatusContent,
+		StatusImagePath: meta.StatusImagePath,
+	}
+
+}
+
+func newLikeCommentMeta(meta *message.LikeCommentMeta) *pb.NewLikeCommentMeta {
+	if meta == nil {
+		return &pb.NewLikeCommentMeta{}
+	}
+	return &pb.NewLikeCommentMeta{
+		Uid:             meta.UID,
+		CommentId:       meta.CommentID.Hex(),
+		CommentUsername: meta.CommentUsername,
+		CommentContent:  meta.CommentContent,
 	}
 }
 
-func newFansMeta(meta *message.FansMeta) *pb.Message_NewFansMeta {
-	return &pb.Message_NewFansMeta{
-		NewFansMeta: &pb.NewFansMeta{
-			Uid: meta.UID,
-		},
+func newFansMeta(meta *message.FansMeta) *pb.NewFansMeta {
+	if meta == nil {
+		return &pb.NewFansMeta{}
+	}
+	return &pb.NewFansMeta{
+		Uid: meta.UID,
 	}
 }
 
-func newForwardMeta(meta *message.ForwardMeta) *pb.Message_NewForwardMeta {
-	return &pb.Message_NewForwardMeta{
-		NewForwardMeta: &pb.NewForwardMeta{
-			Uid:      meta.UID,
-			StatusId: meta.StatusID.Hex(),
-			Content:  meta.Content,
-		},
+func newForwardMeta(meta *message.ForwardMeta) *pb.NewForwardMeta {
+	if meta == nil {
+		return &pb.NewForwardMeta{}
+	}
+	return &pb.NewForwardMeta{
+		Uid:            meta.UID,
+		StatusId:       meta.StatusID.Hex(),
+		ForwardContent: meta.ForwardContent,
+		ContentSummary: meta.ContentSummary,
+		ImagePath:      meta.ImagePath,
 	}
 }
 func NewMessage(message *models.Message) *pb.Message {
@@ -146,20 +180,23 @@ func NewMessage(message *models.Message) *pb.Message {
 		return nil
 	}
 	result := &pb.Message{
-		Id:          message.ID.Hex(),
+		Id:          docID(message.ID),
 		Uid:         message.UID,
 		MessageType: message.MessageType.String(),
+		FromUser:    NewUserInfo(message.FromUser),
 		State:       message.State(),
 	}
 	switch message.MessageType {
 	case enum.NewComment:
-		result.MetaData = newCommentMeta(message.CommentMeta)
-	case enum.NewLike:
-		result.MetaData = newLikeMeta(message.LikeMeta)
+		result.NewCommentMeta = newCommentMeta(message.CommentMeta)
+	case enum.NewLikeStatus:
+		result.NewLikeStatusMeta = newLikeStatusMeta(message.LikeStatusMeta)
+	case enum.NewLikeComment:
+		result.NewLikeCommentMeta = newLikeCommentMeta(message.LikeCommentMeta)
 	case enum.NewFans:
-		result.MetaData = newFansMeta(message.FansMeta)
+		result.NewFansMeta = newFansMeta(message.FansMeta)
 	case enum.NewForward:
-		result.MetaData = newForwardMeta(message.ForwardMeta)
+		result.NewForwardMeta = newForwardMeta(message.ForwardMeta)
 	}
 	return result
 }
@@ -177,13 +214,26 @@ func NewComment(comment *models.Comment) *pb.Comment {
 		return nil
 	}
 	result := &pb.Comment{
-		Id:         comment.ID.Hex(),
-		Uid:        comment.UID,
-		StatusId:   comment.StatusID.Hex(),
-		ParentId:   comment.ParentID.Hex(),
-		GroupId:    comment.GroupID.Hex(),
-		OpponentId: comment.OpponentID,
-		Content:    comment.Content,
+		Id:           docID(comment.ID),
+		Uid:          comment.UID,
+		StatusId:     docID(comment.StatusID),
+		ParentId:     docID(comment.ParentID),
+		GroupId:      docID(comment.GroupID),
+		OpponentId:   comment.OpponentID,
+		Content:      comment.Content,
+		CommentCount: comment.CommentsCount,
+		LikeCount:    comment.LikesCount,
+		CreatedAt:    uint64(comment.CreatedAt.Unix()),
+		IsLiked:      comment.IsLiked,
+	}
+	if comment.Comments != nil {
+		result.Comments = NewCommentSlice(comment.Comments)
+	}
+	if comment.Opponent != nil {
+		result.Opponent = NewUserInfo(comment.Opponent)
+	}
+	if comment.User != nil {
+		result.User = NewUserInfo(comment.User)
 	}
 	return result
 }
@@ -201,8 +251,37 @@ func NewFollowingSlice(follows []*models.Follow) []*pb.Following {
 	for i, follow := range follows {
 		result[i] = &pb.Following{
 			User:   NewUserInfo(follow.ToUser),
-			Unread: false,
+			Unread: !follow.IsRead,
 		}
 	}
 	return result
+}
+
+func NewBlacklistSlice(blacklists []*models.Blacklist) []*pb.Blacklist {
+	result := make([]*pb.Blacklist, len(blacklists))
+	for i, blacklist := range blacklists {
+		result[i] = &pb.Blacklist{
+			User:      NewUserInfo(blacklist.TargetUser),
+			CreatedAt: uint64(blacklist.CreatedAt.Unix()),
+		}
+	}
+	return result
+}
+
+func NewStatusLikeSlice(likes []*models.Like) []*pb.StatusLike {
+	result := make([]*pb.StatusLike, len(likes))
+	for i, like := range likes {
+		result[i] = &pb.StatusLike{
+			Status:    NewStatusInfo(like.Status),
+			CreatedAt: uint64(like.CreatedAt.Unix()),
+		}
+	}
+	return result
+}
+
+func docID(id primitive.ObjectID) string {
+	if id.IsZero() {
+		return ""
+	}
+	return id.Hex()
 }

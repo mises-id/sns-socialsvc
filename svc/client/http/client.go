@@ -111,6 +111,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var UpdateStatusZeroEndpoint endpoint.Endpoint
+	{
+		UpdateStatusZeroEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, "/status/update/"),
+			EncodeHTTPUpdateStatusZeroRequest,
+			DecodeHTTPUpdateStatusResponse,
+			options...,
+		).Endpoint()
+	}
 	var DeleteStatusZeroEndpoint endpoint.Endpoint
 	{
 		DeleteStatusZeroEndpoint = httptransport.NewClient(
@@ -138,6 +148,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			copyURL(u, "/status/unlike/"),
 			EncodeHTTPUnLikeStatusZeroRequest,
 			DecodeHTTPUnLikeStatusResponse,
+			options...,
+		).Endpoint()
+	}
+	var ListLikeStatusZeroEndpoint endpoint.Endpoint
+	{
+		ListLikeStatusZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/status/like/list"),
+			EncodeHTTPListLikeStatusZeroRequest,
+			DecodeHTTPListLikeStatusResponse,
 			options...,
 		).Endpoint()
 	}
@@ -241,6 +261,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var GetMessageSummaryZeroEndpoint endpoint.Endpoint
+	{
+		GetMessageSummaryZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/message/summary/"),
+			EncodeHTTPGetMessageSummaryZeroRequest,
+			DecodeHTTPGetMessageSummaryResponse,
+			options...,
+		).Endpoint()
+	}
 	var ListCommentZeroEndpoint endpoint.Endpoint
 	{
 		ListCommentZeroEndpoint = httptransport.NewClient(
@@ -251,39 +281,108 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var NewRecommendStatusZeroEndpoint endpoint.Endpoint
+	{
+		NewRecommendStatusZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/status/new_recommend/"),
+			EncodeHTTPNewRecommendStatusZeroRequest,
+			DecodeHTTPNewRecommendStatusResponse,
+			options...,
+		).Endpoint()
+	}
 	var CreateCommentZeroEndpoint endpoint.Endpoint
 	{
 		CreateCommentZeroEndpoint = httptransport.NewClient(
-			"GET",
+			"POST",
 			copyURL(u, "/comment/create/"),
 			EncodeHTTPCreateCommentZeroRequest,
 			DecodeHTTPCreateCommentResponse,
 			options...,
 		).Endpoint()
 	}
+	var LikeCommentZeroEndpoint endpoint.Endpoint
+	{
+		LikeCommentZeroEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, "/comment/like/"),
+			EncodeHTTPLikeCommentZeroRequest,
+			DecodeHTTPLikeCommentResponse,
+			options...,
+		).Endpoint()
+	}
+	var UnlikeCommentZeroEndpoint endpoint.Endpoint
+	{
+		UnlikeCommentZeroEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, "/comment/unlike/"),
+			EncodeHTTPUnlikeCommentZeroRequest,
+			DecodeHTTPUnlikeCommentResponse,
+			options...,
+		).Endpoint()
+	}
+	var ListBlacklistZeroEndpoint endpoint.Endpoint
+	{
+		ListBlacklistZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/user/blacklist/list"),
+			EncodeHTTPListBlacklistZeroRequest,
+			DecodeHTTPListBlacklistResponse,
+			options...,
+		).Endpoint()
+	}
+	var CreateBlacklistZeroEndpoint endpoint.Endpoint
+	{
+		CreateBlacklistZeroEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, "/user/blacklist/create/"),
+			EncodeHTTPCreateBlacklistZeroRequest,
+			DecodeHTTPCreateBlacklistResponse,
+			options...,
+		).Endpoint()
+	}
+	var DeleteBlacklistZeroEndpoint endpoint.Endpoint
+	{
+		DeleteBlacklistZeroEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, "/user/blacklist/delete/"),
+			EncodeHTTPDeleteBlacklistZeroRequest,
+			DecodeHTTPDeleteBlacklistResponse,
+			options...,
+		).Endpoint()
+	}
 
 	return svc.Endpoints{
-		SignInEndpoint:            SignInZeroEndpoint,
-		FindUserEndpoint:          FindUserZeroEndpoint,
-		UpdateUserProfileEndpoint: UpdateUserProfileZeroEndpoint,
-		UpdateUserAvatarEndpoint:  UpdateUserAvatarZeroEndpoint,
-		UpdateUserNameEndpoint:    UpdateUserNameZeroEndpoint,
-		CreateStatusEndpoint:      CreateStatusZeroEndpoint,
-		DeleteStatusEndpoint:      DeleteStatusZeroEndpoint,
-		LikeStatusEndpoint:        LikeStatusZeroEndpoint,
-		UnLikeStatusEndpoint:      UnLikeStatusZeroEndpoint,
-		GetStatusEndpoint:         GetStatusZeroEndpoint,
-		ListStatusEndpoint:        ListStatusZeroEndpoint,
-		ListRecommendedEndpoint:   ListRecommendedZeroEndpoint,
-		ListUserTimelineEndpoint:  ListUserTimelineZeroEndpoint,
-		LatestFollowingEndpoint:   LatestFollowingZeroEndpoint,
-		ListRelationshipEndpoint:  ListRelationshipZeroEndpoint,
-		FollowEndpoint:            FollowZeroEndpoint,
-		UnFollowEndpoint:          UnFollowZeroEndpoint,
-		ListMessageEndpoint:       ListMessageZeroEndpoint,
-		ReadMessageEndpoint:       ReadMessageZeroEndpoint,
-		ListCommentEndpoint:       ListCommentZeroEndpoint,
-		CreateCommentEndpoint:     CreateCommentZeroEndpoint,
+		SignInEndpoint:             SignInZeroEndpoint,
+		FindUserEndpoint:           FindUserZeroEndpoint,
+		UpdateUserProfileEndpoint:  UpdateUserProfileZeroEndpoint,
+		UpdateUserAvatarEndpoint:   UpdateUserAvatarZeroEndpoint,
+		UpdateUserNameEndpoint:     UpdateUserNameZeroEndpoint,
+		CreateStatusEndpoint:       CreateStatusZeroEndpoint,
+		UpdateStatusEndpoint:       UpdateStatusZeroEndpoint,
+		DeleteStatusEndpoint:       DeleteStatusZeroEndpoint,
+		LikeStatusEndpoint:         LikeStatusZeroEndpoint,
+		UnLikeStatusEndpoint:       UnLikeStatusZeroEndpoint,
+		ListLikeStatusEndpoint:     ListLikeStatusZeroEndpoint,
+		GetStatusEndpoint:          GetStatusZeroEndpoint,
+		ListStatusEndpoint:         ListStatusZeroEndpoint,
+		ListRecommendedEndpoint:    ListRecommendedZeroEndpoint,
+		ListUserTimelineEndpoint:   ListUserTimelineZeroEndpoint,
+		LatestFollowingEndpoint:    LatestFollowingZeroEndpoint,
+		ListRelationshipEndpoint:   ListRelationshipZeroEndpoint,
+		FollowEndpoint:             FollowZeroEndpoint,
+		UnFollowEndpoint:           UnFollowZeroEndpoint,
+		ListMessageEndpoint:        ListMessageZeroEndpoint,
+		ReadMessageEndpoint:        ReadMessageZeroEndpoint,
+		GetMessageSummaryEndpoint:  GetMessageSummaryZeroEndpoint,
+		ListCommentEndpoint:        ListCommentZeroEndpoint,
+		NewRecommendStatusEndpoint: NewRecommendStatusZeroEndpoint,
+		CreateCommentEndpoint:      CreateCommentZeroEndpoint,
+		LikeCommentEndpoint:        LikeCommentZeroEndpoint,
+		UnlikeCommentEndpoint:      UnlikeCommentZeroEndpoint,
+		ListBlacklistEndpoint:      ListBlacklistZeroEndpoint,
+		CreateBlacklistEndpoint:    CreateBlacklistZeroEndpoint,
+		DeleteBlacklistEndpoint:    DeleteBlacklistZeroEndpoint,
 	}, nil
 }
 
@@ -472,6 +571,33 @@ func DecodeHTTPCreateStatusResponse(_ context.Context, r *http.Response) (interf
 	return &resp, nil
 }
 
+// DecodeHTTPUpdateStatusResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded UpdateStatusResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPUpdateStatusResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.UpdateStatusResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
 // DecodeHTTPDeleteStatusResponse is a transport/http.DecodeResponseFunc that decodes
 // a JSON-encoded SimpleResponse response from the HTTP response body.
 // If the response has a non-200 status code, we will interpret that as an
@@ -546,6 +672,33 @@ func DecodeHTTPUnLikeStatusResponse(_ context.Context, r *http.Response) (interf
 	}
 
 	var resp pb.SimpleResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPListLikeStatusResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded ListLikeResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPListLikeStatusResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.ListLikeResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -823,6 +976,33 @@ func DecodeHTTPReadMessageResponse(_ context.Context, r *http.Response) (interfa
 	return &resp, nil
 }
 
+// DecodeHTTPGetMessageSummaryResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded MessageSummaryResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPGetMessageSummaryResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.MessageSummaryResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
 // DecodeHTTPListCommentResponse is a transport/http.DecodeResponseFunc that decodes
 // a JSON-encoded ListCommentResponse response from the HTTP response body.
 // If the response has a non-200 status code, we will interpret that as an
@@ -850,6 +1030,33 @@ func DecodeHTTPListCommentResponse(_ context.Context, r *http.Response) (interfa
 	return &resp, nil
 }
 
+// DecodeHTTPNewRecommendStatusResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded NewRecommendStatusResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPNewRecommendStatusResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.NewRecommendStatusResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
 // DecodeHTTPCreateCommentResponse is a transport/http.DecodeResponseFunc that decodes
 // a JSON-encoded CreateCommentResponse response from the HTTP response body.
 // If the response has a non-200 status code, we will interpret that as an
@@ -870,6 +1077,141 @@ func DecodeHTTPCreateCommentResponse(_ context.Context, r *http.Response) (inter
 	}
 
 	var resp pb.CreateCommentResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPLikeCommentResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded SimpleResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPLikeCommentResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.SimpleResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPUnlikeCommentResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded SimpleResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPUnlikeCommentResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.SimpleResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPListBlacklistResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded ListBlacklistResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPListBlacklistResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.ListBlacklistResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPCreateBlacklistResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded SimpleResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPCreateBlacklistResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.SimpleResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPDeleteBlacklistResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded SimpleResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPDeleteBlacklistResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.SimpleResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -982,6 +1324,8 @@ func EncodeHTTPFindUserZeroRequest(_ context.Context, r *http.Request, request i
 
 	values.Add("uid", fmt.Sprint(req.Uid))
 
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
 	r.URL.RawQuery = values.Encode()
 	return nil
 }
@@ -1016,6 +1360,8 @@ func EncodeHTTPFindUserOneRequest(_ context.Context, r *http.Request, request in
 	_ = tmp
 
 	values.Add("uid", fmt.Sprint(req.Uid))
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
 
 	r.URL.RawQuery = values.Encode()
 	return nil
@@ -1374,6 +1720,10 @@ func EncodeHTTPCreateStatusZeroRequest(_ context.Context, r *http.Request, reque
 
 	toRet.Images = req.Images
 
+	toRet.IsPrivate = req.IsPrivate
+
+	toRet.ShowDuration = req.ShowDuration
+
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(toRet); err != nil {
@@ -1431,6 +1781,115 @@ func EncodeHTTPCreateStatusOneRequest(_ context.Context, r *http.Request, reques
 	toRet.FromType = req.FromType
 
 	toRet.Images = req.Images
+
+	toRet.IsPrivate = req.IsPrivate
+
+	toRet.ShowDuration = req.ShowDuration
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPUpdateStatusZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a updatestatus request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUpdateStatusZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UpdateStatusRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"status",
+		"update",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.UpdateStatusRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.StatusId = req.StatusId
+
+	toRet.IsPrivate = req.IsPrivate
+
+	toRet.ShowDuration = req.ShowDuration
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPUpdateStatusOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a updatestatus request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUpdateStatusOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UpdateStatusRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"status",
+		"update",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.UpdateStatusRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.StatusId = req.StatusId
+
+	toRet.IsPrivate = req.IsPrivate
+
+	toRet.ShowDuration = req.ShowDuration
 
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
@@ -1732,6 +2191,98 @@ func EncodeHTTPUnLikeStatusOneRequest(_ context.Context, r *http.Request, reques
 	return nil
 }
 
+// EncodeHTTPListLikeStatusZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a listlikestatus request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPListLikeStatusZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ListLikeRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"status",
+		"like",
+		"list",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("uid", fmt.Sprint(req.Uid))
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	tmp, err = json.Marshal(req.Paginator)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.Paginator")
+	}
+	strval = string(tmp)
+	values.Add("paginator", strval)
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPListLikeStatusOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a listlikestatus request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPListLikeStatusOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ListLikeRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"status",
+		"like",
+		"list",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("uid", fmt.Sprint(req.Uid))
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	tmp, err = json.Marshal(req.Paginator)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.Paginator")
+	}
+	strval = string(tmp)
+	values.Add("paginator", strval)
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
 // EncodeHTTPGetStatusZeroRequest is a transport/http.EncodeRequestFunc
 // that encodes a getstatus request into the various portions of
 // the http request (path, query, and body).
@@ -1842,7 +2393,7 @@ func EncodeHTTPListStatusZeroRequest(_ context.Context, r *http.Request, request
 
 	values.Add("target_uid", fmt.Sprint(req.TargetUid))
 
-	values.Add("parrent_id", fmt.Sprint(req.ParrentId))
+	values.Add("parent_id", fmt.Sprint(req.ParentId))
 
 	values["from_types"] = req.FromTypes
 
@@ -1891,7 +2442,7 @@ func EncodeHTTPListStatusOneRequest(_ context.Context, r *http.Request, request 
 
 	values.Add("target_uid", fmt.Sprint(req.TargetUid))
 
-	values.Add("parrent_id", fmt.Sprint(req.ParrentId))
+	values.Add("parent_id", fmt.Sprint(req.ParentId))
 
 	values["from_types"] = req.FromTypes
 
@@ -1941,7 +2492,7 @@ func EncodeHTTPListRecommendedZeroRequest(_ context.Context, r *http.Request, re
 
 	values.Add("target_uid", fmt.Sprint(req.TargetUid))
 
-	values.Add("parrent_id", fmt.Sprint(req.ParrentId))
+	values.Add("parent_id", fmt.Sprint(req.ParentId))
 
 	values["from_types"] = req.FromTypes
 
@@ -1990,7 +2541,7 @@ func EncodeHTTPListRecommendedOneRequest(_ context.Context, r *http.Request, req
 
 	values.Add("target_uid", fmt.Sprint(req.TargetUid))
 
-	values.Add("parrent_id", fmt.Sprint(req.ParrentId))
+	values.Add("parent_id", fmt.Sprint(req.ParentId))
 
 	values["from_types"] = req.FromTypes
 
@@ -2040,7 +2591,7 @@ func EncodeHTTPListUserTimelineZeroRequest(_ context.Context, r *http.Request, r
 
 	values.Add("target_uid", fmt.Sprint(req.TargetUid))
 
-	values.Add("parrent_id", fmt.Sprint(req.ParrentId))
+	values.Add("parent_id", fmt.Sprint(req.ParentId))
 
 	values["from_types"] = req.FromTypes
 
@@ -2089,7 +2640,7 @@ func EncodeHTTPListUserTimelineOneRequest(_ context.Context, r *http.Request, re
 
 	values.Add("target_uid", fmt.Sprint(req.TargetUid))
 
-	values.Add("parrent_id", fmt.Sprint(req.ParrentId))
+	values.Add("parent_id", fmt.Sprint(req.ParentId))
 
 	values["from_types"] = req.FromTypes
 
@@ -2210,6 +2761,8 @@ func EncodeHTTPListRelationshipZeroRequest(_ context.Context, r *http.Request, r
 
 	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
 
+	values.Add("uid", fmt.Sprint(req.Uid))
+
 	values.Add("relation_type", fmt.Sprint(req.RelationType))
 
 	tmp, err = json.Marshal(req.Paginator)
@@ -2254,6 +2807,8 @@ func EncodeHTTPListRelationshipOneRequest(_ context.Context, r *http.Request, re
 	_ = tmp
 
 	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("uid", fmt.Sprint(req.Uid))
 
 	values.Add("relation_type", fmt.Sprint(req.RelationType))
 
@@ -2650,6 +3205,79 @@ func EncodeHTTPReadMessageOneRequest(_ context.Context, r *http.Request, request
 	return nil
 }
 
+// EncodeHTTPGetMessageSummaryZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a getmessagesummary request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetMessageSummaryZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetMessageSummaryRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"message",
+		"summary",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetMessageSummaryOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a getmessagesummary request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetMessageSummaryOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetMessageSummaryRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"message",
+		"summary",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
 // EncodeHTTPListCommentZeroRequest is a transport/http.EncodeRequestFunc
 // that encodes a listcomment request into the various portions of
 // the http request (path, query, and body).
@@ -2686,8 +3314,6 @@ func EncodeHTTPListCommentZeroRequest(_ context.Context, r *http.Request, reques
 	values.Add("status_id", fmt.Sprint(req.StatusId))
 
 	values.Add("topic_id", fmt.Sprint(req.TopicId))
-
-	values.Add("last_id", fmt.Sprint(req.LastId))
 
 	tmp, err = json.Marshal(req.Paginator)
 	if err != nil {
@@ -2736,14 +3362,97 @@ func EncodeHTTPListCommentOneRequest(_ context.Context, r *http.Request, request
 
 	values.Add("topic_id", fmt.Sprint(req.TopicId))
 
-	values.Add("last_id", fmt.Sprint(req.LastId))
-
 	tmp, err = json.Marshal(req.Paginator)
 	if err != nil {
 		return errors.Wrap(err, "failed to marshal req.Paginator")
 	}
 	strval = string(tmp)
 	values.Add("paginator", strval)
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPNewRecommendStatusZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a newrecommendstatus request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPNewRecommendStatusZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.NewRecommendStatusResquest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"status",
+		"new_recommend",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("req_type", fmt.Sprint(req.ReqType))
+
+	values.Add("last_recommend_time", fmt.Sprint(req.LastRecommendTime))
+
+	values.Add("last_common_time", fmt.Sprint(req.LastCommonTime))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPNewRecommendStatusOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a newrecommendstatus request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPNewRecommendStatusOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.NewRecommendStatusResquest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"status",
+		"new_recommend",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("req_type", fmt.Sprint(req.ReqType))
+
+	values.Add("last_recommend_time", fmt.Sprint(req.LastRecommendTime))
+
+	values.Add("last_common_time", fmt.Sprint(req.LastCommonTime))
 
 	r.URL.RawQuery = values.Encode()
 	return nil
@@ -2781,6 +3490,24 @@ func EncodeHTTPCreateCommentZeroRequest(_ context.Context, r *http.Request, requ
 	_ = tmp
 
 	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.CreateCommentRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.StatusId = req.StatusId
+
+	toRet.ParentId = req.ParentId
+
+	toRet.Content = req.Content
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
 	return nil
 }
 
@@ -2826,6 +3553,486 @@ func EncodeHTTPCreateCommentOneRequest(_ context.Context, r *http.Request, reque
 	toRet.ParentId = req.ParentId
 
 	toRet.Content = req.Content
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPLikeCommentZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a likecomment request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPLikeCommentZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.LikeCommentRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"comment",
+		"like",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.LikeCommentRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.CommentId = req.CommentId
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPLikeCommentOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a likecomment request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPLikeCommentOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.LikeCommentRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"comment",
+		"like",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.LikeCommentRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.CommentId = req.CommentId
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPUnlikeCommentZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a unlikecomment request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUnlikeCommentZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UnlikeCommentRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"comment",
+		"unlike",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.UnlikeCommentRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.CommentId = req.CommentId
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPUnlikeCommentOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a unlikecomment request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUnlikeCommentOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UnlikeCommentRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"comment",
+		"unlike",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.UnlikeCommentRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.CommentId = req.CommentId
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPListBlacklistZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a listblacklist request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPListBlacklistZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ListBlacklistRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"blacklist",
+		"list",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("uid", fmt.Sprint(req.Uid))
+
+	tmp, err = json.Marshal(req.Paginator)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.Paginator")
+	}
+	strval = string(tmp)
+	values.Add("paginator", strval)
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPListBlacklistOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a listblacklist request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPListBlacklistOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ListBlacklistRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"blacklist",
+		"list",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("uid", fmt.Sprint(req.Uid))
+
+	tmp, err = json.Marshal(req.Paginator)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.Paginator")
+	}
+	strval = string(tmp)
+	values.Add("paginator", strval)
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPCreateBlacklistZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a createblacklist request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPCreateBlacklistZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.CreateBlacklistRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"blacklist",
+		"create",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.CreateBlacklistRequest)
+
+	toRet.Uid = req.Uid
+
+	toRet.TargetUid = req.TargetUid
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPCreateBlacklistOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a createblacklist request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPCreateBlacklistOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.CreateBlacklistRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"blacklist",
+		"create",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.CreateBlacklistRequest)
+
+	toRet.Uid = req.Uid
+
+	toRet.TargetUid = req.TargetUid
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPDeleteBlacklistZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a deleteblacklist request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPDeleteBlacklistZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.DeleteBlacklistRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"blacklist",
+		"delete",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.DeleteBlacklistRequest)
+
+	toRet.Uid = req.Uid
+
+	toRet.TargetUid = req.TargetUid
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPDeleteBlacklistOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a deleteblacklist request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPDeleteBlacklistOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.DeleteBlacklistRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"blacklist",
+		"delete",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.DeleteBlacklistRequest)
+
+	toRet.Uid = req.Uid
+
+	toRet.TargetUid = req.TargetUid
 
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)

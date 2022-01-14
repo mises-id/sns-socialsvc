@@ -8,16 +8,25 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type UpdateStatusParams struct {
+	ID           primitive.ObjectID
+	IsPrivate    bool
+	ShowDuration int64
+}
+
 type CreateStatusParams struct {
-	StatusType string
-	ParentID   primitive.ObjectID
-	Content    string
-	Meta       meta.MetaData
-	FromType   enum.FromType
+	StatusType   string
+	ParentID     primitive.ObjectID
+	Content      string
+	IsPrivate    bool
+	ShowDuration int64
+	Meta         meta.MetaData
+	FromType     enum.FromType
 }
 
 type ListStatusParams struct {
@@ -29,20 +38,24 @@ type ListStatusParams struct {
 }
 
 func GetStatus(ctx context.Context, currentUID uint64, id primitive.ObjectID) (*models.Status, error) {
-	ctxWithUID := context.WithValue(ctx, "CurrentUID", currentUID)
+	ctxWithUID := context.WithValue(ctx, utils.CurrentUIDKey{}, currentUID)
 	status, err := models.FindStatus(ctxWithUID, id)
 	if err != nil {
 		return nil, err
 	}
-	return status, batchSetIsLiked(ctx, currentUID, status)
+	return status, nil
 }
 
 func ListStatus(ctx context.Context, params *ListStatusParams) ([]*models.Status, pagination.Pagination, error) {
-	ctxWithUID := context.WithValue(ctx, "CurrentUID", params.CurrentUID)
+	ctxWithUID := context.WithValue(ctx, utils.CurrentUIDKey{}, params.CurrentUID)
 
 	uids := make([]uint64, 0)
 	if params.UID != 0 {
 		uids = append(uids, params.UID)
+		err := models.MarkFollowRead(ctx, params.CurrentUID, params.UID)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 	listParams := &models.ListStatusParams{
 		UIDs:           uids,
@@ -54,11 +67,11 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*models.Status
 	if err != nil {
 		return nil, nil, err
 	}
-	return statues, page, batchSetIsLiked(ctx, params.CurrentUID, statues...)
+	return statues, page, nil
 }
 
 func UserTimeline(ctx context.Context, uid uint64, pageParams *pagination.PageQuickParams) ([]*models.Status, pagination.Pagination, error) {
-	ctxWithUID := context.WithValue(ctx, "CurrentUID", uid)
+	ctxWithUID := context.WithValue(ctx, utils.CurrentUIDKey{}, uid)
 	friendIDs, err := models.ListFollowingUserIDs(ctx, uid)
 	if err != nil {
 		return nil, nil, err
@@ -78,11 +91,11 @@ func UserTimeline(ctx context.Context, uid uint64, pageParams *pagination.PageQu
 	if err != nil {
 		return nil, nil, err
 	}
-	return statues, page, batchSetIsLiked(ctx, uid, statues...)
+	return statues, page, nil
 }
 
 func RecommendStatus(ctx context.Context, uid uint64, pageParams *pagination.PageQuickParams) ([]*models.Status, pagination.Pagination, error) {
-	ctxWithUID := context.WithValue(ctx, "CurrentUID", uid)
+	ctxWithUID := context.WithValue(ctx, utils.CurrentUIDKey{}, uid)
 	statues, page, err := models.ListStatus(ctxWithUID, &models.ListStatusParams{
 		UIDs:           nil,
 		ParentStatusID: primitive.NilObjectID,
@@ -93,7 +106,21 @@ func RecommendStatus(ctx context.Context, uid uint64, pageParams *pagination.Pag
 	if err != nil {
 		return nil, nil, err
 	}
-	return statues, page, batchSetIsLiked(ctx, uid, statues...)
+	return statues, page, nil
+}
+
+func UpdateStatus(ctx context.Context, uid uint64, params *UpdateStatusParams) (*models.Status, error) {
+	status, err := models.FindStatus(ctx, params.ID)
+	if err != nil {
+		return nil, err
+	}
+	if status.UID != uid {
+		return nil, mongo.ErrNoDocuments
+	}
+	if err = status.UpdateHideTime(ctx, params.IsPrivate, params.ShowDuration); err != nil {
+		return nil, err
+	}
+	return status, nil
 }
 
 func CreateStatus(ctx context.Context, uid uint64, params *CreateStatusParams) (*models.Status, error) {
@@ -106,12 +133,14 @@ func CreateStatus(ctx context.Context, uid uint64, params *CreateStatusParams) (
 		return nil, err
 	}
 	status, err := models.CreateStatus(ctx, &models.CreateStatusParams{
-		UID:        uid,
-		StatusType: statusType,
-		Content:    params.Content,
-		ParentID:   params.ParentID,
-		FromType:   params.FromType,
-		MetaData:   params.Meta,
+		UID:          uid,
+		StatusType:   statusType,
+		Content:      params.Content,
+		ParentID:     params.ParentID,
+		FromType:     params.FromType,
+		MetaData:     params.Meta,
+		IsPrivate:    params.IsPrivate,
+		ShowDuration: params.ShowDuration,
 	})
 	if err != nil {
 		return nil, err
@@ -157,6 +186,15 @@ func UnlikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) 
 	return status.IncStatusCounter(ctx, "likes_count", -1)
 }
 
+type ListLikeStatusParams struct {
+	UID        uint64
+	PageParams *pagination.PageQuickParams
+}
+
+func ListLikeStatus(ctx context.Context, params *ListLikeStatusParams) ([]*models.Like, pagination.Pagination, error) {
+	return models.ListLike(ctx, params.UID, enum.LikeStatus, params.PageParams)
+}
+
 func DeleteStatus(ctx context.Context, uid uint64, id primitive.ObjectID) error {
 	status, err := models.FindStatus(ctx, id)
 	if err != nil {
@@ -166,22 +204,4 @@ func DeleteStatus(ctx context.Context, uid uint64, id primitive.ObjectID) error 
 		return codes.ErrForbidden
 	}
 	return models.DeleteStatus(ctx, id)
-}
-
-func batchSetIsLiked(ctx context.Context, uid uint64, statuses ...*models.Status) error {
-	if uid == 0 {
-		return nil
-	}
-	statusIDs := make([]primitive.ObjectID, len(statuses))
-	for i, status := range statuses {
-		statusIDs[i] = status.ID
-	}
-	likeMap, err := models.GetStatusLikeMap(ctx, uid, statusIDs)
-	if err != nil {
-		return err
-	}
-	for _, status := range statuses {
-		status.IsLiked = likeMap[status.ID] != nil
-	}
-	return nil
 }

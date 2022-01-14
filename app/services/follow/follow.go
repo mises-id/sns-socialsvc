@@ -7,11 +7,8 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/mongo"
-)
-
-const (
-	latestFollowingCount = 20
 )
 
 func LatestFollowing(ctx context.Context, uid uint64) ([]*models.Follow, error) {
@@ -19,19 +16,7 @@ func LatestFollowing(ctx context.Context, uid uint64) ([]*models.Follow, error) 
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*models.Follow, 0)
-	for _, follow := range follows {
-		if follow.ToUser.LatestPostTime == nil {
-			continue
-		}
-		if follow.ToUser.LatestPostTime.After(follow.ReadTime) {
-			result = append(result, follow)
-		}
-		if len(result) >= latestFollowingCount {
-			break
-		}
-	}
-	return result, nil
+	return follows, nil
 }
 
 func ListFriendship(ctx context.Context, uid uint64, relationType enum.RelationType, pageParams *pagination.QuickPagination) ([]*models.Follow, pagination.Pagination, error) {
@@ -40,18 +25,30 @@ func ListFriendship(ctx context.Context, uid uint64, relationType enum.RelationT
 	if err != nil {
 		return nil, nil, err
 	}
-	return models.ListFollow(ctx, uid, relationType, pageParams)
+	follows, page, err := models.ListFollow(ctx, uid, relationType, pageParams)
+	if err != nil {
+		return nil, nil, err
+	}
+	currentUID, ok := ctx.Value(utils.CurrentUIDKey{}).(uint64)
+	if ok && currentUID == uid {
+		err = models.ReadNewFans(ctx, uid)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	return follows, page, nil
 }
 
 func Follow(ctx context.Context, fromUID, toUID uint64) (*models.Follow, error) {
 	if fromUID == toUID {
 		return nil, codes.ErrInvalidArgument
 	}
-	fromUser, err := models.FindUser(ctx, fromUID)
+	// check user exsist
+	_, err := models.FindUser(ctx, fromUID)
 	if err != nil {
 		return nil, err
 	}
-	toUser, err := models.FindUser(ctx, toUID)
+	_, err = models.FindUser(ctx, toUID)
 	if err != nil {
 		return nil, err
 	}
@@ -75,18 +72,11 @@ func Follow(ctx context.Context, fromUID, toUID uint64) (*models.Follow, error) 
 	if follow != nil {
 		return follow, follow.SetFriend(ctx, isFriend)
 	}
-	if err = fromUser.IncFollowingCount(ctx); err != nil {
-		return nil, err
-	}
-	if err = toUser.IncFansCount(ctx); err != nil {
-		return nil, err
-	}
-
 	return models.CreateFollow(ctx, fromUID, toUID, isFriend)
 }
 
 func Unfollow(ctx context.Context, fromUID, toUID uint64) error {
-	_, err := models.GetFollow(ctx, fromUID, toUID)
+	follow, err := models.GetFollow(ctx, fromUID, toUID)
 	if err != nil {
 		return nil
 	}
@@ -98,5 +88,5 @@ func Unfollow(ctx context.Context, fromUID, toUID uint64) error {
 	} else if err != mongo.ErrNoDocuments {
 		return err
 	}
-	return models.DeleteFollow(ctx, fromUID, toUID)
+	return follow.Delete(ctx)
 }

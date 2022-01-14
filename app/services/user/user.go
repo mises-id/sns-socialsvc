@@ -21,7 +21,14 @@ func FindUser(ctx context.Context, uid uint64) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	return user, preloadAvatar(ctx, user)
+	if err = models.PreloadUserData(ctx, user); err != nil {
+		return nil, err
+	}
+	user.NewFansCount, err = models.NewFansCount(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func UpdateUserProfile(ctx context.Context, uid uint64, params *UserProfileParams) (*models.User, error) {

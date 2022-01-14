@@ -33,27 +33,36 @@ import (
 // single type that implements the Service interface. For example, you might
 // construct individual endpoints using transport/http.NewClient, combine them into an Endpoints, and return it to the caller as a Service.
 type Endpoints struct {
-	SignInEndpoint            endpoint.Endpoint
-	FindUserEndpoint          endpoint.Endpoint
-	UpdateUserProfileEndpoint endpoint.Endpoint
-	UpdateUserAvatarEndpoint  endpoint.Endpoint
-	UpdateUserNameEndpoint    endpoint.Endpoint
-	CreateStatusEndpoint      endpoint.Endpoint
-	DeleteStatusEndpoint      endpoint.Endpoint
-	LikeStatusEndpoint        endpoint.Endpoint
-	UnLikeStatusEndpoint      endpoint.Endpoint
-	GetStatusEndpoint         endpoint.Endpoint
-	ListStatusEndpoint        endpoint.Endpoint
-	ListRecommendedEndpoint   endpoint.Endpoint
-	ListUserTimelineEndpoint  endpoint.Endpoint
-	LatestFollowingEndpoint   endpoint.Endpoint
-	ListRelationshipEndpoint  endpoint.Endpoint
-	FollowEndpoint            endpoint.Endpoint
-	UnFollowEndpoint          endpoint.Endpoint
-	ListMessageEndpoint       endpoint.Endpoint
-	ReadMessageEndpoint       endpoint.Endpoint
-	ListCommentEndpoint       endpoint.Endpoint
-	CreateCommentEndpoint     endpoint.Endpoint
+	SignInEndpoint             endpoint.Endpoint
+	FindUserEndpoint           endpoint.Endpoint
+	UpdateUserProfileEndpoint  endpoint.Endpoint
+	UpdateUserAvatarEndpoint   endpoint.Endpoint
+	UpdateUserNameEndpoint     endpoint.Endpoint
+	CreateStatusEndpoint       endpoint.Endpoint
+	UpdateStatusEndpoint       endpoint.Endpoint
+	DeleteStatusEndpoint       endpoint.Endpoint
+	LikeStatusEndpoint         endpoint.Endpoint
+	UnLikeStatusEndpoint       endpoint.Endpoint
+	ListLikeStatusEndpoint     endpoint.Endpoint
+	GetStatusEndpoint          endpoint.Endpoint
+	ListStatusEndpoint         endpoint.Endpoint
+	ListRecommendedEndpoint    endpoint.Endpoint
+	ListUserTimelineEndpoint   endpoint.Endpoint
+	LatestFollowingEndpoint    endpoint.Endpoint
+	ListRelationshipEndpoint   endpoint.Endpoint
+	FollowEndpoint             endpoint.Endpoint
+	UnFollowEndpoint           endpoint.Endpoint
+	ListMessageEndpoint        endpoint.Endpoint
+	ReadMessageEndpoint        endpoint.Endpoint
+	GetMessageSummaryEndpoint  endpoint.Endpoint
+	ListCommentEndpoint        endpoint.Endpoint
+	NewRecommendStatusEndpoint endpoint.Endpoint
+	CreateCommentEndpoint      endpoint.Endpoint
+	LikeCommentEndpoint        endpoint.Endpoint
+	UnlikeCommentEndpoint      endpoint.Endpoint
+	ListBlacklistEndpoint      endpoint.Endpoint
+	CreateBlacklistEndpoint    endpoint.Endpoint
+	DeleteBlacklistEndpoint    endpoint.Endpoint
 }
 
 // Endpoints
@@ -106,6 +115,14 @@ func (e Endpoints) CreateStatus(ctx context.Context, in *pb.CreateStatusRequest)
 	return response.(*pb.CreateStatusResponse), nil
 }
 
+func (e Endpoints) UpdateStatus(ctx context.Context, in *pb.UpdateStatusRequest) (*pb.UpdateStatusResponse, error) {
+	response, err := e.UpdateStatusEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.UpdateStatusResponse), nil
+}
+
 func (e Endpoints) DeleteStatus(ctx context.Context, in *pb.DeleteStatusRequest) (*pb.SimpleResponse, error) {
 	response, err := e.DeleteStatusEndpoint(ctx, in)
 	if err != nil {
@@ -128,6 +145,14 @@ func (e Endpoints) UnLikeStatus(ctx context.Context, in *pb.UnLikeStatusRequest)
 		return nil, err
 	}
 	return response.(*pb.SimpleResponse), nil
+}
+
+func (e Endpoints) ListLikeStatus(ctx context.Context, in *pb.ListLikeRequest) (*pb.ListLikeResponse, error) {
+	response, err := e.ListLikeStatusEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.ListLikeResponse), nil
 }
 
 func (e Endpoints) GetStatus(ctx context.Context, in *pb.GetStatusRequest) (*pb.GetStatusResponse, error) {
@@ -210,6 +235,14 @@ func (e Endpoints) ReadMessage(ctx context.Context, in *pb.ReadMessageRequest) (
 	return response.(*pb.SimpleResponse), nil
 }
 
+func (e Endpoints) GetMessageSummary(ctx context.Context, in *pb.GetMessageSummaryRequest) (*pb.MessageSummaryResponse, error) {
+	response, err := e.GetMessageSummaryEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.MessageSummaryResponse), nil
+}
+
 func (e Endpoints) ListComment(ctx context.Context, in *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
 	response, err := e.ListCommentEndpoint(ctx, in)
 	if err != nil {
@@ -218,12 +251,60 @@ func (e Endpoints) ListComment(ctx context.Context, in *pb.ListCommentRequest) (
 	return response.(*pb.ListCommentResponse), nil
 }
 
+func (e Endpoints) NewRecommendStatus(ctx context.Context, in *pb.NewRecommendStatusResquest) (*pb.NewRecommendStatusResponse, error) {
+	response, err := e.NewRecommendStatusEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.NewRecommendStatusResponse), nil
+}
+
 func (e Endpoints) CreateComment(ctx context.Context, in *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
 	response, err := e.CreateCommentEndpoint(ctx, in)
 	if err != nil {
 		return nil, err
 	}
 	return response.(*pb.CreateCommentResponse), nil
+}
+
+func (e Endpoints) LikeComment(ctx context.Context, in *pb.LikeCommentRequest) (*pb.SimpleResponse, error) {
+	response, err := e.LikeCommentEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.SimpleResponse), nil
+}
+
+func (e Endpoints) UnlikeComment(ctx context.Context, in *pb.UnlikeCommentRequest) (*pb.SimpleResponse, error) {
+	response, err := e.UnlikeCommentEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.SimpleResponse), nil
+}
+
+func (e Endpoints) ListBlacklist(ctx context.Context, in *pb.ListBlacklistRequest) (*pb.ListBlacklistResponse, error) {
+	response, err := e.ListBlacklistEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.ListBlacklistResponse), nil
+}
+
+func (e Endpoints) CreateBlacklist(ctx context.Context, in *pb.CreateBlacklistRequest) (*pb.SimpleResponse, error) {
+	response, err := e.CreateBlacklistEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.SimpleResponse), nil
+}
+
+func (e Endpoints) DeleteBlacklist(ctx context.Context, in *pb.DeleteBlacklistRequest) (*pb.SimpleResponse, error) {
+	response, err := e.DeleteBlacklistEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.SimpleResponse), nil
 }
 
 // Make Endpoints
@@ -294,6 +375,17 @@ func MakeCreateStatusEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeUpdateStatusEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.UpdateStatusRequest)
+		v, err := s.UpdateStatus(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeDeleteStatusEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.DeleteStatusRequest)
@@ -320,6 +412,17 @@ func MakeUnLikeStatusEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.UnLikeStatusRequest)
 		v, err := s.UnLikeStatus(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeListLikeStatusEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ListLikeRequest)
+		v, err := s.ListLikeStatus(ctx, req)
 		if err != nil {
 			return nil, err
 		}
@@ -437,10 +540,32 @@ func MakeReadMessageEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeGetMessageSummaryEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.GetMessageSummaryRequest)
+		v, err := s.GetMessageSummary(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeListCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.ListCommentRequest)
 		v, err := s.ListComment(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeNewRecommendStatusEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.NewRecommendStatusResquest)
+		v, err := s.NewRecommendStatus(ctx, req)
 		if err != nil {
 			return nil, err
 		}
@@ -459,6 +584,61 @@ func MakeCreateCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeLikeCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.LikeCommentRequest)
+		v, err := s.LikeComment(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeUnlikeCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.UnlikeCommentRequest)
+		v, err := s.UnlikeComment(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeListBlacklistEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ListBlacklistRequest)
+		v, err := s.ListBlacklist(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeCreateBlacklistEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.CreateBlacklistRequest)
+		v, err := s.CreateBlacklist(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeDeleteBlacklistEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.DeleteBlacklistRequest)
+		v, err := s.DeleteBlacklist(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 // WrapAllExcept wraps each Endpoint field of struct Endpoints with a
 // go-kit/kit/endpoint.Middleware.
 // Use this for applying a set of middlewares to every endpoint in the service.
@@ -466,27 +646,36 @@ func MakeCreateCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
 // WrapAllExcept(middleware, "Status", "Ping")
 func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...string) {
 	included := map[string]struct{}{
-		"SignIn":            {},
-		"FindUser":          {},
-		"UpdateUserProfile": {},
-		"UpdateUserAvatar":  {},
-		"UpdateUserName":    {},
-		"CreateStatus":      {},
-		"DeleteStatus":      {},
-		"LikeStatus":        {},
-		"UnLikeStatus":      {},
-		"GetStatus":         {},
-		"ListStatus":        {},
-		"ListRecommended":   {},
-		"ListUserTimeline":  {},
-		"LatestFollowing":   {},
-		"ListRelationship":  {},
-		"Follow":            {},
-		"UnFollow":          {},
-		"ListMessage":       {},
-		"ReadMessage":       {},
-		"ListComment":       {},
-		"CreateComment":     {},
+		"SignIn":             {},
+		"FindUser":           {},
+		"UpdateUserProfile":  {},
+		"UpdateUserAvatar":   {},
+		"UpdateUserName":     {},
+		"CreateStatus":       {},
+		"UpdateStatus":       {},
+		"DeleteStatus":       {},
+		"LikeStatus":         {},
+		"UnLikeStatus":       {},
+		"ListLikeStatus":     {},
+		"GetStatus":          {},
+		"ListStatus":         {},
+		"ListRecommended":    {},
+		"ListUserTimeline":   {},
+		"LatestFollowing":    {},
+		"ListRelationship":   {},
+		"Follow":             {},
+		"UnFollow":           {},
+		"ListMessage":        {},
+		"ReadMessage":        {},
+		"GetMessageSummary":  {},
+		"ListComment":        {},
+		"NewRecommendStatus": {},
+		"CreateComment":      {},
+		"LikeComment":        {},
+		"UnlikeComment":      {},
+		"ListBlacklist":      {},
+		"CreateBlacklist":    {},
+		"DeleteBlacklist":    {},
 	}
 
 	for _, ex := range excluded {
@@ -515,6 +704,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "CreateStatus" {
 			e.CreateStatusEndpoint = middleware(e.CreateStatusEndpoint)
 		}
+		if inc == "UpdateStatus" {
+			e.UpdateStatusEndpoint = middleware(e.UpdateStatusEndpoint)
+		}
 		if inc == "DeleteStatus" {
 			e.DeleteStatusEndpoint = middleware(e.DeleteStatusEndpoint)
 		}
@@ -523,6 +715,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		}
 		if inc == "UnLikeStatus" {
 			e.UnLikeStatusEndpoint = middleware(e.UnLikeStatusEndpoint)
+		}
+		if inc == "ListLikeStatus" {
+			e.ListLikeStatusEndpoint = middleware(e.ListLikeStatusEndpoint)
 		}
 		if inc == "GetStatus" {
 			e.GetStatusEndpoint = middleware(e.GetStatusEndpoint)
@@ -554,11 +749,32 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "ReadMessage" {
 			e.ReadMessageEndpoint = middleware(e.ReadMessageEndpoint)
 		}
+		if inc == "GetMessageSummary" {
+			e.GetMessageSummaryEndpoint = middleware(e.GetMessageSummaryEndpoint)
+		}
 		if inc == "ListComment" {
 			e.ListCommentEndpoint = middleware(e.ListCommentEndpoint)
 		}
+		if inc == "NewRecommendStatus" {
+			e.NewRecommendStatusEndpoint = middleware(e.NewRecommendStatusEndpoint)
+		}
 		if inc == "CreateComment" {
 			e.CreateCommentEndpoint = middleware(e.CreateCommentEndpoint)
+		}
+		if inc == "LikeComment" {
+			e.LikeCommentEndpoint = middleware(e.LikeCommentEndpoint)
+		}
+		if inc == "UnlikeComment" {
+			e.UnlikeCommentEndpoint = middleware(e.UnlikeCommentEndpoint)
+		}
+		if inc == "ListBlacklist" {
+			e.ListBlacklistEndpoint = middleware(e.ListBlacklistEndpoint)
+		}
+		if inc == "CreateBlacklist" {
+			e.CreateBlacklistEndpoint = middleware(e.CreateBlacklistEndpoint)
+		}
+		if inc == "DeleteBlacklist" {
+			e.DeleteBlacklistEndpoint = middleware(e.DeleteBlacklistEndpoint)
 		}
 	}
 }
@@ -574,27 +790,36 @@ type LabeledMiddleware func(string, endpoint.Endpoint) endpoint.Endpoint
 // functionality.
 func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoint) endpoint.Endpoint, excluded ...string) {
 	included := map[string]struct{}{
-		"SignIn":            {},
-		"FindUser":          {},
-		"UpdateUserProfile": {},
-		"UpdateUserAvatar":  {},
-		"UpdateUserName":    {},
-		"CreateStatus":      {},
-		"DeleteStatus":      {},
-		"LikeStatus":        {},
-		"UnLikeStatus":      {},
-		"GetStatus":         {},
-		"ListStatus":        {},
-		"ListRecommended":   {},
-		"ListUserTimeline":  {},
-		"LatestFollowing":   {},
-		"ListRelationship":  {},
-		"Follow":            {},
-		"UnFollow":          {},
-		"ListMessage":       {},
-		"ReadMessage":       {},
-		"ListComment":       {},
-		"CreateComment":     {},
+		"SignIn":             {},
+		"FindUser":           {},
+		"UpdateUserProfile":  {},
+		"UpdateUserAvatar":   {},
+		"UpdateUserName":     {},
+		"CreateStatus":       {},
+		"UpdateStatus":       {},
+		"DeleteStatus":       {},
+		"LikeStatus":         {},
+		"UnLikeStatus":       {},
+		"ListLikeStatus":     {},
+		"GetStatus":          {},
+		"ListStatus":         {},
+		"ListRecommended":    {},
+		"ListUserTimeline":   {},
+		"LatestFollowing":    {},
+		"ListRelationship":   {},
+		"Follow":             {},
+		"UnFollow":           {},
+		"ListMessage":        {},
+		"ReadMessage":        {},
+		"GetMessageSummary":  {},
+		"ListComment":        {},
+		"NewRecommendStatus": {},
+		"CreateComment":      {},
+		"LikeComment":        {},
+		"UnlikeComment":      {},
+		"ListBlacklist":      {},
+		"CreateBlacklist":    {},
+		"DeleteBlacklist":    {},
 	}
 
 	for _, ex := range excluded {
@@ -623,6 +848,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		if inc == "CreateStatus" {
 			e.CreateStatusEndpoint = middleware("CreateStatus", e.CreateStatusEndpoint)
 		}
+		if inc == "UpdateStatus" {
+			e.UpdateStatusEndpoint = middleware("UpdateStatus", e.UpdateStatusEndpoint)
+		}
 		if inc == "DeleteStatus" {
 			e.DeleteStatusEndpoint = middleware("DeleteStatus", e.DeleteStatusEndpoint)
 		}
@@ -631,6 +859,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "UnLikeStatus" {
 			e.UnLikeStatusEndpoint = middleware("UnLikeStatus", e.UnLikeStatusEndpoint)
+		}
+		if inc == "ListLikeStatus" {
+			e.ListLikeStatusEndpoint = middleware("ListLikeStatus", e.ListLikeStatusEndpoint)
 		}
 		if inc == "GetStatus" {
 			e.GetStatusEndpoint = middleware("GetStatus", e.GetStatusEndpoint)
@@ -662,11 +893,32 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		if inc == "ReadMessage" {
 			e.ReadMessageEndpoint = middleware("ReadMessage", e.ReadMessageEndpoint)
 		}
+		if inc == "GetMessageSummary" {
+			e.GetMessageSummaryEndpoint = middleware("GetMessageSummary", e.GetMessageSummaryEndpoint)
+		}
 		if inc == "ListComment" {
 			e.ListCommentEndpoint = middleware("ListComment", e.ListCommentEndpoint)
 		}
+		if inc == "NewRecommendStatus" {
+			e.NewRecommendStatusEndpoint = middleware("NewRecommendStatus", e.NewRecommendStatusEndpoint)
+		}
 		if inc == "CreateComment" {
 			e.CreateCommentEndpoint = middleware("CreateComment", e.CreateCommentEndpoint)
+		}
+		if inc == "LikeComment" {
+			e.LikeCommentEndpoint = middleware("LikeComment", e.LikeCommentEndpoint)
+		}
+		if inc == "UnlikeComment" {
+			e.UnlikeCommentEndpoint = middleware("UnlikeComment", e.UnlikeCommentEndpoint)
+		}
+		if inc == "ListBlacklist" {
+			e.ListBlacklistEndpoint = middleware("ListBlacklist", e.ListBlacklistEndpoint)
+		}
+		if inc == "CreateBlacklist" {
+			e.CreateBlacklistEndpoint = middleware("CreateBlacklist", e.CreateBlacklistEndpoint)
+		}
+		if inc == "DeleteBlacklist" {
+			e.DeleteBlacklistEndpoint = middleware("DeleteBlacklist", e.DeleteBlacklistEndpoint)
 		}
 	}
 }

@@ -28,7 +28,7 @@ func AdminFindUser(ctx context.Context, params IAdminParams) (*User, error) {
 		return nil, err
 	}
 
-	return user, PreloadUserAvatar(ctx, user)
+	return user, preloadUserAvatar(ctx, user)
 }
 
 func AdminListUser(ctx context.Context, params IAdminParams) ([]*User, error) {
@@ -40,7 +40,7 @@ func AdminListUser(ctx context.Context, params IAdminParams) ([]*User, error) {
 		return nil, err
 	}
 
-	return users, PreloadUserAvatar(ctx, users...)
+	return users, preloadUserAvatar(ctx, users...)
 }
 
 func AdminPageUser(ctx context.Context, params IAdminPageParams) ([]*User, pagination.Pagination, error) {
@@ -53,7 +53,7 @@ func AdminPageUser(ctx context.Context, params IAdminPageParams) ([]*User, pagin
 		return nil, nil, err
 	}
 
-	return users, page, PreloadUserAvatar(ctx, users...)
+	return users, page, preloadUserAvatar(ctx, users...)
 }
 
 func UpdateUserTag(ctx context.Context, user *User) error {

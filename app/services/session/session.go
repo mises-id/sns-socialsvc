@@ -2,6 +2,7 @@ package session
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -17,19 +18,19 @@ var (
 	misesClient mises.Client
 )
 
-func init() {
-	misesClient = mises.New()
-}
-
 func SignIn(ctx context.Context, auth string) (string, error) {
-	misesid, err := misesClient.Auth(auth)
+	fmt.Println("misesClient: ", misesClient)
+	misesid, pubkey, err := misesClient.Auth(auth)
 	if err != nil {
 		logrus.Errorf("mises verify error: %v", err)
 		return "", codes.ErrAuthorizeFailed
 	}
-	user, err := models.FindOrCreateUserByMisesid(ctx, misesid)
+	user, created, err := models.FindOrCreateUserByMisesid(ctx, misesid)
 	if err != nil {
 		return "", err
+	}
+	if created && len(pubkey) > 0 {
+		_ = misesClient.Register(misesid, pubkey)
 	}
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"uid":      user.UID,
@@ -56,6 +57,10 @@ func Auth(ctx context.Context, authToken string) (*models.User, error) {
 		Misesid:  mapClaims["misesid"].(string),
 		Username: mapClaims["username"].(string),
 	}, nil
+}
+
+func SetupMisesClient() {
+	misesClient = mises.New()
 }
 
 func MockMisesClient(mock mises.Client) {

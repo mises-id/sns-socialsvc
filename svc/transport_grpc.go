@@ -65,6 +65,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCCreateStatusResponse,
 			serverOptions...,
 		),
+		updatestatus: grpctransport.NewServer(
+			endpoints.UpdateStatusEndpoint,
+			DecodeGRPCUpdateStatusRequest,
+			EncodeGRPCUpdateStatusResponse,
+			serverOptions...,
+		),
 		deletestatus: grpctransport.NewServer(
 			endpoints.DeleteStatusEndpoint,
 			DecodeGRPCDeleteStatusRequest,
@@ -81,6 +87,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			endpoints.UnLikeStatusEndpoint,
 			DecodeGRPCUnLikeStatusRequest,
 			EncodeGRPCUnLikeStatusResponse,
+			serverOptions...,
+		),
+		listlikestatus: grpctransport.NewServer(
+			endpoints.ListLikeStatusEndpoint,
+			DecodeGRPCListLikeStatusRequest,
+			EncodeGRPCListLikeStatusResponse,
 			serverOptions...,
 		),
 		getstatus: grpctransport.NewServer(
@@ -143,10 +155,22 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCReadMessageResponse,
 			serverOptions...,
 		),
+		getmessagesummary: grpctransport.NewServer(
+			endpoints.GetMessageSummaryEndpoint,
+			DecodeGRPCGetMessageSummaryRequest,
+			EncodeGRPCGetMessageSummaryResponse,
+			serverOptions...,
+		),
 		listcomment: grpctransport.NewServer(
 			endpoints.ListCommentEndpoint,
 			DecodeGRPCListCommentRequest,
 			EncodeGRPCListCommentResponse,
+			serverOptions...,
+		),
+		newrecommendstatus: grpctransport.NewServer(
+			endpoints.NewRecommendStatusEndpoint,
+			DecodeGRPCNewRecommendStatusRequest,
+			EncodeGRPCNewRecommendStatusResponse,
 			serverOptions...,
 		),
 		createcomment: grpctransport.NewServer(
@@ -155,32 +179,71 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCCreateCommentResponse,
 			serverOptions...,
 		),
+		likecomment: grpctransport.NewServer(
+			endpoints.LikeCommentEndpoint,
+			DecodeGRPCLikeCommentRequest,
+			EncodeGRPCLikeCommentResponse,
+			serverOptions...,
+		),
+		unlikecomment: grpctransport.NewServer(
+			endpoints.UnlikeCommentEndpoint,
+			DecodeGRPCUnlikeCommentRequest,
+			EncodeGRPCUnlikeCommentResponse,
+			serverOptions...,
+		),
+		listblacklist: grpctransport.NewServer(
+			endpoints.ListBlacklistEndpoint,
+			DecodeGRPCListBlacklistRequest,
+			EncodeGRPCListBlacklistResponse,
+			serverOptions...,
+		),
+		createblacklist: grpctransport.NewServer(
+			endpoints.CreateBlacklistEndpoint,
+			DecodeGRPCCreateBlacklistRequest,
+			EncodeGRPCCreateBlacklistResponse,
+			serverOptions...,
+		),
+		deleteblacklist: grpctransport.NewServer(
+			endpoints.DeleteBlacklistEndpoint,
+			DecodeGRPCDeleteBlacklistRequest,
+			EncodeGRPCDeleteBlacklistResponse,
+			serverOptions...,
+		),
 	}
 }
 
 // grpcServer implements the SocialServer interface
 type grpcServer struct {
-	signin            grpctransport.Handler
-	finduser          grpctransport.Handler
-	updateuserprofile grpctransport.Handler
-	updateuseravatar  grpctransport.Handler
-	updateusername    grpctransport.Handler
-	createstatus      grpctransport.Handler
-	deletestatus      grpctransport.Handler
-	likestatus        grpctransport.Handler
-	unlikestatus      grpctransport.Handler
-	getstatus         grpctransport.Handler
-	liststatus        grpctransport.Handler
-	listrecommended   grpctransport.Handler
-	listusertimeline  grpctransport.Handler
-	latestfollowing   grpctransport.Handler
-	listrelationship  grpctransport.Handler
-	follow            grpctransport.Handler
-	unfollow          grpctransport.Handler
-	listmessage       grpctransport.Handler
-	readmessage       grpctransport.Handler
-	listcomment       grpctransport.Handler
-	createcomment     grpctransport.Handler
+	signin             grpctransport.Handler
+	finduser           grpctransport.Handler
+	updateuserprofile  grpctransport.Handler
+	updateuseravatar   grpctransport.Handler
+	updateusername     grpctransport.Handler
+	createstatus       grpctransport.Handler
+	updatestatus       grpctransport.Handler
+	deletestatus       grpctransport.Handler
+	likestatus         grpctransport.Handler
+	unlikestatus       grpctransport.Handler
+	listlikestatus     grpctransport.Handler
+	getstatus          grpctransport.Handler
+	liststatus         grpctransport.Handler
+	listrecommended    grpctransport.Handler
+	listusertimeline   grpctransport.Handler
+	latestfollowing    grpctransport.Handler
+	listrelationship   grpctransport.Handler
+	follow             grpctransport.Handler
+	unfollow           grpctransport.Handler
+	listmessage        grpctransport.Handler
+	readmessage        grpctransport.Handler
+	getmessagesummary  grpctransport.Handler
+	listcomment        grpctransport.Handler
+	newrecommendstatus grpctransport.Handler
+	createcomment      grpctransport.Handler
+	likecomment        grpctransport.Handler
+	unlikecomment      grpctransport.Handler
+	listblacklist      grpctransport.Handler
+	createblacklist    grpctransport.Handler
+	deleteblacklist    grpctransport.Handler
 }
 
 // Methods for grpcServer to implement SocialServer interface
@@ -233,6 +296,14 @@ func (s *grpcServer) CreateStatus(ctx context.Context, req *pb.CreateStatusReque
 	return rep.(*pb.CreateStatusResponse), nil
 }
 
+func (s *grpcServer) UpdateStatus(ctx context.Context, req *pb.UpdateStatusRequest) (*pb.UpdateStatusResponse, error) {
+	_, rep, err := s.updatestatus.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.UpdateStatusResponse), nil
+}
+
 func (s *grpcServer) DeleteStatus(ctx context.Context, req *pb.DeleteStatusRequest) (*pb.SimpleResponse, error) {
 	_, rep, err := s.deletestatus.ServeGRPC(ctx, req)
 	if err != nil {
@@ -255,6 +326,14 @@ func (s *grpcServer) UnLikeStatus(ctx context.Context, req *pb.UnLikeStatusReque
 		return nil, err
 	}
 	return rep.(*pb.SimpleResponse), nil
+}
+
+func (s *grpcServer) ListLikeStatus(ctx context.Context, req *pb.ListLikeRequest) (*pb.ListLikeResponse, error) {
+	_, rep, err := s.listlikestatus.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.ListLikeResponse), nil
 }
 
 func (s *grpcServer) GetStatus(ctx context.Context, req *pb.GetStatusRequest) (*pb.GetStatusResponse, error) {
@@ -337,6 +416,14 @@ func (s *grpcServer) ReadMessage(ctx context.Context, req *pb.ReadMessageRequest
 	return rep.(*pb.SimpleResponse), nil
 }
 
+func (s *grpcServer) GetMessageSummary(ctx context.Context, req *pb.GetMessageSummaryRequest) (*pb.MessageSummaryResponse, error) {
+	_, rep, err := s.getmessagesummary.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.MessageSummaryResponse), nil
+}
+
 func (s *grpcServer) ListComment(ctx context.Context, req *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
 	_, rep, err := s.listcomment.ServeGRPC(ctx, req)
 	if err != nil {
@@ -345,12 +432,60 @@ func (s *grpcServer) ListComment(ctx context.Context, req *pb.ListCommentRequest
 	return rep.(*pb.ListCommentResponse), nil
 }
 
+func (s *grpcServer) NewRecommendStatus(ctx context.Context, req *pb.NewRecommendStatusResquest) (*pb.NewRecommendStatusResponse, error) {
+	_, rep, err := s.newrecommendstatus.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.NewRecommendStatusResponse), nil
+}
+
 func (s *grpcServer) CreateComment(ctx context.Context, req *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
 	_, rep, err := s.createcomment.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	return rep.(*pb.CreateCommentResponse), nil
+}
+
+func (s *grpcServer) LikeComment(ctx context.Context, req *pb.LikeCommentRequest) (*pb.SimpleResponse, error) {
+	_, rep, err := s.likecomment.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.SimpleResponse), nil
+}
+
+func (s *grpcServer) UnlikeComment(ctx context.Context, req *pb.UnlikeCommentRequest) (*pb.SimpleResponse, error) {
+	_, rep, err := s.unlikecomment.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.SimpleResponse), nil
+}
+
+func (s *grpcServer) ListBlacklist(ctx context.Context, req *pb.ListBlacklistRequest) (*pb.ListBlacklistResponse, error) {
+	_, rep, err := s.listblacklist.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.ListBlacklistResponse), nil
+}
+
+func (s *grpcServer) CreateBlacklist(ctx context.Context, req *pb.CreateBlacklistRequest) (*pb.SimpleResponse, error) {
+	_, rep, err := s.createblacklist.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.SimpleResponse), nil
+}
+
+func (s *grpcServer) DeleteBlacklist(ctx context.Context, req *pb.DeleteBlacklistRequest) (*pb.SimpleResponse, error) {
+	_, rep, err := s.deleteblacklist.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.SimpleResponse), nil
 }
 
 // Server Decode
@@ -397,6 +532,13 @@ func DecodeGRPCCreateStatusRequest(_ context.Context, grpcReq interface{}) (inte
 	return req, nil
 }
 
+// DecodeGRPCUpdateStatusRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC updatestatus request to a user-domain updatestatus request. Primarily useful in a server.
+func DecodeGRPCUpdateStatusRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.UpdateStatusRequest)
+	return req, nil
+}
+
 // DecodeGRPCDeleteStatusRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC deletestatus request to a user-domain deletestatus request. Primarily useful in a server.
 func DecodeGRPCDeleteStatusRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -415,6 +557,13 @@ func DecodeGRPCLikeStatusRequest(_ context.Context, grpcReq interface{}) (interf
 // gRPC unlikestatus request to a user-domain unlikestatus request. Primarily useful in a server.
 func DecodeGRPCUnLikeStatusRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.UnLikeStatusRequest)
+	return req, nil
+}
+
+// DecodeGRPCListLikeStatusRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC listlikestatus request to a user-domain listlikestatus request. Primarily useful in a server.
+func DecodeGRPCListLikeStatusRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ListLikeRequest)
 	return req, nil
 }
 
@@ -488,6 +637,13 @@ func DecodeGRPCReadMessageRequest(_ context.Context, grpcReq interface{}) (inter
 	return req, nil
 }
 
+// DecodeGRPCGetMessageSummaryRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC getmessagesummary request to a user-domain getmessagesummary request. Primarily useful in a server.
+func DecodeGRPCGetMessageSummaryRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.GetMessageSummaryRequest)
+	return req, nil
+}
+
 // DecodeGRPCListCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC listcomment request to a user-domain listcomment request. Primarily useful in a server.
 func DecodeGRPCListCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -495,10 +651,52 @@ func DecodeGRPCListCommentRequest(_ context.Context, grpcReq interface{}) (inter
 	return req, nil
 }
 
+// DecodeGRPCNewRecommendStatusRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC newrecommendstatus request to a user-domain newrecommendstatus request. Primarily useful in a server.
+func DecodeGRPCNewRecommendStatusRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.NewRecommendStatusResquest)
+	return req, nil
+}
+
 // DecodeGRPCCreateCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC createcomment request to a user-domain createcomment request. Primarily useful in a server.
 func DecodeGRPCCreateCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.CreateCommentRequest)
+	return req, nil
+}
+
+// DecodeGRPCLikeCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC likecomment request to a user-domain likecomment request. Primarily useful in a server.
+func DecodeGRPCLikeCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.LikeCommentRequest)
+	return req, nil
+}
+
+// DecodeGRPCUnlikeCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC unlikecomment request to a user-domain unlikecomment request. Primarily useful in a server.
+func DecodeGRPCUnlikeCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.UnlikeCommentRequest)
+	return req, nil
+}
+
+// DecodeGRPCListBlacklistRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC listblacklist request to a user-domain listblacklist request. Primarily useful in a server.
+func DecodeGRPCListBlacklistRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ListBlacklistRequest)
+	return req, nil
+}
+
+// DecodeGRPCCreateBlacklistRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC createblacklist request to a user-domain createblacklist request. Primarily useful in a server.
+func DecodeGRPCCreateBlacklistRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.CreateBlacklistRequest)
+	return req, nil
+}
+
+// DecodeGRPCDeleteBlacklistRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC deleteblacklist request to a user-domain deleteblacklist request. Primarily useful in a server.
+func DecodeGRPCDeleteBlacklistRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.DeleteBlacklistRequest)
 	return req, nil
 }
 
@@ -546,6 +744,13 @@ func EncodeGRPCCreateStatusResponse(_ context.Context, response interface{}) (in
 	return resp, nil
 }
 
+// EncodeGRPCUpdateStatusResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain updatestatus response to a gRPC updatestatus reply. Primarily useful in a server.
+func EncodeGRPCUpdateStatusResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.UpdateStatusResponse)
+	return resp, nil
+}
+
 // EncodeGRPCDeleteStatusResponse is a transport/grpc.EncodeResponseFunc that converts a
 // user-domain deletestatus response to a gRPC deletestatus reply. Primarily useful in a server.
 func EncodeGRPCDeleteStatusResponse(_ context.Context, response interface{}) (interface{}, error) {
@@ -564,6 +769,13 @@ func EncodeGRPCLikeStatusResponse(_ context.Context, response interface{}) (inte
 // user-domain unlikestatus response to a gRPC unlikestatus reply. Primarily useful in a server.
 func EncodeGRPCUnLikeStatusResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.SimpleResponse)
+	return resp, nil
+}
+
+// EncodeGRPCListLikeStatusResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain listlikestatus response to a gRPC listlikestatus reply. Primarily useful in a server.
+func EncodeGRPCListLikeStatusResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.ListLikeResponse)
 	return resp, nil
 }
 
@@ -637,6 +849,13 @@ func EncodeGRPCReadMessageResponse(_ context.Context, response interface{}) (int
 	return resp, nil
 }
 
+// EncodeGRPCGetMessageSummaryResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain getmessagesummary response to a gRPC getmessagesummary reply. Primarily useful in a server.
+func EncodeGRPCGetMessageSummaryResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.MessageSummaryResponse)
+	return resp, nil
+}
+
 // EncodeGRPCListCommentResponse is a transport/grpc.EncodeResponseFunc that converts a
 // user-domain listcomment response to a gRPC listcomment reply. Primarily useful in a server.
 func EncodeGRPCListCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
@@ -644,10 +863,52 @@ func EncodeGRPCListCommentResponse(_ context.Context, response interface{}) (int
 	return resp, nil
 }
 
+// EncodeGRPCNewRecommendStatusResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain newrecommendstatus response to a gRPC newrecommendstatus reply. Primarily useful in a server.
+func EncodeGRPCNewRecommendStatusResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.NewRecommendStatusResponse)
+	return resp, nil
+}
+
 // EncodeGRPCCreateCommentResponse is a transport/grpc.EncodeResponseFunc that converts a
 // user-domain createcomment response to a gRPC createcomment reply. Primarily useful in a server.
 func EncodeGRPCCreateCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.CreateCommentResponse)
+	return resp, nil
+}
+
+// EncodeGRPCLikeCommentResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain likecomment response to a gRPC likecomment reply. Primarily useful in a server.
+func EncodeGRPCLikeCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.SimpleResponse)
+	return resp, nil
+}
+
+// EncodeGRPCUnlikeCommentResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain unlikecomment response to a gRPC unlikecomment reply. Primarily useful in a server.
+func EncodeGRPCUnlikeCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.SimpleResponse)
+	return resp, nil
+}
+
+// EncodeGRPCListBlacklistResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain listblacklist response to a gRPC listblacklist reply. Primarily useful in a server.
+func EncodeGRPCListBlacklistResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.ListBlacklistResponse)
+	return resp, nil
+}
+
+// EncodeGRPCCreateBlacklistResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain createblacklist response to a gRPC createblacklist reply. Primarily useful in a server.
+func EncodeGRPCCreateBlacklistResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.SimpleResponse)
+	return resp, nil
+}
+
+// EncodeGRPCDeleteBlacklistResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain deleteblacklist response to a gRPC deleteblacklist reply. Primarily useful in a server.
+func EncodeGRPCDeleteBlacklistResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.SimpleResponse)
 	return resp, nil
 }
 

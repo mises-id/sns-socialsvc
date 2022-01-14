@@ -9,6 +9,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/mises-id/sns-socialsvc/lib/storage"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -27,14 +28,16 @@ type User struct {
 	Email          string         `bson:"email,omitempty"`
 	Address        string         `bson:"address,omitempty"`
 	AvatarPath     string         `bson:"avatar_path,omitempty"`
-	FollowingCount int64          `bson:"following_count,omitempty"`
-	FansCount      int64          `bson:"fans_count,omitempty"`
-	LatestPostTime *time.Time     `bson:"latest_post_time,omitempty"`
+	FollowingCount uint32         `bson:"following_count,omitempty"`
+	FansCount      uint32         `bson:"fans_count,omitempty"`
+	LikedCount     uint32         `bson:"liked_count,omitempty"`
 	CreatedAt      time.Time      `bson:"created_at,omitempty"`
 	UpdatedAt      time.Time      `bson:"updated_at,omitempty"`
 	AvatarUrl      string         `bson:"-"`
 	IsFollowed     bool           `bson:"-"`
 	Tags           []enum.TagType `bson:"tags"`
+	IsBlocked      bool           `bson:"-"`
+	NewFansCount   uint32         `bson:"-"`
 }
 
 func (u *User) Validate(ctx context.Context) error {
@@ -63,34 +66,6 @@ func (u *User) BeforeUpdate(ctx context.Context) error {
 		return err
 	}
 	return nil
-}
-
-func (u *User) IncFollowingCount(ctx context.Context) error {
-	return db.DB().Collection("users").FindOneAndUpdate(ctx, bson.M{"_id": u.UID},
-		bson.D{{
-			Key: "$inc",
-			Value: bson.D{{
-				Key:   "following_count",
-				Value: 1,
-			}, {
-				Key:   "updated_at",
-				Value: time.Now(),
-			}}},
-		}).Err()
-}
-
-func (u *User) IncFansCount(ctx context.Context) error {
-	return db.DB().Collection("users").FindOneAndUpdate(ctx, bson.M{"_id": u.UID},
-		bson.D{{
-			Key: "$inc",
-			Value: bson.D{{
-				Key:   "fans_count",
-				Value: 1,
-			}, {
-				Key:   "updated_at",
-				Value: time.Now(),
-			}}},
-		}).Err()
 }
 
 func (u *User) UpdatePostTime(ctx context.Context, t time.Time) error {
@@ -126,19 +101,20 @@ func FindUser(ctx context.Context, uid uint64) (*User, error) {
 	return user, result.Decode(user)
 }
 
-func FindOrCreateUserByMisesid(ctx context.Context, misesid string) (*User, error) {
+func FindOrCreateUserByMisesid(ctx context.Context, misesid string) (*User, bool, error) {
 	user := &User{}
 	result := db.DB().Collection("users").FindOne(ctx, &bson.M{
 		"misesid": misesid,
 	})
 	err := result.Err()
 	if err == mongo.ErrNoDocuments {
-		return createMisesUser(ctx, misesid)
+		created, err := createMisesUser(ctx, misesid)
+		return created, true, err
 	}
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
-	return user, result.Decode(user)
+	return user, false, result.Decode(user)
 }
 
 func UpdateUserProfile(ctx context.Context, user *User) error {
@@ -200,7 +176,41 @@ func createMisesUser(ctx context.Context, misesid string) (*User, error) {
 	return user, err
 }
 
-func PreloadUserAvatar(ctx context.Context, users ...*User) error {
+func FindUserByIDs(ctx context.Context, ids ...uint64) ([]*User, error) {
+	users := make([]*User, 0)
+	err := db.ODM(ctx).Where(bson.M{"_id": bson.M{"$in": ids}}).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, PreloadUserData(ctx, users...)
+}
+
+func GetUserMap(ctx context.Context, ids ...uint64) (map[uint64]*User, error) {
+	users, err := FindUserByIDs(ctx, ids...)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make(map[uint64]*User)
+	for _, user := range users {
+		result[user.UID] = user
+	}
+	return result, nil
+}
+
+func PreloadUserData(ctx context.Context, users ...*User) error {
+	err := preloadUserAvatar(ctx, users...)
+	if err != nil {
+		return err
+	}
+	err = preloadCurrentUserRelationship(ctx, users...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func preloadUserAvatar(ctx context.Context, users ...*User) error {
 	paths := make([]string, 0)
 	for _, user := range users {
 		if user.AvatarPath != "" {
@@ -213,6 +223,34 @@ func PreloadUserAvatar(ctx context.Context, users ...*User) error {
 	}
 	for _, user := range users {
 		user.AvatarUrl = avatars[user.AvatarPath]
+	}
+	return nil
+}
+
+func preloadCurrentUserRelationship(ctx context.Context, users ...*User) error {
+	currentUID := ctx.Value(utils.CurrentUIDKey{})
+	if currentUID == nil {
+		return nil
+	}
+	uid := currentUID.(uint64)
+	if uid == 0 {
+		return nil
+	}
+	toUIDs := make([]uint64, len(users))
+	for i, user := range users {
+		toUIDs[i] = user.UID
+	}
+	followMap, err := GetFollowMap(ctx, uid, toUIDs)
+	if err != nil {
+		return err
+	}
+	blacklistMap, err := GetBlacklistMap(ctx, uid, toUIDs)
+	if err != nil {
+		return err
+	}
+	for _, user := range users {
+		user.IsFollowed = followMap[user.UID] != nil
+		user.IsBlocked = blacklistMap[user.UID] != nil
 	}
 	return nil
 }

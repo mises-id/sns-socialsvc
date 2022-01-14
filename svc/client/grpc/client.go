@@ -114,6 +114,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var updatestatusEndpoint endpoint.Endpoint
+	{
+		updatestatusEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"UpdateStatus",
+			EncodeGRPCUpdateStatusRequest,
+			DecodeGRPCUpdateStatusResponse,
+			pb.UpdateStatusResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	var deletestatusEndpoint endpoint.Endpoint
 	{
 		deletestatusEndpoint = grpctransport.NewClient(
@@ -149,6 +162,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 			EncodeGRPCUnLikeStatusRequest,
 			DecodeGRPCUnLikeStatusResponse,
 			pb.SimpleResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var listlikestatusEndpoint endpoint.Endpoint
+	{
+		listlikestatusEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"ListLikeStatus",
+			EncodeGRPCListLikeStatusRequest,
+			DecodeGRPCListLikeStatusResponse,
+			pb.ListLikeResponse{},
 			clientOptions...,
 		).Endpoint()
 	}
@@ -283,6 +309,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var getmessagesummaryEndpoint endpoint.Endpoint
+	{
+		getmessagesummaryEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"GetMessageSummary",
+			EncodeGRPCGetMessageSummaryRequest,
+			DecodeGRPCGetMessageSummaryResponse,
+			pb.MessageSummaryResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	var listcommentEndpoint endpoint.Endpoint
 	{
 		listcommentEndpoint = grpctransport.NewClient(
@@ -292,6 +331,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 			EncodeGRPCListCommentRequest,
 			DecodeGRPCListCommentResponse,
 			pb.ListCommentResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var newrecommendstatusEndpoint endpoint.Endpoint
+	{
+		newrecommendstatusEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"NewRecommendStatus",
+			EncodeGRPCNewRecommendStatusRequest,
+			DecodeGRPCNewRecommendStatusResponse,
+			pb.NewRecommendStatusResponse{},
 			clientOptions...,
 		).Endpoint()
 	}
@@ -309,28 +361,102 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var likecommentEndpoint endpoint.Endpoint
+	{
+		likecommentEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"LikeComment",
+			EncodeGRPCLikeCommentRequest,
+			DecodeGRPCLikeCommentResponse,
+			pb.SimpleResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var unlikecommentEndpoint endpoint.Endpoint
+	{
+		unlikecommentEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"UnlikeComment",
+			EncodeGRPCUnlikeCommentRequest,
+			DecodeGRPCUnlikeCommentResponse,
+			pb.SimpleResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var listblacklistEndpoint endpoint.Endpoint
+	{
+		listblacklistEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"ListBlacklist",
+			EncodeGRPCListBlacklistRequest,
+			DecodeGRPCListBlacklistResponse,
+			pb.ListBlacklistResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var createblacklistEndpoint endpoint.Endpoint
+	{
+		createblacklistEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"CreateBlacklist",
+			EncodeGRPCCreateBlacklistRequest,
+			DecodeGRPCCreateBlacklistResponse,
+			pb.SimpleResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var deleteblacklistEndpoint endpoint.Endpoint
+	{
+		deleteblacklistEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"DeleteBlacklist",
+			EncodeGRPCDeleteBlacklistRequest,
+			DecodeGRPCDeleteBlacklistResponse,
+			pb.SimpleResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	return svc.Endpoints{
-		SignInEndpoint:            signinEndpoint,
-		FindUserEndpoint:          finduserEndpoint,
-		UpdateUserProfileEndpoint: updateuserprofileEndpoint,
-		UpdateUserAvatarEndpoint:  updateuseravatarEndpoint,
-		UpdateUserNameEndpoint:    updateusernameEndpoint,
-		CreateStatusEndpoint:      createstatusEndpoint,
-		DeleteStatusEndpoint:      deletestatusEndpoint,
-		LikeStatusEndpoint:        likestatusEndpoint,
-		UnLikeStatusEndpoint:      unlikestatusEndpoint,
-		GetStatusEndpoint:         getstatusEndpoint,
-		ListStatusEndpoint:        liststatusEndpoint,
-		ListRecommendedEndpoint:   listrecommendedEndpoint,
-		ListUserTimelineEndpoint:  listusertimelineEndpoint,
-		LatestFollowingEndpoint:   latestfollowingEndpoint,
-		ListRelationshipEndpoint:  listrelationshipEndpoint,
-		FollowEndpoint:            followEndpoint,
-		UnFollowEndpoint:          unfollowEndpoint,
-		ListMessageEndpoint:       listmessageEndpoint,
-		ReadMessageEndpoint:       readmessageEndpoint,
-		ListCommentEndpoint:       listcommentEndpoint,
-		CreateCommentEndpoint:     createcommentEndpoint,
+		SignInEndpoint:             signinEndpoint,
+		FindUserEndpoint:           finduserEndpoint,
+		UpdateUserProfileEndpoint:  updateuserprofileEndpoint,
+		UpdateUserAvatarEndpoint:   updateuseravatarEndpoint,
+		UpdateUserNameEndpoint:     updateusernameEndpoint,
+		CreateStatusEndpoint:       createstatusEndpoint,
+		UpdateStatusEndpoint:       updatestatusEndpoint,
+		DeleteStatusEndpoint:       deletestatusEndpoint,
+		LikeStatusEndpoint:         likestatusEndpoint,
+		UnLikeStatusEndpoint:       unlikestatusEndpoint,
+		ListLikeStatusEndpoint:     listlikestatusEndpoint,
+		GetStatusEndpoint:          getstatusEndpoint,
+		ListStatusEndpoint:         liststatusEndpoint,
+		ListRecommendedEndpoint:    listrecommendedEndpoint,
+		ListUserTimelineEndpoint:   listusertimelineEndpoint,
+		LatestFollowingEndpoint:    latestfollowingEndpoint,
+		ListRelationshipEndpoint:   listrelationshipEndpoint,
+		FollowEndpoint:             followEndpoint,
+		UnFollowEndpoint:           unfollowEndpoint,
+		ListMessageEndpoint:        listmessageEndpoint,
+		ReadMessageEndpoint:        readmessageEndpoint,
+		GetMessageSummaryEndpoint:  getmessagesummaryEndpoint,
+		ListCommentEndpoint:        listcommentEndpoint,
+		NewRecommendStatusEndpoint: newrecommendstatusEndpoint,
+		CreateCommentEndpoint:      createcommentEndpoint,
+		LikeCommentEndpoint:        likecommentEndpoint,
+		UnlikeCommentEndpoint:      unlikecommentEndpoint,
+		ListBlacklistEndpoint:      listblacklistEndpoint,
+		CreateBlacklistEndpoint:    createblacklistEndpoint,
+		DeleteBlacklistEndpoint:    deleteblacklistEndpoint,
 	}, nil
 }
 
@@ -378,6 +504,13 @@ func DecodeGRPCCreateStatusResponse(_ context.Context, grpcReply interface{}) (i
 	return reply, nil
 }
 
+// DecodeGRPCUpdateStatusResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC updatestatus reply to a user-domain updatestatus response. Primarily useful in a client.
+func DecodeGRPCUpdateStatusResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.UpdateStatusResponse)
+	return reply, nil
+}
+
 // DecodeGRPCDeleteStatusResponse is a transport/grpc.DecodeResponseFunc that converts a
 // gRPC deletestatus reply to a user-domain deletestatus response. Primarily useful in a client.
 func DecodeGRPCDeleteStatusResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
@@ -396,6 +529,13 @@ func DecodeGRPCLikeStatusResponse(_ context.Context, grpcReply interface{}) (int
 // gRPC unlikestatus reply to a user-domain unlikestatus response. Primarily useful in a client.
 func DecodeGRPCUnLikeStatusResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.SimpleResponse)
+	return reply, nil
+}
+
+// DecodeGRPCListLikeStatusResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC listlikestatus reply to a user-domain listlikestatus response. Primarily useful in a client.
+func DecodeGRPCListLikeStatusResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.ListLikeResponse)
 	return reply, nil
 }
 
@@ -469,6 +609,13 @@ func DecodeGRPCReadMessageResponse(_ context.Context, grpcReply interface{}) (in
 	return reply, nil
 }
 
+// DecodeGRPCGetMessageSummaryResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC getmessagesummary reply to a user-domain getmessagesummary response. Primarily useful in a client.
+func DecodeGRPCGetMessageSummaryResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.MessageSummaryResponse)
+	return reply, nil
+}
+
 // DecodeGRPCListCommentResponse is a transport/grpc.DecodeResponseFunc that converts a
 // gRPC listcomment reply to a user-domain listcomment response. Primarily useful in a client.
 func DecodeGRPCListCommentResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
@@ -476,10 +623,52 @@ func DecodeGRPCListCommentResponse(_ context.Context, grpcReply interface{}) (in
 	return reply, nil
 }
 
+// DecodeGRPCNewRecommendStatusResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC newrecommendstatus reply to a user-domain newrecommendstatus response. Primarily useful in a client.
+func DecodeGRPCNewRecommendStatusResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.NewRecommendStatusResponse)
+	return reply, nil
+}
+
 // DecodeGRPCCreateCommentResponse is a transport/grpc.DecodeResponseFunc that converts a
 // gRPC createcomment reply to a user-domain createcomment response. Primarily useful in a client.
 func DecodeGRPCCreateCommentResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.CreateCommentResponse)
+	return reply, nil
+}
+
+// DecodeGRPCLikeCommentResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC likecomment reply to a user-domain likecomment response. Primarily useful in a client.
+func DecodeGRPCLikeCommentResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.SimpleResponse)
+	return reply, nil
+}
+
+// DecodeGRPCUnlikeCommentResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC unlikecomment reply to a user-domain unlikecomment response. Primarily useful in a client.
+func DecodeGRPCUnlikeCommentResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.SimpleResponse)
+	return reply, nil
+}
+
+// DecodeGRPCListBlacklistResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC listblacklist reply to a user-domain listblacklist response. Primarily useful in a client.
+func DecodeGRPCListBlacklistResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.ListBlacklistResponse)
+	return reply, nil
+}
+
+// DecodeGRPCCreateBlacklistResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC createblacklist reply to a user-domain createblacklist response. Primarily useful in a client.
+func DecodeGRPCCreateBlacklistResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.SimpleResponse)
+	return reply, nil
+}
+
+// DecodeGRPCDeleteBlacklistResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC deleteblacklist reply to a user-domain deleteblacklist response. Primarily useful in a client.
+func DecodeGRPCDeleteBlacklistResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.SimpleResponse)
 	return reply, nil
 }
 
@@ -527,6 +716,13 @@ func EncodeGRPCCreateStatusRequest(_ context.Context, request interface{}) (inte
 	return req, nil
 }
 
+// EncodeGRPCUpdateStatusRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain updatestatus request to a gRPC updatestatus request. Primarily useful in a client.
+func EncodeGRPCUpdateStatusRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.UpdateStatusRequest)
+	return req, nil
+}
+
 // EncodeGRPCDeleteStatusRequest is a transport/grpc.EncodeRequestFunc that converts a
 // user-domain deletestatus request to a gRPC deletestatus request. Primarily useful in a client.
 func EncodeGRPCDeleteStatusRequest(_ context.Context, request interface{}) (interface{}, error) {
@@ -545,6 +741,13 @@ func EncodeGRPCLikeStatusRequest(_ context.Context, request interface{}) (interf
 // user-domain unlikestatus request to a gRPC unlikestatus request. Primarily useful in a client.
 func EncodeGRPCUnLikeStatusRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.UnLikeStatusRequest)
+	return req, nil
+}
+
+// EncodeGRPCListLikeStatusRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain listlikestatus request to a gRPC listlikestatus request. Primarily useful in a client.
+func EncodeGRPCListLikeStatusRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.ListLikeRequest)
 	return req, nil
 }
 
@@ -618,6 +821,13 @@ func EncodeGRPCReadMessageRequest(_ context.Context, request interface{}) (inter
 	return req, nil
 }
 
+// EncodeGRPCGetMessageSummaryRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain getmessagesummary request to a gRPC getmessagesummary request. Primarily useful in a client.
+func EncodeGRPCGetMessageSummaryRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.GetMessageSummaryRequest)
+	return req, nil
+}
+
 // EncodeGRPCListCommentRequest is a transport/grpc.EncodeRequestFunc that converts a
 // user-domain listcomment request to a gRPC listcomment request. Primarily useful in a client.
 func EncodeGRPCListCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
@@ -625,10 +835,52 @@ func EncodeGRPCListCommentRequest(_ context.Context, request interface{}) (inter
 	return req, nil
 }
 
+// EncodeGRPCNewRecommendStatusRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain newrecommendstatus request to a gRPC newrecommendstatus request. Primarily useful in a client.
+func EncodeGRPCNewRecommendStatusRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.NewRecommendStatusResquest)
+	return req, nil
+}
+
 // EncodeGRPCCreateCommentRequest is a transport/grpc.EncodeRequestFunc that converts a
 // user-domain createcomment request to a gRPC createcomment request. Primarily useful in a client.
 func EncodeGRPCCreateCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.CreateCommentRequest)
+	return req, nil
+}
+
+// EncodeGRPCLikeCommentRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain likecomment request to a gRPC likecomment request. Primarily useful in a client.
+func EncodeGRPCLikeCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.LikeCommentRequest)
+	return req, nil
+}
+
+// EncodeGRPCUnlikeCommentRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain unlikecomment request to a gRPC unlikecomment request. Primarily useful in a client.
+func EncodeGRPCUnlikeCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.UnlikeCommentRequest)
+	return req, nil
+}
+
+// EncodeGRPCListBlacklistRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain listblacklist request to a gRPC listblacklist request. Primarily useful in a client.
+func EncodeGRPCListBlacklistRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.ListBlacklistRequest)
+	return req, nil
+}
+
+// EncodeGRPCCreateBlacklistRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain createblacklist request to a gRPC createblacklist request. Primarily useful in a client.
+func EncodeGRPCCreateBlacklistRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.CreateBlacklistRequest)
+	return req, nil
+}
+
+// EncodeGRPCDeleteBlacklistRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain deleteblacklist request to a gRPC deleteblacklist request. Primarily useful in a client.
+func EncodeGRPCDeleteBlacklistRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.DeleteBlacklistRequest)
 	return req, nil
 }
 

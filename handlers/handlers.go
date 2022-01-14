@@ -9,6 +9,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
+	blacklistSVC "github.com/mises-id/sns-socialsvc/app/services/blacklist"
 	commentSVC "github.com/mises-id/sns-socialsvc/app/services/comment"
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
 	messageSVC "github.com/mises-id/sns-socialsvc/app/services/message"
@@ -17,9 +18,21 @@ import (
 	userSVC "github.com/mises-id/sns-socialsvc/app/services/user"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	pb "github.com/mises-id/sns-socialsvc/proto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+type requestWithCurrentUID interface {
+	GetCurrentUid() uint64
+}
+
+func contextWithCurrentUID(parent context.Context, in requestWithCurrentUID) context.Context {
+	if in.GetCurrentUid() == 0 {
+		return parent
+	}
+	return context.WithValue(parent, utils.CurrentUIDKey{}, in.GetCurrentUid())
+}
 
 // NewService returns a naïve, stateless implementation of Service.
 func NewService() pb.SocialServer {
@@ -40,7 +53,7 @@ func (s socialService) SignIn(ctx context.Context, in *pb.SignInRequest) (*pb.Si
 
 func (s socialService) FindUser(ctx context.Context, in *pb.FindUserRequest) (*pb.FindUserResponse, error) {
 	var resp pb.FindUserResponse
-	user, err := userSVC.FindUser(ctx, in.Uid)
+	user, err := userSVC.FindUser(contextWithCurrentUID(ctx, in), in.Uid)
 	if err != nil {
 		return nil, err
 	}
@@ -67,6 +80,7 @@ func (s socialService) UpdateUserProfile(ctx context.Context, in *pb.UpdateUserP
 	}
 	resp.Code = 0
 	resp.User = factory.NewUserInfo(user)
+
 	return &resp, nil
 }
 
@@ -123,7 +137,7 @@ func (s socialService) ListStatus(ctx context.Context, in *pb.ListStatusRequest)
 			Limit:  int64(in.Paginator.Limit),
 			NextID: in.Paginator.NextId,
 		},
-		CurrentUID: in.CurrentUid,
+		CurrentUID: in.GetCurrentUid(),
 		UID:        in.TargetUid,
 		FromTypes:  fromTypes,
 	})
@@ -144,8 +158,10 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 	var resp pb.CreateStatusResponse
 
 	param := &statusSVC.CreateStatusParams{
-		StatusType: in.StatusType,
-		Content:    in.Content,
+		StatusType:   in.StatusType,
+		Content:      in.Content,
+		IsPrivate:    in.IsPrivate,
+		ShowDuration: int64(in.ShowDuration),
 	}
 	fmt.Println(in)
 	fromType, err := enum.FromTypeFromString(in.FromType)
@@ -180,6 +196,26 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 	param.Meta = data
 	status, err := statusSVC.CreateStatus(ctx, in.CurrentUid, param)
 
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Status = factory.NewStatusInfo(status)
+	return &resp, nil
+}
+
+func (s socialService) UpdateStatus(ctx context.Context, in *pb.UpdateStatusRequest) (*pb.UpdateStatusResponse, error) {
+	var resp pb.UpdateStatusResponse
+	statusID, err := primitive.ObjectIDFromHex(in.StatusId)
+	if err != nil {
+		return nil, err
+	}
+	param := &statusSVC.UpdateStatusParams{
+		ID:           statusID,
+		IsPrivate:    in.IsPrivate,
+		ShowDuration: int64(in.ShowDuration),
+	}
+	status, err := statusSVC.UpdateStatus(ctx, in.CurrentUid, param)
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +289,7 @@ func (s socialService) ListRelationship(ctx context.Context, in *pb.ListRelation
 	if err != nil {
 		return nil, err
 	}
-	relations, page, err := friendshipSVC.ListFriendship(ctx, in.CurrentUid, relationType, &pagination.QuickPagination{
+	relations, page, err := friendshipSVC.ListFriendship(contextWithCurrentUID(ctx, in), in.Uid, relationType, &pagination.QuickPagination{
 		Limit:  int64(in.Paginator.Limit),
 		NextID: in.Paginator.NextId,
 	})
@@ -335,13 +371,60 @@ func (s socialService) ListMessage(ctx context.Context, in *pb.ListMessageReques
 
 func (s socialService) ReadMessage(ctx context.Context, in *pb.ReadMessageRequest) (*pb.SimpleResponse, error) {
 	var resp pb.SimpleResponse
+	var latestID primitive.ObjectID
+	var messageIDs []primitive.ObjectID
+	var err error
+	if in.GetIds() != nil {
+		messageIDs = make([]primitive.ObjectID, len(in.GetIds()))
+		for i, id := range in.GetIds() {
+			messageIDs[i], err = primitive.ObjectIDFromHex(id)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	if in.GetLatestID() != "" {
+		latestID, err = primitive.ObjectIDFromHex(in.GetLatestID())
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = messageSVC.ReadMessages(ctx, &messageSVC.ReadMessageParams{
+		ReadMessageParams: &models.ReadMessageParams{
+			UID:        in.GetCurrentUid(),
+			MessageIDs: messageIDs,
+			LatestID:   latestID,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
 	return &resp, nil
 }
 
 func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
 	var resp pb.ListCommentResponse
-	comments, page, err := commentSVC.ListComment(ctx, &commentSVC.ListCommentParams{
-		ListCommentParams: models.ListCommentParams{},
+	statusID, err := primitive.ObjectIDFromHex(in.GetStatusId())
+	if err != nil {
+		return nil, err
+	}
+	var groupID primitive.ObjectID
+	if in.GetTopicId() != "" {
+		groupID, err = primitive.ObjectIDFromHex(in.GetTopicId())
+		if err != nil {
+			return nil, err
+		}
+	}
+	comments, page, err := commentSVC.ListComment(contextWithCurrentUID(ctx, in), &commentSVC.ListCommentParams{
+		ListCommentParams: models.ListCommentParams{
+			StatusID: statusID,
+			GroupID:  groupID,
+			PageParams: &pagination.PageQuickParams{
+				Limit:  int64(in.Paginator.Limit),
+				NextID: in.Paginator.NextId,
+			},
+		},
 	})
 	if err != nil {
 		return nil, err
@@ -370,6 +453,131 @@ func (s socialService) LatestFollowing(ctx context.Context, in *pb.LatestFollowi
 
 func (s socialService) CreateComment(ctx context.Context, in *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
 	var resp pb.CreateCommentResponse
+	statusID, err := primitive.ObjectIDFromHex(in.GetStatusId())
+	if err != nil {
+		return nil, err
+	}
+	var parentID primitive.ObjectID
+	if in.GetParentId() != "" {
+		parentID, err = primitive.ObjectIDFromHex(in.GetParentId())
+		if err != nil {
+			return nil, err
+		}
+	}
+	comment, err := commentSVC.CreateComment(ctx, &commentSVC.CreateCommentParams{
+		CreateCommentParams: &models.CreateCommentParams{
+			StatusID: statusID,
+			ParentID: parentID,
+			UID:      in.GetCurrentUid(),
+			Content:  in.GetContent(),
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Comment = factory.NewComment(comment)
+	return &resp, nil
+}
+
+func (s socialService) LikeComment(ctx context.Context, in *pb.LikeCommentRequest) (*pb.SimpleResponse, error) {
+	var resp pb.SimpleResponse
+	commentID, err := primitive.ObjectIDFromHex(in.GetCommentId())
+	if err != nil {
+		return nil, err
+	}
+	if _, err := commentSVC.LikeComment(ctx, in.CurrentUid, commentID); err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	return &resp, nil
+}
+
+func (s socialService) UnlikeComment(ctx context.Context, in *pb.UnlikeCommentRequest) (*pb.SimpleResponse, error) {
+	var resp pb.SimpleResponse
+	commentID, err := primitive.ObjectIDFromHex(in.GetCommentId())
+	if err != nil {
+		return nil, err
+	}
+	if err := commentSVC.UnlikeComment(ctx, in.CurrentUid, commentID); err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	return &resp, nil
+}
+
+func (s socialService) ListLikeStatus(ctx context.Context, in *pb.ListLikeRequest) (*pb.ListLikeResponse, error) {
+	var resp pb.ListLikeResponse
+	likes, page, err := statusSVC.ListLikeStatus(contextWithCurrentUID(ctx, in), &statusSVC.ListLikeStatusParams{
+		UID: in.GetUid(),
+		PageParams: &pagination.PageQuickParams{
+			Limit:  int64(in.Paginator.Limit),
+			NextID: in.Paginator.NextId,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Statuses = factory.NewStatusLikeSlice(likes)
+	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
+	resp.Paginator = &pb.PageQuick{
+		Limit:  uint64(quickpage.Limit),
+		NextId: quickpage.NextID,
+	}
+	return &resp, nil
+}
+
+func (s socialService) DeleteBlacklist(ctx context.Context, in *pb.DeleteBlacklistRequest) (*pb.SimpleResponse, error) {
+	var resp pb.SimpleResponse
+	err := blacklistSVC.DeleteBlacklist(ctx, in.GetUid(), in.GetTargetUid())
+	resp.Code = 0
+	return &resp, err
+}
+
+func (s socialService) ListBlacklist(ctx context.Context, in *pb.ListBlacklistRequest) (*pb.ListBlacklistResponse, error) {
+	var resp pb.ListBlacklistResponse
+	blacklists, page, err := blacklistSVC.ListBlacklist(ctx, &blacklistSVC.ListBlacklistParams{
+		UID: in.GetUid(),
+		PageParams: &pagination.PageQuickParams{
+			Limit:  int64(in.Paginator.Limit),
+			NextID: in.Paginator.NextId,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Blacklists = factory.NewBlacklistSlice(blacklists)
+	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
+	resp.Paginator = &pb.PageQuick{
+		Limit:  uint64(quickpage.Limit),
+		NextId: quickpage.NextID,
+	}
+
+	return &resp, nil
+}
+
+func (s socialService) CreateBlacklist(ctx context.Context, in *pb.CreateBlacklistRequest) (*pb.SimpleResponse, error) {
+	var resp pb.SimpleResponse
+	_, err := blacklistSVC.CreateBlacklist(ctx, in.GetUid(), in.GetTargetUid())
+	resp.Code = 0
+	return &resp, err
+}
+
+func (s socialService) GetMessageSummary(ctx context.Context, in *pb.GetMessageSummaryRequest) (*pb.MessageSummaryResponse, error) {
+	var resp pb.MessageSummaryResponse
+	summary, err := messageSVC.GetMessageSummary(ctx, in.GetCurrentUid())
+	if err != nil {
+		return nil, err
+	}
+	resp.Summary = &pb.MessageSummary{
+		LatestMessage:      factory.NewMessage(summary.LatestMessage),
+		Total:              summary.Total,
+		NotificationsCount: summary.NotificationsCount,
+		UsersCount:         summary.UsersCount,
+	}
+	resp.Code = 0
 	return &resp, nil
 }
 

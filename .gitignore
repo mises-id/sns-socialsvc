@@ -1,4 +1,5 @@
 main
 keystore
 .env.*.local
-
+coverage.out
+foo/*

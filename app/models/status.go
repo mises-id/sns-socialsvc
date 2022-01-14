@@ -5,11 +5,13 @@ import (
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"github.com/mises-id/sns-socialsvc/lib/storage"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -68,6 +70,21 @@ func (s *Status) BeforeCreate(ctx context.Context) error {
 	return s.validate(ctx)
 }
 
+func (s *Status) ContentSummary() string {
+	content := []rune(s.Content)
+	if len(content) < 40 {
+		return string(content)
+	}
+	return string(content[:40])
+}
+
+func (s *Status) FirstImage() string {
+	if s.ImageMeta != nil && len(s.ImageMeta.Images) > 0 {
+		return s.ImageMeta.Images[0]
+	}
+	return ""
+}
+
 func (s *Status) AfterCreate(ctx context.Context) error {
 	var err error
 	counterKey := s.FromType.CounterKey()
@@ -76,28 +93,68 @@ func (s *Status) AfterCreate(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
+		message := &CreateMessageParams{
+			UID:         s.ParentStatus.UID,
+			FromUID:     s.UID,
+			MessageType: enum.NewForward,
+			MetaData: &message.MetaData{
+				ForwardMeta: &message.ForwardMeta{
+					UID:            s.UID,
+					StatusID:       s.ID,
+					ForwardContent: s.Content,
+					ContentSummary: s.ParentStatus.ContentSummary(),
+					ImagePath:      s.ParentStatus.FirstImage(),
+				},
+			},
+		}
+		_, err = CreateMessage(ctx, message)
+		if err != nil {
+			return err
+		}
 	}
-	return nil
+	return s.notifyFans(ctx)
 }
 
-func (s *Status) Hide(ctx context.Context, duration int64) error {
-	if duration < 0 {
-		s.HideTime = nil
-	} else {
-		t := time.Now().Add(time.Second * time.Duration(duration))
-		s.HideTime = &t
+func (s *Status) GetHideTime() uint64 {
+	if s.HideTime == nil {
+		return 0
 	}
-	err := db.DB().Collection("statuses").FindOneAndUpdate(ctx, bson.M{"_id": s.ID},
+	return uint64(s.HideTime.Unix())
+}
+
+func (s *Status) UpdateHideTime(ctx context.Context, isPrivate bool, showDuration int64) error {
+	var t *time.Time
+	if isPrivate {
+		hideTime := time.Now().Add(time.Second * time.Duration(showDuration))
+		t = &hideTime
+	}
+	_, err := db.DB().Collection("statuses").UpdateMany(ctx, bson.M{"_id": s.ID},
 		bson.D{{
 			Key: "$set",
 			Value: bson.D{{
 				Key:   "hide_time",
-				Value: s.HideTime,
+				Value: t,
+			}}},
+		})
+	return err
+}
+
+func (s *Status) notifyFans(ctx context.Context) error {
+	t := time.Now()
+	_, err := db.DB().Collection("follows").UpdateMany(ctx, bson.M{"to_uid": s.UID},
+		bson.D{{
+			Key: "$set",
+			Value: bson.D{{
+				Key:   "is_read",
+				Value: false,
+			}, {
+				Key:   "latest_post_time",
+				Value: &t,
 			}, {
 				Key:   "updated_at",
-				Value: time.Now(),
+				Value: t,
 			}}},
-		}).Err()
+		})
 	return err
 }
 
@@ -125,16 +182,49 @@ func FindStatus(ctx context.Context, id primitive.ObjectID) (*Status, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err = preloadRelatedStatus(ctx, status); err != nil {
-		return nil, err
+	return status, PreloadStatusData(ctx, true, status)
+}
+
+func PreloadStatusData(ctx context.Context, loadRelated bool, statuses ...*Status) error {
+	err := preloadAttachment(ctx, statuses...)
+	if err != nil {
+		return err
 	}
-	if err = preloadAttachment(ctx, status); err != nil {
-		return nil, err
+	if err = preloadImage(ctx, statuses...); err != nil {
+		return err
 	}
-	if err = preloadImage(ctx, status); err != nil {
-		return nil, err
+	if err = preloadStatusUser(ctx, statuses...); err != nil {
+		return err
 	}
-	return status, preloadStatusUser(ctx, status)
+	if err = preloadStatusLikeState(ctx, statuses...); err != nil {
+		return err
+	}
+	if loadRelated {
+		err = preloadRelatedStatus(ctx, statuses...)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func preloadStatusLikeState(ctx context.Context, statuses ...*Status) error {
+	currentUID, ok := ctx.Value(utils.CurrentUIDKey{}).(uint64)
+	if !ok || currentUID == 0 {
+		return nil
+	}
+	statusIDs := make([]primitive.ObjectID, len(statuses))
+	for i, status := range statuses {
+		statusIDs[i] = status.ID
+	}
+	likeMap, err := GetLikeMap(ctx, currentUID, statusIDs, enum.LikeStatus, false)
+	if err != nil {
+		return err
+	}
+	for _, status := range statuses {
+		status.IsLiked = likeMap[status.ID] != nil
+	}
+	return nil
 }
 
 type CreateStatusParams struct {
@@ -143,6 +233,7 @@ type CreateStatusParams struct {
 	StatusType   enum.StatusType
 	FromType     enum.FromType
 	Content      string
+	IsPrivate    bool
 	ShowDuration int64
 	MetaData     meta.MetaData
 }
@@ -160,12 +251,12 @@ func CreateStatus(ctx context.Context, params *CreateStatusParams) (*Status, err
 	if err = status.BeforeCreate(ctx); err != nil {
 		return nil, err
 	}
+	if params.IsPrivate {
+		t := status.CreatedAt.Add(time.Duration(params.ShowDuration - 10))
+		status.HideTime = &t
+	}
 	if err = db.ODM(ctx).Create(status).Error; err != nil {
 		return nil, err
-	}
-	if params.ShowDuration != 0 {
-		t := status.CreatedAt.Add(time.Second * time.Duration(params.ShowDuration))
-		status.HideTime = &t
 	}
 	if err = status.AfterCreate(ctx); err != nil {
 		return nil, err
@@ -174,6 +265,9 @@ func CreateStatus(ctx context.Context, params *CreateStatusParams) (*Status, err
 		return nil, err
 	}
 	if err = preloadAttachment(ctx, status); err != nil {
+		return nil, err
+	}
+	if err = preloadImage(ctx, status); err != nil {
 		return nil, err
 	}
 	return status, preloadStatusUser(ctx, status)
@@ -215,16 +309,16 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*Status, pagin
 	if err != nil {
 		return nil, nil, err
 	}
-	if err = preloadRelatedStatus(ctx, statuses...); err != nil {
-		return nil, nil, err
+	return statuses, page, PreloadStatusData(ctx, true, statuses...)
+}
+
+func FindStatusByIDs(ctx context.Context, ids ...primitive.ObjectID) ([]*Status, error) {
+	statuses := make([]*Status, 0)
+	err := db.ODM(ctx).Where(bson.M{"_id": bson.M{"$in": ids}}).Find(&statuses).Error
+	if err != nil {
+		return nil, err
 	}
-	if err = preloadAttachment(ctx, statuses...); err != nil {
-		return nil, nil, err
-	}
-	if err = preloadImage(ctx, statuses...); err != nil {
-		return nil, nil, err
-	}
-	return statuses, page, preloadStatusUser(ctx, statuses...)
+	return statuses, PreloadStatusData(ctx, true, statuses...)
 }
 
 func ListCommentStatus(ctx context.Context, statusID primitive.ObjectID, pageParams *pagination.PageQuickParams) ([]*Status, pagination.Pagination, error) {
@@ -238,16 +332,7 @@ func ListCommentStatus(ctx context.Context, statusID primitive.ObjectID, pagePar
 	if err != nil {
 		return nil, nil, err
 	}
-	if err = preloadRelatedStatus(ctx, statuses...); err != nil {
-		return nil, nil, err
-	}
-	if err = preloadAttachment(ctx, statuses...); err != nil {
-		return nil, nil, err
-	}
-	if err = preloadImage(ctx, statuses...); err != nil {
-		return nil, nil, err
-	}
-	return statuses, page, preloadStatusUser(ctx, statuses...)
+	return statuses, page, PreloadStatusData(ctx, true, statuses...)
 }
 
 func preloadStatusUser(ctx context.Context, statuses ...*Status) error {
@@ -255,15 +340,8 @@ func preloadStatusUser(ctx context.Context, statuses ...*Status) error {
 	for _, status := range statuses {
 		userIds = append(userIds, status.UID)
 	}
-	users := make([]*User, 0)
-	err := db.ODM(ctx).Where(bson.M{"_id": bson.M{"$in": userIds}}).Find(&users).Error
+	users, err := FindUserByIDs(ctx, userIds...)
 	if err != nil {
-		return err
-	}
-	if err = PreloadUserAvatar(ctx, users...); err != nil {
-		return err
-	}
-	if err = BatchSetFolloweState(ctx, users...); err != nil {
 		return err
 	}
 	userMap := make(map[uint64]*User)
@@ -291,13 +369,8 @@ func preloadRelatedStatus(ctx context.Context, statuses ...*Status) error {
 	if err != nil {
 		return err
 	}
-	if err = preloadStatusUser(ctx, relatedStatuses...); err != nil {
-		return err
-	}
-	if err = preloadAttachment(ctx, relatedStatuses...); err != nil {
-		return err
-	}
-	if err = preloadImage(ctx, relatedStatuses...); err != nil {
+	err = PreloadStatusData(ctx, false, relatedStatuses...)
+	if err != nil {
 		return err
 	}
 	statusMap := make(map[primitive.ObjectID]*Status)
@@ -321,6 +394,7 @@ func preloadAttachment(ctx context.Context, statuses ...*Status) error {
 		linkMeta := status.LinkMeta
 		if linkMeta != nil {
 			paths = append(paths, linkMeta.ImagePath)
+			linkMetas = append(linkMetas, linkMeta)
 		}
 
 	}
@@ -348,7 +422,6 @@ func preloadImage(ctx context.Context, statuses ...*Status) error {
 			paths = append(paths, meta.Images...)
 			metas = append(metas, meta)
 		}
-
 	}
 	images, err := storage.ImageClient.GetFileUrl(ctx, paths...)
 	if err != nil {

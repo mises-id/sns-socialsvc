@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
+	"github.com/mises-id/sns-socialsvc/app/services/session"
+	_ "github.com/mises-id/sns-socialsvc/config"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	_ "github.com/mises-id/sns-socialsvc/lib/mises"
 
@@ -25,6 +27,9 @@ func main() {
 	fmt.Println("setup mongo...")
 	db.SetupMongo(ctx)
 	models.EnsureIndex()
+
+	fmt.Println("setup mises...")
+	session.SetupMisesClient()
 
 	cfg := server.DefaultConfig
 	cfg = handlers.SetConfig(cfg)

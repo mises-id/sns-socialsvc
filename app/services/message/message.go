@@ -12,7 +12,14 @@ type ListMessageParams struct {
 }
 
 type ReadMessageParams struct {
-	models.ReadMessageParams
+	*models.ReadMessageParams
+}
+
+type MessageSummary struct {
+	LatestMessage      *models.Message
+	Total              uint32
+	NotificationsCount uint32
+	UsersCount         uint32
 }
 
 func ListMessage(ctx context.Context, params *ListMessageParams) ([]*models.Message, pagination.Pagination, error) {
@@ -20,5 +27,24 @@ func ListMessage(ctx context.Context, params *ListMessageParams) ([]*models.Mess
 }
 
 func ReadMessages(ctx context.Context, params *ReadMessageParams) error {
-	return models.ReadMessages(ctx, &params.ReadMessageParams)
+	return models.ReadMessages(ctx, params.ReadMessageParams)
+}
+
+func GetMessageSummary(ctx context.Context, uid uint64) (*MessageSummary, error) {
+	var err error
+	summary := &MessageSummary{}
+	summary.NotificationsCount, err = models.UnreadMessagesCount(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	summary.UsersCount, err = models.UnreadUsersCount(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	summary.LatestMessage, err = models.LatestUnreadMessage(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	summary.Total = summary.NotificationsCount + summary.UsersCount
+	return summary, nil
 }

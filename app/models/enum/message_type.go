@@ -6,17 +6,19 @@ type MessageType uint32
 
 const (
 	NewComment MessageType = iota
-	NewLike
+	NewLikeStatus
+	NewLikeComment
 	NewFans
 	NewForward
 )
 
 var (
 	messageTypeMap = map[MessageType]string{
-		NewComment: "new_comment",
-		NewLike:    "new_like",
-		NewFans:    "new_fans",
-		NewForward: "new_fowards",
+		NewComment:     "new_comment",
+		NewLikeStatus:  "new_like_status",
+		NewLikeComment: "new_like_comment",
+		NewFans:        "new_fans",
+		NewForward:     "new_fowards",
 	}
 	messageTypeStringMap = map[string]MessageType{}
 )

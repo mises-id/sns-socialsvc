@@ -136,6 +136,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("POST").Path("/status/update/").Handler(httptransport.NewServer(
+		endpoints.UpdateStatusEndpoint,
+		DecodeHTTPUpdateStatusZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("POST").Path("/status/update").Handler(httptransport.NewServer(
+		endpoints.UpdateStatusEndpoint,
+		DecodeHTTPUpdateStatusOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("POST").Path("/status/delete/").Handler(httptransport.NewServer(
 		endpoints.DeleteStatusEndpoint,
 		DecodeHTTPDeleteStatusZeroRequest,
@@ -171,6 +184,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 	m.Methods("POST").Path("/status/unlike").Handler(httptransport.NewServer(
 		endpoints.UnLikeStatusEndpoint,
 		DecodeHTTPUnLikeStatusOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/status/like/list").Handler(httptransport.NewServer(
+		endpoints.ListLikeStatusEndpoint,
+		DecodeHTTPListLikeStatusZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/status/like/list").Handler(httptransport.NewServer(
+		endpoints.ListLikeStatusEndpoint,
+		DecodeHTTPListLikeStatusOneRequest,
 		responseEncoder,
 		serverOptions...,
 	))
@@ -305,6 +331,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("GET").Path("/message/summary/").Handler(httptransport.NewServer(
+		endpoints.GetMessageSummaryEndpoint,
+		DecodeHTTPGetMessageSummaryZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/message/summary").Handler(httptransport.NewServer(
+		endpoints.GetMessageSummaryEndpoint,
+		DecodeHTTPGetMessageSummaryOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("GET").Path("/comment/list/").Handler(httptransport.NewServer(
 		endpoints.ListCommentEndpoint,
 		DecodeHTTPListCommentZeroRequest,
@@ -318,7 +357,20 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
-	m.Methods("GET").Path("/comment/create/").Handler(httptransport.NewServer(
+	m.Methods("GET").Path("/status/new_recommend/").Handler(httptransport.NewServer(
+		endpoints.NewRecommendStatusEndpoint,
+		DecodeHTTPNewRecommendStatusZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/status/new_recommend").Handler(httptransport.NewServer(
+		endpoints.NewRecommendStatusEndpoint,
+		DecodeHTTPNewRecommendStatusOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("POST").Path("/comment/create/").Handler(httptransport.NewServer(
 		endpoints.CreateCommentEndpoint,
 		DecodeHTTPCreateCommentZeroRequest,
 		responseEncoder,
@@ -327,6 +379,71 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 	m.Methods("POST").Path("/comment/create").Handler(httptransport.NewServer(
 		endpoints.CreateCommentEndpoint,
 		DecodeHTTPCreateCommentOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("POST").Path("/comment/like/").Handler(httptransport.NewServer(
+		endpoints.LikeCommentEndpoint,
+		DecodeHTTPLikeCommentZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("POST").Path("/comment/like").Handler(httptransport.NewServer(
+		endpoints.LikeCommentEndpoint,
+		DecodeHTTPLikeCommentOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("POST").Path("/comment/unlike/").Handler(httptransport.NewServer(
+		endpoints.UnlikeCommentEndpoint,
+		DecodeHTTPUnlikeCommentZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("POST").Path("/comment/unlike").Handler(httptransport.NewServer(
+		endpoints.UnlikeCommentEndpoint,
+		DecodeHTTPUnlikeCommentOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/user/blacklist/list").Handler(httptransport.NewServer(
+		endpoints.ListBlacklistEndpoint,
+		DecodeHTTPListBlacklistZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/user/blacklist/list").Handler(httptransport.NewServer(
+		endpoints.ListBlacklistEndpoint,
+		DecodeHTTPListBlacklistOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("POST").Path("/user/blacklist/create/").Handler(httptransport.NewServer(
+		endpoints.CreateBlacklistEndpoint,
+		DecodeHTTPCreateBlacklistZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("POST").Path("/user/blacklist/create").Handler(httptransport.NewServer(
+		endpoints.CreateBlacklistEndpoint,
+		DecodeHTTPCreateBlacklistOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("POST").Path("/user/blacklist/delete/").Handler(httptransport.NewServer(
+		endpoints.DeleteBlacklistEndpoint,
+		DecodeHTTPDeleteBlacklistZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("POST").Path("/user/blacklist/delete").Handler(httptransport.NewServer(
+		endpoints.DeleteBlacklistEndpoint,
+		DecodeHTTPDeleteBlacklistOneRequest,
 		responseEncoder,
 		serverOptions...,
 	))
@@ -509,6 +626,15 @@ func DecodeHTTPFindUserZeroRequest(_ context.Context, r *http.Request) (interfac
 		req.Uid = UidFindUser
 	}
 
+	if CurrentUidFindUserStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidFindUserStr := CurrentUidFindUserStrArr[0]
+		CurrentUidFindUser, err := strconv.ParseUint(CurrentUidFindUserStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidFindUser from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidFindUser
+	}
+
 	return &req, err
 }
 
@@ -552,6 +678,15 @@ func DecodeHTTPFindUserOneRequest(_ context.Context, r *http.Request) (interface
 			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidFindUser from query, queryParams: %v", queryParams))
 		}
 		req.Uid = UidFindUser
+	}
+
+	if CurrentUidFindUserStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidFindUserStr := CurrentUidFindUserStrArr[0]
+		CurrentUidFindUser, err := strconv.ParseUint(CurrentUidFindUserStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidFindUser from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidFindUser
 	}
 
 	return &req, err
@@ -845,6 +980,78 @@ func DecodeHTTPCreateStatusOneRequest(_ context.Context, r *http.Request) (inter
 	return &req, err
 }
 
+// DecodeHTTPUpdateStatusZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded updatestatus request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUpdateStatusZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UpdateStatusRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPUpdateStatusOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded updatestatus request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUpdateStatusOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UpdateStatusRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
 // DecodeHTTPDeleteStatusZeroRequest is a transport/http.DecodeRequestFunc that
 // decodes a JSON-encoded deletestatus request from the HTTP request
 // body. Primarily useful in a server.
@@ -1061,6 +1268,134 @@ func DecodeHTTPUnLikeStatusOneRequest(_ context.Context, r *http.Request) (inter
 	return &req, err
 }
 
+// DecodeHTTPListLikeStatusZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded listlikestatus request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPListLikeStatusZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ListLikeRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if UidListLikeStatusStrArr, ok := queryParams["uid"]; ok {
+		UidListLikeStatusStr := UidListLikeStatusStrArr[0]
+		UidListLikeStatus, err := strconv.ParseUint(UidListLikeStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidListLikeStatus from query, queryParams: %v", queryParams))
+		}
+		req.Uid = UidListLikeStatus
+	}
+
+	if CurrentUidListLikeStatusStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListLikeStatusStr := CurrentUidListLikeStatusStrArr[0]
+		CurrentUidListLikeStatus, err := strconv.ParseUint(CurrentUidListLikeStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListLikeStatus from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListLikeStatus
+	}
+
+	if PaginatorListLikeStatusStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorListLikeStatusStr := PaginatorListLikeStatusStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorListLikeStatusStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorListLikeStatus from %v", PaginatorListLikeStatusStr)
+		}
+
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPListLikeStatusOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded listlikestatus request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPListLikeStatusOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ListLikeRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if UidListLikeStatusStrArr, ok := queryParams["uid"]; ok {
+		UidListLikeStatusStr := UidListLikeStatusStrArr[0]
+		UidListLikeStatus, err := strconv.ParseUint(UidListLikeStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidListLikeStatus from query, queryParams: %v", queryParams))
+		}
+		req.Uid = UidListLikeStatus
+	}
+
+	if CurrentUidListLikeStatusStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListLikeStatusStr := CurrentUidListLikeStatusStrArr[0]
+		CurrentUidListLikeStatus, err := strconv.ParseUint(CurrentUidListLikeStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListLikeStatus from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListLikeStatus
+	}
+
+	if PaginatorListLikeStatusStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorListLikeStatusStr := PaginatorListLikeStatusStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorListLikeStatusStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorListLikeStatus from %v", PaginatorListLikeStatusStr)
+		}
+
+	}
+
+	return &req, err
+}
+
 // DecodeHTTPGetStatusZeroRequest is a transport/http.DecodeRequestFunc that
 // decodes a JSON-encoded getstatus request from the HTTP request
 // body. Primarily useful in a server.
@@ -1214,10 +1549,10 @@ func DecodeHTTPListStatusZeroRequest(_ context.Context, r *http.Request) (interf
 		req.TargetUid = TargetUidListStatus
 	}
 
-	if ParrentIdListStatusStrArr, ok := queryParams["parrent_id"]; ok {
-		ParrentIdListStatusStr := ParrentIdListStatusStrArr[0]
-		ParrentIdListStatus := ParrentIdListStatusStr
-		req.ParrentId = ParrentIdListStatus
+	if ParentIdListStatusStrArr, ok := queryParams["parent_id"]; ok {
+		ParentIdListStatusStr := ParentIdListStatusStrArr[0]
+		ParentIdListStatus := ParentIdListStatusStr
+		req.ParentId = ParentIdListStatus
 	}
 
 	if FromTypesListStatusStrArr, ok := queryParams["from_types"]; ok {
@@ -1296,10 +1631,10 @@ func DecodeHTTPListStatusOneRequest(_ context.Context, r *http.Request) (interfa
 		req.TargetUid = TargetUidListStatus
 	}
 
-	if ParrentIdListStatusStrArr, ok := queryParams["parrent_id"]; ok {
-		ParrentIdListStatusStr := ParrentIdListStatusStrArr[0]
-		ParrentIdListStatus := ParrentIdListStatusStr
-		req.ParrentId = ParrentIdListStatus
+	if ParentIdListStatusStrArr, ok := queryParams["parent_id"]; ok {
+		ParentIdListStatusStr := ParentIdListStatusStrArr[0]
+		ParentIdListStatus := ParentIdListStatusStr
+		req.ParentId = ParentIdListStatus
 	}
 
 	if FromTypesListStatusStrArr, ok := queryParams["from_types"]; ok {
@@ -1378,10 +1713,10 @@ func DecodeHTTPListRecommendedZeroRequest(_ context.Context, r *http.Request) (i
 		req.TargetUid = TargetUidListRecommended
 	}
 
-	if ParrentIdListRecommendedStrArr, ok := queryParams["parrent_id"]; ok {
-		ParrentIdListRecommendedStr := ParrentIdListRecommendedStrArr[0]
-		ParrentIdListRecommended := ParrentIdListRecommendedStr
-		req.ParrentId = ParrentIdListRecommended
+	if ParentIdListRecommendedStrArr, ok := queryParams["parent_id"]; ok {
+		ParentIdListRecommendedStr := ParentIdListRecommendedStrArr[0]
+		ParentIdListRecommended := ParentIdListRecommendedStr
+		req.ParentId = ParentIdListRecommended
 	}
 
 	if FromTypesListRecommendedStrArr, ok := queryParams["from_types"]; ok {
@@ -1460,10 +1795,10 @@ func DecodeHTTPListRecommendedOneRequest(_ context.Context, r *http.Request) (in
 		req.TargetUid = TargetUidListRecommended
 	}
 
-	if ParrentIdListRecommendedStrArr, ok := queryParams["parrent_id"]; ok {
-		ParrentIdListRecommendedStr := ParrentIdListRecommendedStrArr[0]
-		ParrentIdListRecommended := ParrentIdListRecommendedStr
-		req.ParrentId = ParrentIdListRecommended
+	if ParentIdListRecommendedStrArr, ok := queryParams["parent_id"]; ok {
+		ParentIdListRecommendedStr := ParentIdListRecommendedStrArr[0]
+		ParentIdListRecommended := ParentIdListRecommendedStr
+		req.ParentId = ParentIdListRecommended
 	}
 
 	if FromTypesListRecommendedStrArr, ok := queryParams["from_types"]; ok {
@@ -1542,10 +1877,10 @@ func DecodeHTTPListUserTimelineZeroRequest(_ context.Context, r *http.Request) (
 		req.TargetUid = TargetUidListUserTimeline
 	}
 
-	if ParrentIdListUserTimelineStrArr, ok := queryParams["parrent_id"]; ok {
-		ParrentIdListUserTimelineStr := ParrentIdListUserTimelineStrArr[0]
-		ParrentIdListUserTimeline := ParrentIdListUserTimelineStr
-		req.ParrentId = ParrentIdListUserTimeline
+	if ParentIdListUserTimelineStrArr, ok := queryParams["parent_id"]; ok {
+		ParentIdListUserTimelineStr := ParentIdListUserTimelineStrArr[0]
+		ParentIdListUserTimeline := ParentIdListUserTimelineStr
+		req.ParentId = ParentIdListUserTimeline
 	}
 
 	if FromTypesListUserTimelineStrArr, ok := queryParams["from_types"]; ok {
@@ -1624,10 +1959,10 @@ func DecodeHTTPListUserTimelineOneRequest(_ context.Context, r *http.Request) (i
 		req.TargetUid = TargetUidListUserTimeline
 	}
 
-	if ParrentIdListUserTimelineStrArr, ok := queryParams["parrent_id"]; ok {
-		ParrentIdListUserTimelineStr := ParrentIdListUserTimelineStrArr[0]
-		ParrentIdListUserTimeline := ParrentIdListUserTimelineStr
-		req.ParrentId = ParrentIdListUserTimeline
+	if ParentIdListUserTimelineStrArr, ok := queryParams["parent_id"]; ok {
+		ParentIdListUserTimelineStr := ParentIdListUserTimelineStrArr[0]
+		ParentIdListUserTimeline := ParentIdListUserTimelineStr
+		req.ParentId = ParentIdListUserTimeline
 	}
 
 	if FromTypesListUserTimelineStrArr, ok := queryParams["from_types"]; ok {
@@ -1787,6 +2122,15 @@ func DecodeHTTPListRelationshipZeroRequest(_ context.Context, r *http.Request) (
 		req.CurrentUid = CurrentUidListRelationship
 	}
 
+	if UidListRelationshipStrArr, ok := queryParams["uid"]; ok {
+		UidListRelationshipStr := UidListRelationshipStrArr[0]
+		UidListRelationship, err := strconv.ParseUint(UidListRelationshipStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidListRelationship from query, queryParams: %v", queryParams))
+		}
+		req.Uid = UidListRelationship
+	}
+
 	if RelationTypeListRelationshipStrArr, ok := queryParams["relation_type"]; ok {
 		RelationTypeListRelationshipStr := RelationTypeListRelationshipStrArr[0]
 		RelationTypeListRelationship := RelationTypeListRelationshipStr
@@ -1846,6 +2190,15 @@ func DecodeHTTPListRelationshipOneRequest(_ context.Context, r *http.Request) (i
 			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListRelationship from query, queryParams: %v", queryParams))
 		}
 		req.CurrentUid = CurrentUidListRelationship
+	}
+
+	if UidListRelationshipStrArr, ok := queryParams["uid"]; ok {
+		UidListRelationshipStr := UidListRelationshipStrArr[0]
+		UidListRelationship, err := strconv.ParseUint(UidListRelationshipStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidListRelationship from query, queryParams: %v", queryParams))
+		}
+		req.Uid = UidListRelationship
 	}
 
 	if RelationTypeListRelationshipStrArr, ok := queryParams["relation_type"]; ok {
@@ -2193,6 +2546,96 @@ func DecodeHTTPReadMessageOneRequest(_ context.Context, r *http.Request) (interf
 	return &req, err
 }
 
+// DecodeHTTPGetMessageSummaryZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getmessagesummary request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetMessageSummaryZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetMessageSummaryRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetMessageSummaryStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetMessageSummaryStr := CurrentUidGetMessageSummaryStrArr[0]
+		CurrentUidGetMessageSummary, err := strconv.ParseUint(CurrentUidGetMessageSummaryStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetMessageSummary from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetMessageSummary
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetMessageSummaryOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getmessagesummary request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetMessageSummaryOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetMessageSummaryRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetMessageSummaryStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetMessageSummaryStr := CurrentUidGetMessageSummaryStrArr[0]
+		CurrentUidGetMessageSummary, err := strconv.ParseUint(CurrentUidGetMessageSummaryStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetMessageSummary from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetMessageSummary
+	}
+
+	return &req, err
+}
+
 // DecodeHTTPListCommentZeroRequest is a transport/http.DecodeRequestFunc that
 // decodes a JSON-encoded listcomment request from the HTTP request
 // body. Primarily useful in a server.
@@ -2245,12 +2688,6 @@ func DecodeHTTPListCommentZeroRequest(_ context.Context, r *http.Request) (inter
 		TopicIdListCommentStr := TopicIdListCommentStrArr[0]
 		TopicIdListComment := TopicIdListCommentStr
 		req.TopicId = TopicIdListComment
-	}
-
-	if LastIdListCommentStrArr, ok := queryParams["last_id"]; ok {
-		LastIdListCommentStr := LastIdListCommentStrArr[0]
-		LastIdListComment := LastIdListCommentStr
-		req.LastId = LastIdListComment
 	}
 
 	if PaginatorListCommentStrArr, ok := queryParams["paginator"]; ok {
@@ -2320,12 +2757,6 @@ func DecodeHTTPListCommentOneRequest(_ context.Context, r *http.Request) (interf
 		req.TopicId = TopicIdListComment
 	}
 
-	if LastIdListCommentStrArr, ok := queryParams["last_id"]; ok {
-		LastIdListCommentStr := LastIdListCommentStrArr[0]
-		LastIdListComment := LastIdListCommentStr
-		req.LastId = LastIdListComment
-	}
-
 	if PaginatorListCommentStrArr, ok := queryParams["paginator"]; ok {
 		PaginatorListCommentStr := PaginatorListCommentStrArr[0]
 
@@ -2334,6 +2765,144 @@ func DecodeHTTPListCommentOneRequest(_ context.Context, r *http.Request) (interf
 			return nil, errors.Wrapf(err, "couldn't decode PaginatorListComment from %v", PaginatorListCommentStr)
 		}
 
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPNewRecommendStatusZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded newrecommendstatus request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPNewRecommendStatusZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.NewRecommendStatusResquest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidNewRecommendStatusStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidNewRecommendStatusStr := CurrentUidNewRecommendStatusStrArr[0]
+		CurrentUidNewRecommendStatus, err := strconv.ParseUint(CurrentUidNewRecommendStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidNewRecommendStatus from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidNewRecommendStatus
+	}
+
+	if ReqTypeNewRecommendStatusStrArr, ok := queryParams["req_type"]; ok {
+		ReqTypeNewRecommendStatusStr := ReqTypeNewRecommendStatusStrArr[0]
+		ReqTypeNewRecommendStatus := ReqTypeNewRecommendStatusStr
+		req.ReqType = ReqTypeNewRecommendStatus
+	}
+
+	if LastRecommendTimeNewRecommendStatusStrArr, ok := queryParams["last_recommend_time"]; ok {
+		LastRecommendTimeNewRecommendStatusStr := LastRecommendTimeNewRecommendStatusStrArr[0]
+		LastRecommendTimeNewRecommendStatus, err := strconv.ParseInt(LastRecommendTimeNewRecommendStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting LastRecommendTimeNewRecommendStatus from query, queryParams: %v", queryParams))
+		}
+		req.LastRecommendTime = LastRecommendTimeNewRecommendStatus
+	}
+
+	if LastCommonTimeNewRecommendStatusStrArr, ok := queryParams["last_common_time"]; ok {
+		LastCommonTimeNewRecommendStatusStr := LastCommonTimeNewRecommendStatusStrArr[0]
+		LastCommonTimeNewRecommendStatus, err := strconv.ParseInt(LastCommonTimeNewRecommendStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting LastCommonTimeNewRecommendStatus from query, queryParams: %v", queryParams))
+		}
+		req.LastCommonTime = LastCommonTimeNewRecommendStatus
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPNewRecommendStatusOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded newrecommendstatus request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPNewRecommendStatusOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.NewRecommendStatusResquest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidNewRecommendStatusStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidNewRecommendStatusStr := CurrentUidNewRecommendStatusStrArr[0]
+		CurrentUidNewRecommendStatus, err := strconv.ParseUint(CurrentUidNewRecommendStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidNewRecommendStatus from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidNewRecommendStatus
+	}
+
+	if ReqTypeNewRecommendStatusStrArr, ok := queryParams["req_type"]; ok {
+		ReqTypeNewRecommendStatusStr := ReqTypeNewRecommendStatusStrArr[0]
+		ReqTypeNewRecommendStatus := ReqTypeNewRecommendStatusStr
+		req.ReqType = ReqTypeNewRecommendStatus
+	}
+
+	if LastRecommendTimeNewRecommendStatusStrArr, ok := queryParams["last_recommend_time"]; ok {
+		LastRecommendTimeNewRecommendStatusStr := LastRecommendTimeNewRecommendStatusStrArr[0]
+		LastRecommendTimeNewRecommendStatus, err := strconv.ParseInt(LastRecommendTimeNewRecommendStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting LastRecommendTimeNewRecommendStatus from query, queryParams: %v", queryParams))
+		}
+		req.LastRecommendTime = LastRecommendTimeNewRecommendStatus
+	}
+
+	if LastCommonTimeNewRecommendStatusStrArr, ok := queryParams["last_common_time"]; ok {
+		LastCommonTimeNewRecommendStatusStr := LastCommonTimeNewRecommendStatusStrArr[0]
+		LastCommonTimeNewRecommendStatus, err := strconv.ParseInt(LastCommonTimeNewRecommendStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting LastCommonTimeNewRecommendStatus from query, queryParams: %v", queryParams))
+		}
+		req.LastCommonTime = LastCommonTimeNewRecommendStatus
 	}
 
 	return &req, err
@@ -2381,6 +2950,404 @@ func DecodeHTTPCreateCommentZeroRequest(_ context.Context, r *http.Request) (int
 func DecodeHTTPCreateCommentOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	defer r.Body.Close()
 	var req pb.CreateCommentRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPLikeCommentZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded likecomment request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPLikeCommentZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.LikeCommentRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPLikeCommentOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded likecomment request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPLikeCommentOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.LikeCommentRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPUnlikeCommentZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded unlikecomment request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUnlikeCommentZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UnlikeCommentRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPUnlikeCommentOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded unlikecomment request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUnlikeCommentOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UnlikeCommentRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPListBlacklistZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded listblacklist request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPListBlacklistZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ListBlacklistRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if UidListBlacklistStrArr, ok := queryParams["uid"]; ok {
+		UidListBlacklistStr := UidListBlacklistStrArr[0]
+		UidListBlacklist, err := strconv.ParseUint(UidListBlacklistStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidListBlacklist from query, queryParams: %v", queryParams))
+		}
+		req.Uid = UidListBlacklist
+	}
+
+	if PaginatorListBlacklistStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorListBlacklistStr := PaginatorListBlacklistStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorListBlacklistStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorListBlacklist from %v", PaginatorListBlacklistStr)
+		}
+
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPListBlacklistOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded listblacklist request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPListBlacklistOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ListBlacklistRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if UidListBlacklistStrArr, ok := queryParams["uid"]; ok {
+		UidListBlacklistStr := UidListBlacklistStrArr[0]
+		UidListBlacklist, err := strconv.ParseUint(UidListBlacklistStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidListBlacklist from query, queryParams: %v", queryParams))
+		}
+		req.Uid = UidListBlacklist
+	}
+
+	if PaginatorListBlacklistStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorListBlacklistStr := PaginatorListBlacklistStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorListBlacklistStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorListBlacklist from %v", PaginatorListBlacklistStr)
+		}
+
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPCreateBlacklistZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded createblacklist request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPCreateBlacklistZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.CreateBlacklistRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPCreateBlacklistOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded createblacklist request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPCreateBlacklistOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.CreateBlacklistRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPDeleteBlacklistZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded deleteblacklist request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPDeleteBlacklistZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.DeleteBlacklistRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPDeleteBlacklistOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded deleteblacklist request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPDeleteBlacklistOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.DeleteBlacklistRequest
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot read body of http request")
