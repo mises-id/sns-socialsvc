@@ -6,6 +6,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
 	pb "github.com/mises-id/sns-socialsvc/proto"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -60,6 +61,8 @@ func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 	if status == nil {
 		return nil
 	}
+	logrus.Info("status.HideTime: ", status.HideTime)
+	logrus.Info("GetHideTime: ", status.GetHideTime())
 	statusinfo := pb.StatusInfo{
 		Id:           docID(status.ID),
 		User:         NewUserInfo(status.User),
