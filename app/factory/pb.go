@@ -124,7 +124,7 @@ func newCommentMeta(meta *message.CommentMeta) *pb.NewCommentMeta {
 		CommentId:            docID(meta.CommentID),
 		Content:              meta.Content,
 		ParentContent:        meta.ParentContent,
-		ParentUserName:       meta.ParentUserName,
+		ParentUserName:       meta.ParentUsername,
 		StatusContentSummary: meta.StatusContentSummary,
 		StatusImageUrl:       meta.StatusImageURL,
 	}
