@@ -6,7 +6,6 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
 	pb "github.com/mises-id/sns-socialsvc/proto"
-	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -61,8 +60,6 @@ func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 	if status == nil {
 		return nil
 	}
-	logrus.Info("status.HideTime: ", status.HideTime)
-	logrus.Info("GetHideTime: ", status.GetHideTime())
 	statusinfo := pb.StatusInfo{
 		Id:           docID(status.ID),
 		User:         NewUserInfo(status.User),
@@ -134,10 +131,10 @@ func newLikeStatusMeta(meta *message.LikeStatusMeta) *pb.NewLikeStatusMeta {
 		return &pb.NewLikeStatusMeta{}
 	}
 	return &pb.NewLikeStatusMeta{
-		Uid:             meta.UID,
-		StatusId:        meta.StatusID.Hex(),
-		StatusContent:   meta.StatusContent,
-		StatusImagePath: meta.StatusImagePath,
+		Uid:            meta.UID,
+		StatusId:       meta.StatusID.Hex(),
+		StatusContent:  meta.StatusContent,
+		StatusImageUrl: meta.StatusImageURL,
 	}
 
 }
@@ -172,7 +169,7 @@ func newForwardMeta(meta *message.ForwardMeta) *pb.NewForwardMeta {
 		StatusId:       meta.StatusID.Hex(),
 		ForwardContent: meta.ForwardContent,
 		ContentSummary: meta.ContentSummary,
-		ImagePath:      meta.ImagePath,
+		ImageUrl:       meta.ImageURL,
 	}
 }
 func NewMessage(message *models.Message) *pb.Message {
@@ -185,6 +182,7 @@ func NewMessage(message *models.Message) *pb.Message {
 		MessageType: message.MessageType.String(),
 		FromUser:    NewUserInfo(message.FromUser),
 		State:       message.State(),
+		Status:      NewStatusInfo(message.Status),
 	}
 	switch message.MessageType {
 	case enum.NewComment:

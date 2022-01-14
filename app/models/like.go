@@ -47,7 +47,9 @@ func (l *Like) notifyLikeUser(ctx context.Context) error {
 	}
 	metaData := &message.MetaData{}
 	messageType := enum.NewLikeStatus
+	var statusID primitive.ObjectID
 	if l.TargetType == enum.LikeStatus {
+		statusID = l.TargetID
 		metaData.LikeStatusMeta = &message.LikeStatusMeta{
 			UID:             l.UID,
 			StatusID:        l.TargetID,
@@ -55,6 +57,7 @@ func (l *Like) notifyLikeUser(ctx context.Context) error {
 			StatusImagePath: l.Status.FirstImage(),
 		}
 	} else if l.TargetType == enum.LikeComment {
+		statusID = l.Comment.StatusID
 		metaData.LikeCommentMeta = &message.LikeCommentMeta{
 			UID:             l.UID,
 			CommentID:       l.TargetID,
@@ -65,6 +68,7 @@ func (l *Like) notifyLikeUser(ctx context.Context) error {
 	}
 	_, err = CreateMessage(ctx, &CreateMessageParams{
 		UID:         l.OwnerID,
+		StatusID:    statusID,
 		FromUID:     l.UID,
 		MessageType: messageType,
 		MetaData:    metaData,

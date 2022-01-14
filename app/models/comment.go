@@ -90,6 +90,7 @@ func (c *Comment) notifyStatusUser(ctx context.Context) error {
 	_, err := CreateMessage(ctx, &CreateMessageParams{
 		UID:         c.Status.UID,
 		FromUID:     c.UID,
+		StatusID:    c.StatusID,
 		MessageType: enum.NewComment,
 		MetaData: &message.MetaData{
 			CommentMeta: &message.CommentMeta{
@@ -120,6 +121,7 @@ func (c *Comment) notifyCommentUser(ctx context.Context) error {
 	_, err = CreateMessage(ctx, &CreateMessageParams{ // notify parent comment user
 		UID:         c.OpponentID,
 		FromUID:     c.UID,
+		StatusID:    c.StatusID,
 		MessageType: enum.NewComment,
 		MetaData: &message.MetaData{
 			CommentMeta: &message.CommentMeta{
