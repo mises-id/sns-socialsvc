@@ -9,4 +9,5 @@ type LikeStatusMeta struct {
 	StatusID        primitive.ObjectID `bson:"status_id,omitempty"`
 	StatusContent   string             `bson:"status_content,omitempty"`
 	StatusImagePath string             `bson:"status_image_path,omitempty"`
+	StatusImageURL  string             `bson:"-"`
 }

@@ -11,4 +11,5 @@ type CommentMeta struct {
 	ParentUserName       string             `bson:"parent_user_name,omitempty"`
 	StatusContentSummary string             `bson:"status_content_summary,omitempty"`
 	StatusImagePath      string             `bson:"status_image_path,omitempty"`
+	StatusImageURL       string             `bson:"-"`
 }

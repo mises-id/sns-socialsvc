@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
-	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson"
@@ -36,19 +35,6 @@ func (f *Follow) BeforeCreate(ctx context.Context) error {
 
 func (f *Follow) AfterCreate(ctx context.Context) error {
 	err := f.incrUserCounter(ctx, 1)
-	if err != nil {
-		return err
-	}
-	_, err = CreateMessage(ctx, &CreateMessageParams{
-		UID:         f.ToUID,
-		FromUID:     f.FromUID,
-		MessageType: enum.NewFans,
-		MetaData: &message.MetaData{
-			FansMeta: &message.FansMeta{
-				UID: f.FromUID,
-			},
-		},
-	})
 	if err != nil {
 		return err
 	}
@@ -128,6 +114,7 @@ func CreateFollow(ctx context.Context, fromUID, toUID uint64, isFriend bool) (*F
 		FromUID:  fromUID,
 		ToUID:    toUID,
 		IsFriend: isFriend,
+		IsNew:    true,
 		IsRead:   true,
 	}
 	if err := follow.BeforeCreate(ctx); err != nil {
