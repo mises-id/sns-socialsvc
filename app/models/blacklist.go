@@ -41,6 +41,17 @@ func FindBlacklist(ctx context.Context, uid, targetUID uint64) (*Blacklist, erro
 		return nil, err
 	}
 	return blacklist, preloadBlacklistUser(ctx, blacklist)
+}
+
+func IsBlocked(ctx context.Context, uid, targetUID uint64) (bool, error) {
+	_, err := FindBlacklist(ctx, uid, targetUID)
+	if err == nil {
+		return true, nil
+	}
+	if mongo.ErrNoDocuments == err {
+		return false, nil
+	}
+	return false, err
 
 }
 
