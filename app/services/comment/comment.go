@@ -5,6 +5,7 @@ import (
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -29,6 +30,13 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*models.Co
 	if err != nil {
 		return nil, err
 	}
+	statusBlocked, err := models.IsBlocked(ctx, status.UID, params.UID)
+	if err != nil {
+		return nil, err
+	}
+	if statusBlocked {
+		return nil, codes.ErrUserInBlacklist
+	}
 	commentParams.Status = status
 	var groupComment *models.Comment
 	if params.ParentID != primitive.NilObjectID {
@@ -47,6 +55,13 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*models.Co
 			}
 		}
 		commentParams.OpponentID = parent.UID
+		blocked, err := models.IsBlocked(ctx, parent.UID, params.UID)
+		if err != nil {
+			return nil, err
+		}
+		if blocked {
+			return nil, codes.ErrUserInBlacklist
+		}
 	}
 	comment, err := models.CreateComment(ctx, commentParams)
 	if err != nil {
