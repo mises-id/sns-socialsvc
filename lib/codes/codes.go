@@ -56,6 +56,7 @@ const (
 	ForbiddenCode           = 403000
 	UsernameExistedCode     = 403001
 	TokenExpiredCode        = 403002
+	UserInBlacklistCode     = 403003
 	NotFoundCode            = 404000
 	UnprocessableEntityCode = 422000
 	UsernameDuplicateCode   = 422001
@@ -73,6 +74,7 @@ var (
 	ErrAuthorizeFailed     = Code{HTTPStatus: http.StatusUnauthorized, Code: AuthorizeFailedCode, Msg: "authorize failed"}
 	ErrForbidden           = Code{HTTPStatus: http.StatusForbidden, Code: ForbiddenCode, Msg: "forbidden"}
 	ErrTokenExpired        = Code{HTTPStatus: http.StatusForbidden, Code: TokenExpiredCode, Msg: "authorization expired"}
+	ErrUserInBlacklist     = Code{HTTPStatus: http.StatusForbidden, Code: UserInBlacklistCode, Msg: "user is in blacklist"}
 	ErrUsernameExisted     = Code{HTTPStatus: http.StatusUnprocessableEntity, Code: UsernameExistedCode, Msg: "username had existed"}
 	ErrNotFound            = Code{HTTPStatus: http.StatusNotFound, Code: NotFoundCode, Msg: "not found"}
 	ErrUnprocessableEntity = Code{HTTPStatus: http.StatusUnprocessableEntity, Code: UnprocessableEntityCode, Msg: "unprocessable entity"}
