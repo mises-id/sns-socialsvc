@@ -4,10 +4,10 @@ go 1.17
 
 require (
 	github.com/caarlos0/env v3.5.0+incompatible
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-kit/kit v0.12.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/gogo/protobuf v1.3.3
+	github.com/golang-jwt/jwt/v4 v4.2.0
 	github.com/google/go-github/v33 v33.0.0
 	github.com/gorilla/mux v1.8.0
 	github.com/jinzhu/inflection v1.0.0
@@ -44,6 +44,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgraph-io/badger/v2 v2.2007.2 // indirect
 	github.com/dgraph-io/ristretto v0.0.3 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/dvsekhvalnov/jose2go v0.0.0-20200901110807-248326c1351b // indirect
