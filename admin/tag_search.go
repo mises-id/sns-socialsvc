@@ -34,7 +34,7 @@ type (
 
 func (params *AdminTagParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	//base
-	chain = chain.Sort(bson.M{"_id": -1})
+
 	//where
 	if !params.ID.IsZero() {
 		params.IDs = []primitive.ObjectID{params.ID}
@@ -64,6 +64,7 @@ func (params *AdminTagParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.SortKey != "" && params.SortType != 0 {
 		chain = chain.Sort(bson.M{params.SortKey: params.SortType})
 	}
+	chain = chain.Sort(bson.M{"_id": -1})
 	//limit
 	if (params.PageNum <= 0 || params.PageSize <= 0) && params.ListNum > 0 {
 		chain = chain.Limit(params.ListNum)
