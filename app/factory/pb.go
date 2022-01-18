@@ -119,10 +119,14 @@ func newCommentMeta(meta *message.CommentMeta) *pb.NewCommentMeta {
 		return &pb.NewCommentMeta{}
 	}
 	return &pb.NewCommentMeta{
-		Uid:       meta.UID,
-		GroupId:   docID(meta.GroupID),
-		CommentId: docID(meta.CommentID),
-		Content:   meta.Content,
+		Uid:                  meta.UID,
+		GroupId:              docID(meta.GroupID),
+		CommentId:            docID(meta.CommentID),
+		Content:              meta.Content,
+		ParentContent:        meta.ParentContent,
+		ParentUserName:       meta.ParentUsername,
+		StatusContentSummary: meta.StatusContentSummary,
+		StatusImageUrl:       meta.StatusImageURL,
 	}
 }
 
@@ -156,7 +160,8 @@ func newFansMeta(meta *message.FansMeta) *pb.NewFansMeta {
 		return &pb.NewFansMeta{}
 	}
 	return &pb.NewFansMeta{
-		Uid: meta.UID,
+		Uid:         meta.UID,
+		FanUsername: meta.FanUsername,
 	}
 }
 
@@ -183,6 +188,7 @@ func NewMessage(message *models.Message) *pb.Message {
 		FromUser:    NewUserInfo(message.FromUser),
 		State:       message.State(),
 		Status:      NewStatusInfo(message.Status),
+		CreatedAt:   uint64(message.CreatedAt.Unix()),
 	}
 	switch message.MessageType {
 	case enum.NewComment:

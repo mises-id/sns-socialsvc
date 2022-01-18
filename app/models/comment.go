@@ -53,6 +53,13 @@ type Comment struct {
 	Parent        *Comment             `bson:"-"`
 }
 
+func (c *Comment) Username() string {
+	if c.User.Username == "" {
+		return c.User.Misesid
+	}
+	return c.User.Username
+}
+
 func (c *Comment) BeforeCreate(ctx context.Context) error {
 	c.CreatedAt = time.Now()
 	c.UpdatedAt = time.Now()
@@ -79,9 +86,12 @@ func (c *Comment) ParentContent() string {
 	return c.Parent.Content
 }
 
-func (c *Comment) ParentUserName() string {
+func (c *Comment) ParentUsername() string {
 	if c.ParentID.IsZero() {
 		return ""
+	}
+	if c.Parent.User.Username == "" {
+		return c.Parent.User.Misesid
 	}
 	return c.Parent.User.Username
 }
@@ -130,7 +140,7 @@ func (c *Comment) notifyCommentUser(ctx context.Context) error {
 				CommentID:            c.ID,
 				Content:              c.Content,
 				ParentContent:        c.ParentContent(),
-				ParentUserName:       c.ParentUserName(),
+				ParentUsername:       c.ParentUsername(),
 				StatusContentSummary: c.Status.ContentSummary(),
 				StatusImagePath:      c.Status.FirstImage(),
 			},
