@@ -189,6 +189,10 @@ func (c *Comment) AddChildComment(ctx context.Context, commentID primitive.Objec
 	return result.Decode(c)
 }
 
+func (c *Comment) Delete(ctx context.Context) error {
+	return db.ODM(ctx).Delete(c, c.ID).Error
+}
+
 func FindComment(ctx context.Context, id primitive.ObjectID) (*Comment, error) {
 	comment := &Comment{}
 	err := db.ODM(ctx).First(comment, bson.M{"_id": id}).Error
@@ -217,6 +221,13 @@ func ListComment(ctx context.Context, params *ListCommentParams) ([]*Comment, pa
 		chain = chain.Where(bson.M{"group_id": params.GroupID})
 	} else {
 		chain = chain.Where(bson.M{"group_id": bson.M{"$exists": false}})
+	}
+	blockedUIDs, err := ListBlockedUIDs(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(blockedUIDs) > 0 {
+		chain = chain.Where(bson.M{"uid": bson.M{"$nin": blockedUIDs}})
 	}
 	chain = chain.Sort(bson.M{"_id": 1})
 	paginator := pagination.NewQuickPaginator(params.PageParams.Limit, params.PageParams.NextID, chain)

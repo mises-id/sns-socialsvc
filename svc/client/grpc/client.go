@@ -361,6 +361,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var deletecommentEndpoint endpoint.Endpoint
+	{
+		deletecommentEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"DeleteComment",
+			EncodeGRPCDeleteCommentRequest,
+			DecodeGRPCDeleteCommentResponse,
+			pb.SimpleResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	var likecommentEndpoint endpoint.Endpoint
 	{
 		likecommentEndpoint = grpctransport.NewClient(
@@ -452,6 +465,7 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		ListCommentEndpoint:        listcommentEndpoint,
 		NewRecommendStatusEndpoint: newrecommendstatusEndpoint,
 		CreateCommentEndpoint:      createcommentEndpoint,
+		DeleteCommentEndpoint:      deletecommentEndpoint,
 		LikeCommentEndpoint:        likecommentEndpoint,
 		UnlikeCommentEndpoint:      unlikecommentEndpoint,
 		ListBlacklistEndpoint:      listblacklistEndpoint,
@@ -634,6 +648,13 @@ func DecodeGRPCNewRecommendStatusResponse(_ context.Context, grpcReply interface
 // gRPC createcomment reply to a user-domain createcomment response. Primarily useful in a client.
 func DecodeGRPCCreateCommentResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.CreateCommentResponse)
+	return reply, nil
+}
+
+// DecodeGRPCDeleteCommentResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC deletecomment reply to a user-domain deletecomment response. Primarily useful in a client.
+func DecodeGRPCDeleteCommentResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.SimpleResponse)
 	return reply, nil
 }
 
@@ -846,6 +867,13 @@ func EncodeGRPCNewRecommendStatusRequest(_ context.Context, request interface{})
 // user-domain createcomment request to a gRPC createcomment request. Primarily useful in a client.
 func EncodeGRPCCreateCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.CreateCommentRequest)
+	return req, nil
+}
+
+// EncodeGRPCDeleteCommentRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain deletecomment request to a gRPC deletecomment request. Primarily useful in a client.
+func EncodeGRPCDeleteCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.DeleteCommentRequest)
 	return req, nil
 }
 

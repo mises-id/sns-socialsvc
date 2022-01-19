@@ -58,6 +58,7 @@ type Endpoints struct {
 	ListCommentEndpoint        endpoint.Endpoint
 	NewRecommendStatusEndpoint endpoint.Endpoint
 	CreateCommentEndpoint      endpoint.Endpoint
+	DeleteCommentEndpoint      endpoint.Endpoint
 	LikeCommentEndpoint        endpoint.Endpoint
 	UnlikeCommentEndpoint      endpoint.Endpoint
 	ListBlacklistEndpoint      endpoint.Endpoint
@@ -265,6 +266,14 @@ func (e Endpoints) CreateComment(ctx context.Context, in *pb.CreateCommentReques
 		return nil, err
 	}
 	return response.(*pb.CreateCommentResponse), nil
+}
+
+func (e Endpoints) DeleteComment(ctx context.Context, in *pb.DeleteCommentRequest) (*pb.SimpleResponse, error) {
+	response, err := e.DeleteCommentEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.SimpleResponse), nil
 }
 
 func (e Endpoints) LikeComment(ctx context.Context, in *pb.LikeCommentRequest) (*pb.SimpleResponse, error) {
@@ -584,6 +593,17 @@ func MakeCreateCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeDeleteCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.DeleteCommentRequest)
+		v, err := s.DeleteComment(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeLikeCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.LikeCommentRequest)
@@ -671,6 +691,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"ListComment":        {},
 		"NewRecommendStatus": {},
 		"CreateComment":      {},
+		"DeleteComment":      {},
 		"LikeComment":        {},
 		"UnlikeComment":      {},
 		"ListBlacklist":      {},
@@ -761,6 +782,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "CreateComment" {
 			e.CreateCommentEndpoint = middleware(e.CreateCommentEndpoint)
 		}
+		if inc == "DeleteComment" {
+			e.DeleteCommentEndpoint = middleware(e.DeleteCommentEndpoint)
+		}
 		if inc == "LikeComment" {
 			e.LikeCommentEndpoint = middleware(e.LikeCommentEndpoint)
 		}
@@ -815,6 +839,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"ListComment":        {},
 		"NewRecommendStatus": {},
 		"CreateComment":      {},
+		"DeleteComment":      {},
 		"LikeComment":        {},
 		"UnlikeComment":      {},
 		"ListBlacklist":      {},
@@ -904,6 +929,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "CreateComment" {
 			e.CreateCommentEndpoint = middleware("CreateComment", e.CreateCommentEndpoint)
+		}
+		if inc == "DeleteComment" {
+			e.DeleteCommentEndpoint = middleware("DeleteComment", e.DeleteCommentEndpoint)
 		}
 		if inc == "LikeComment" {
 			e.LikeCommentEndpoint = middleware("LikeComment", e.LikeCommentEndpoint)

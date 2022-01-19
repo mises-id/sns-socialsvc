@@ -107,10 +107,10 @@ func DeleteTag(ctx context.Context, tagable_id string, tagable_type enum.Tagable
 	return err
 }
 
-func DeleteTagsByTagtypes(ctx context.Context, tagable_id string, tagable_type enum.TagableType, tag_types ...enum.TagType) error {
-	if tag_types == nil || len(tag_types) == 0 {
+func DeleteTagsByTagtypes(ctx context.Context, tagable_id string, tagableType enum.TagableType, tagTypes ...enum.TagType) error {
+	if len(tagTypes) == 0 {
 		return nil
 	}
-	_, err := db.DB().Collection("tags").DeleteMany(ctx, bson.M{"tagable_type": tagable_type, "tag_type": bson.M{"$in": tag_types}, "tagable_id": tagable_id})
+	_, err := db.DB().Collection("tags").DeleteMany(ctx, bson.M{"tagable_type": tagableType, "tag_type": bson.M{"$in": tagTypes}, "tagable_id": tagable_id})
 	return err
 }

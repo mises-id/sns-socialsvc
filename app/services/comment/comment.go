@@ -5,6 +5,7 @@ import (
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -22,12 +23,30 @@ func ListComment(ctx context.Context, params *ListCommentParams) ([]*models.Comm
 	return models.ListComment(ctx, &params.ListCommentParams)
 }
 
+func DeleteComment(ctx context.Context, currentUID uint64, id primitive.ObjectID) error {
+	comment, err := models.FindComment(ctx, id)
+	if err != nil {
+		return err
+	}
+	if comment.UID != currentUID {
+		return codes.ErrNotFound
+	}
+	return comment.Delete(ctx)
+}
+
 func CreateComment(ctx context.Context, params *CreateCommentParams) (*models.Comment, error) {
 	commentParams := params.CreateCommentParams
 	// check status exsist
 	status, err := models.FindStatus(ctx, params.StatusID)
 	if err != nil {
 		return nil, err
+	}
+	statusBlocked, err := models.IsBlocked(ctx, status.UID, params.UID)
+	if err != nil {
+		return nil, err
+	}
+	if statusBlocked {
+		return nil, codes.ErrUserInBlacklist
 	}
 	commentParams.Status = status
 	var groupComment *models.Comment
@@ -47,6 +66,13 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*models.Co
 			}
 		}
 		commentParams.OpponentID = parent.UID
+		blocked, err := models.IsBlocked(ctx, parent.UID, params.UID)
+		if err != nil {
+			return nil, err
+		}
+		if blocked {
+			return nil, codes.ErrUserInBlacklist
+		}
 	}
 	comment, err := models.CreateComment(ctx, commentParams)
 	if err != nil {

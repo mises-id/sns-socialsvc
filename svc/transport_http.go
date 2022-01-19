@@ -383,6 +383,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("POST").Path("/comment/delete/").Handler(httptransport.NewServer(
+		endpoints.DeleteCommentEndpoint,
+		DecodeHTTPDeleteCommentZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("POST").Path("/comment/delete").Handler(httptransport.NewServer(
+		endpoints.DeleteCommentEndpoint,
+		DecodeHTTPDeleteCommentOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("POST").Path("/comment/like/").Handler(httptransport.NewServer(
 		endpoints.LikeCommentEndpoint,
 		DecodeHTTPLikeCommentZeroRequest,
@@ -2938,6 +2951,78 @@ func DecodeHTTPCreateCommentZeroRequest(_ context.Context, r *http.Request) (int
 func DecodeHTTPCreateCommentOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	defer r.Body.Close()
 	var req pb.CreateCommentRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPDeleteCommentZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded deletecomment request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPDeleteCommentZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.DeleteCommentRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPDeleteCommentOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded deletecomment request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPDeleteCommentOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.DeleteCommentRequest
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot read body of http request")

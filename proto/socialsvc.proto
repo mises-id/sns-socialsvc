@@ -359,6 +359,20 @@ service Social {
     };
   }
 
+  rpc DeleteComment (DeleteCommentRequest) returns (SimpleResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/comment/delete"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/comment/delete/"
+        body: "*"
+      }
+    };
+  }
+
 
   //like a comment
   rpc LikeComment (LikeCommentRequest) returns (SimpleResponse) {
@@ -685,6 +699,11 @@ message CreateCommentRequest {
   string status_id = 2;
   string parent_id = 3;
   string content = 4;
+}
+
+message DeleteCommentRequest {
+  uint64 current_uid = 1;
+  string id = 2;
 }
 
 message CreateCommentResponse {

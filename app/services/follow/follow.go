@@ -52,6 +52,13 @@ func Follow(ctx context.Context, fromUID, toUID uint64) (*models.Follow, error) 
 	if err != nil {
 		return nil, err
 	}
+	blocked, err := models.IsBlocked(ctx, fromUID, toUID)
+	if err != nil {
+		return nil, err
+	}
+	if blocked {
+		return nil, codes.ErrUserInBlacklist
+	}
 	isFriend := false
 	follow, err := models.GetFollow(ctx, fromUID, toUID)
 	if err != nil && err != mongo.ErrNoDocuments {
