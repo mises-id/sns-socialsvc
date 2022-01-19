@@ -601,3 +601,16 @@ func (s socialService) NewRecommendStatus(ctx context.Context, in *pb.NewRecomme
 
 	return &resp, nil
 }
+
+func (s socialService) DeleteComment(ctx context.Context, in *pb.DeleteCommentRequest) (*pb.SimpleResponse, error) {
+	var resp pb.SimpleResponse
+	commentID, err := primitive.ObjectIDFromHex(in.Id)
+	if err != nil {
+		return nil, err
+	}
+	if err := commentSVC.DeleteComment(ctx, in.CurrentUid, commentID); err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	return &resp, nil
+}

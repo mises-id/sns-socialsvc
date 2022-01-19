@@ -189,6 +189,10 @@ func (c *Comment) AddChildComment(ctx context.Context, commentID primitive.Objec
 	return result.Decode(c)
 }
 
+func (c *Comment) Delete(ctx context.Context) error {
+	return db.ODM(ctx).Delete(c, c.ID).Error
+}
+
 func FindComment(ctx context.Context, id primitive.ObjectID) (*Comment, error) {
 	comment := &Comment{}
 	err := db.ODM(ctx).First(comment, bson.M{"_id": id}).Error
