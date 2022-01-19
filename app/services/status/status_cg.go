@@ -121,7 +121,8 @@ func findListFollowing2Status(ctx context.Context, uid uint64, num int64) ([]*mo
 		fmt.Println("follow2 blacklist uids:", blackUids)
 		params.NInUIDs = append(params.NInUIDs, blackUids...)
 	}
-
+	//filter login user
+	params.NInUIDs = append(params.NInUIDs, uid)
 	status_list, err := models.AdminListStatus(ctx, params)
 	if err != nil {
 		return nil, err
@@ -165,6 +166,8 @@ func findListRecommendStatus(ctx context.Context, uid uint64, num int64) ([]*mod
 			fmt.Println("recommend blacklist uids:", blackUids)
 			params.NInUIDs = append(params.NInUIDs, blackUids...)
 		}
+		//filter login user
+		params.NInUIDs = append(params.NInUIDs, uid)
 	} else {
 		//not login
 		params.SortType = -1
@@ -219,6 +222,8 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 			fmt.Println("common following2 uids:", uids)
 			params.NInUIDs = append(params.NInUIDs, uids...) //filter following2 user status
 		}
+		//filter login user
+		params.NInUIDs = append(params.NInUIDs, uid)
 		//find pool cursor
 		cursors = getUserCommonCursor(ctx, uid)
 		if cursors != nil {
