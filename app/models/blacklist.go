@@ -6,6 +6,7 @@ import (
 
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -115,4 +116,23 @@ func GetBlacklistMap(ctx context.Context, uid uint64, targetUIDs []uint64) (map[
 		blacklistMap[blacklist.TargetUID] = blacklist
 	}
 	return blacklistMap, nil
+}
+
+func ListBlockedUIDs(ctx context.Context) ([]uint64, error) {
+	currentUID, ok := ctx.Value(utils.CurrentUIDKey{}).(uint64)
+	if !ok {
+		return []uint64{}, nil
+	}
+	blacklists := make([]*Blacklist, 0)
+	err := db.ODM(ctx).Where(bson.M{
+		"uid": currentUID,
+	}).Find(&blacklists).Error
+	if err != nil {
+		return nil, err
+	}
+	uids := make([]uint64, len(blacklists))
+	for i, blacklist := range blacklists {
+		uids[i] = blacklist.TargetUID
+	}
+	return uids, nil
 }
