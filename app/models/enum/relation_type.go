@@ -5,13 +5,15 @@ import "github.com/mises-id/sns-socialsvc/lib/codes"
 type RelationType uint32
 
 const (
-	Following RelationType = iota + 1
+	Stranger RelationType = iota
+	Following
 	Fan
 	Friend
 )
 
 var (
 	relationTypeMap = map[RelationType]string{
+		Stranger:  "stranger",
 		Following: "following",
 		Fan:       "fan",
 		Friend:    "friend",
