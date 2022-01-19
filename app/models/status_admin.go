@@ -64,9 +64,9 @@ func AdminPageStatus(ctx context.Context, params IAdminPageParams) ([]*Status, p
 
 func adminHandleStatus(ctx context.Context, statuses ...*Status) (err error) {
 
-	/* if err = preloadRelatedStatus(ctx, statuses...); err != nil {
-		return  err
-	} */
+	if err = preloadRelatedStatus(ctx, statuses...); err != nil {
+		return err
+	}
 	if err = preloadAttachment(ctx, statuses...); err != nil {
 		return err
 	}
