@@ -94,6 +94,7 @@ func findListFollowing2Status(ctx context.Context, uid uint64, num int64) ([]*mo
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("follow2 user ids:", uids)
 	// follow2 empty
 	if len(uids) == 0 {
 		return []*models.Status{}, nil
@@ -115,7 +116,13 @@ func findListFollowing2Status(ctx context.Context, uid uint64, num int64) ([]*mo
 		params.ScoreMax = cursors.Max
 		params.ScoreMin = cursors.Min
 	}
-
+	blackUids, err := getUserBlackListUids(ctx, uid)
+	if err == nil && len(blackUids) > 0 {
+		fmt.Println("follow2 blacklist uids:", blackUids)
+		params.NInUIDs = append(params.NInUIDs, blackUids...)
+	}
+	//filter login user
+	params.NInUIDs = append(params.NInUIDs, uid)
 	status_list, err := models.AdminListStatus(ctx, params)
 	if err != nil {
 		return nil, err
@@ -136,46 +143,53 @@ func findListRecommendStatus(ctx context.Context, uid uint64, num int64) ([]*mod
 		return []*models.Status{}, nil
 	}
 	var err error
-	var recommend_pool_cursors *models.RecommendStatusPoolCursor
-	recommend_start_time := time.Now().AddDate(0, 0, -14)
-	recommend_pool_status_params := &admin.AdminStatusParams{
+	var pool_cursors *models.RecommendStatusPoolCursor
+	start_time := time.Now().AddDate(0, 0, -14)
+	params := &admin.AdminStatusParams{
 		Tag:       enum.TagRecommendStatus,
 		ListNum:   num,
 		OnlyShow:  true,
-		StartTime: &recommend_start_time,
+		StartTime: &start_time,
 		SortType:  1,
 		SortKey:   "created_at",
 		FromTypes: []enum.FromType{enum.FromForward, enum.FromPost},
 	}
 	if uid > 0 {
-		recommend_pool_cursors = getUserRecommendCursor(ctx, uid)
-		if recommend_pool_cursors != nil {
-			recommend_pool_status_params.ScoreMax = recommend_pool_cursors.Max
-			recommend_pool_status_params.ScoreMin = recommend_pool_cursors.Min
+		pool_cursors = getUserRecommendCursor(ctx, uid)
+		if pool_cursors != nil {
+			params.ScoreMax = pool_cursors.Max
+			params.ScoreMin = pool_cursors.Min
 		}
+		//TODO filter black user
+		blackUids, err := getUserBlackListUids(ctx, uid)
+		if err == nil && len(blackUids) > 0 {
+			fmt.Println("recommend blacklist uids:", blackUids)
+			params.NInUIDs = append(params.NInUIDs, blackUids...)
+		}
+		//filter login user
+		params.NInUIDs = append(params.NInUIDs, uid)
 	} else {
 		//not login
-		recommend_pool_status_params.SortType = -1
+		params.SortType = -1
 		smax := time.Now().UnixMilli()
 		if newRecommendInput != nil && newRecommendInput.LastRecommendTime > 0 {
 			smax = newRecommendInput.LastRecommendTime
 		}
-		recommend_pool_status_params.ScoreMax = smax
+		params.ScoreMax = smax
 	}
-	recommend_pool_status_list, err := models.AdminListStatus(ctx, recommend_pool_status_params)
+	status_list, err := models.AdminListStatus(ctx, params)
 	if err != nil {
 		return nil, err
 	}
-	//recommend_status_num := len(recommend_pool_status_list)
-	max, min := getStatusListScoreMaxMin(recommend_pool_status_list)
+	max, min := getStatusListScoreMaxMin(status_list)
 	//update recommend pool status cursor
 	if uid > 0 {
-		updateUserRecommendCursor(ctx, uid, recommend_pool_cursors, max, min)
+		updateUserRecommendCursor(ctx, uid, pool_cursors, max, min)
 	} else {
 		newRecommendOutput.Next.LastRecommendTime = min
 	}
 
-	return recommend_pool_status_list, nil
+	return status_list, nil
 }
 
 //find common pool status
@@ -185,7 +199,7 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 		return []*models.Status{}, nil
 	}
 	var cursors *models.CommonPoolCursor
-	start_time := time.Now().AddDate(0, 0, -7)
+	start_time := time.Now().AddDate(0, 0, -3)
 	params := &admin.AdminStatusParams{
 		NInTags:   []enum.TagType{enum.TagRecommendStatus}, //filter recommend status
 		ListNum:   num,
@@ -195,20 +209,34 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 		SortKey:   "created_at",
 		FromTypes: []enum.FromType{enum.FromForward, enum.FromPost},
 	}
+	//TODO filter problem user
+	problemUserUids, err := getProblemUserUids(ctx)
+	if err == nil && len(problemUserUids) > 0 {
+		fmt.Println("common problem user ids:", problemUserUids)
+		params.NInUIDs = append(params.NInUIDs, problemUserUids...)
+	}
 	//login user
 	if uid > 0 {
 		uids, err := findUserFollowing2Uids(ctx, uid)
-
 		if err == nil && len(uids) > 0 {
-			fmt.Println("uids:", uids)
-			params.NInUIDs = uids //filter following2 user status
+			fmt.Println("common following2 uids:", uids)
+			params.NInUIDs = append(params.NInUIDs, uids...) //filter following2 user status
 		}
+		//filter login user
+		params.NInUIDs = append(params.NInUIDs, uid)
 		//find pool cursor
 		cursors = getUserCommonCursor(ctx, uid)
 		if cursors != nil {
 			params.ScoreMax = cursors.Max
 			params.ScoreMin = cursors.Min
 		}
+		//TODO filter black user
+		blackUids, err := getUserBlackListUids(ctx, uid)
+		if err == nil && len(blackUids) > 0 {
+			fmt.Println("common blacklist uids:", blackUids)
+			params.NInUIDs = append(params.NInUIDs, blackUids...)
+		}
+
 	} else {
 		//not login
 		params.SortType = -1
@@ -218,7 +246,6 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 		}
 		params.ScoreMax = smax
 	}
-
 	status_list, err := models.AdminListStatus(ctx, params)
 	if err != nil {
 		return nil, err
@@ -231,6 +258,18 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 		newRecommendOutput.Next.LastCommonTime = min
 	}
 	return status_list, nil
+}
+
+//find user black userIds
+func getUserBlackListUids(ctx context.Context, uid uint64) ([]uint64, error) {
+
+	return models.AdminListBlackListUserIDs(ctx, uid)
+}
+
+//find problem user ids
+func getProblemUserUids(ctx context.Context) ([]uint64, error) {
+
+	return models.AdminListProblemUserIDs(ctx)
 }
 
 //get status list min max
@@ -304,6 +343,7 @@ func getUserCommonCursor(ctx context.Context, uid uint64) *models.CommonPoolCurs
 		fmt.Println("find or create user ext error: ", err.Error())
 		return nil
 	}
+	fmt.Println("user ext: ", user_ext, "user id: ", uid)
 	return user_ext.CommonPoolCursor
 
 }

@@ -31,7 +31,7 @@ type (
 
 func (params *AdminUserParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	//base
-	chain = chain.Sort(bson.M{"_id": -1})
+
 	//where
 	if params.ID != 0 {
 		params.IDs = []uint64{params.ID}
@@ -52,9 +52,11 @@ func (params *AdminUserParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 		chain = chain.Where(bson.M{"created_at": bson.M{"$lte": params.EndTime}})
 	}
 	if params.StartTime != nil && params.EndTime != nil {
+
 		chain = chain.Where(bson.M{"$and": bson.A{bson.M{"created_at": bson.M{"$gte": params.StartTime}}, bson.M{"created_at": bson.M{"$lte": params.EndTime}}}})
 	}
 	//sort
+	chain = chain.Sort(bson.M{"_id": -1})
 	//limit
 	if (params.PageNum <= 0 || params.PageSize <= 0) && params.ListNum > 0 {
 		chain = chain.Limit(params.ListNum)
