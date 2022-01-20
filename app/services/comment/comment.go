@@ -31,7 +31,26 @@ func DeleteComment(ctx context.Context, currentUID uint64, id primitive.ObjectID
 	if comment.UID != currentUID {
 		return codes.ErrNotFound
 	}
-	return comment.Delete(ctx)
+	if err = comment.Delete(ctx); err != nil {
+		return err
+	}
+	status, err := models.FindStatus(ctx, comment.StatusID)
+	if err != nil {
+		return err
+	}
+	if err = status.IncStatusCounter(ctx, "comments_count", -1); err != nil {
+		return err
+	}
+	if !comment.GroupID.IsZero() && comment.GroupID != comment.ID {
+		groupComment, err := models.FindComment(ctx, comment.GroupID)
+		if err != nil {
+			return err
+		}
+		if err = groupComment.IncCommentCounter(ctx, "comments_count", -1); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func CreateComment(ctx context.Context, params *CreateCommentParams) (*models.Comment, error) {
