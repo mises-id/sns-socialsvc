@@ -179,6 +179,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCCreateCommentResponse,
 			serverOptions...,
 		),
+		deletecomment: grpctransport.NewServer(
+			endpoints.DeleteCommentEndpoint,
+			DecodeGRPCDeleteCommentRequest,
+			EncodeGRPCDeleteCommentResponse,
+			serverOptions...,
+		),
 		likecomment: grpctransport.NewServer(
 			endpoints.LikeCommentEndpoint,
 			DecodeGRPCLikeCommentRequest,
@@ -239,6 +245,7 @@ type grpcServer struct {
 	listcomment        grpctransport.Handler
 	newrecommendstatus grpctransport.Handler
 	createcomment      grpctransport.Handler
+	deletecomment      grpctransport.Handler
 	likecomment        grpctransport.Handler
 	unlikecomment      grpctransport.Handler
 	listblacklist      grpctransport.Handler
@@ -446,6 +453,14 @@ func (s *grpcServer) CreateComment(ctx context.Context, req *pb.CreateCommentReq
 		return nil, err
 	}
 	return rep.(*pb.CreateCommentResponse), nil
+}
+
+func (s *grpcServer) DeleteComment(ctx context.Context, req *pb.DeleteCommentRequest) (*pb.SimpleResponse, error) {
+	_, rep, err := s.deletecomment.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.SimpleResponse), nil
 }
 
 func (s *grpcServer) LikeComment(ctx context.Context, req *pb.LikeCommentRequest) (*pb.SimpleResponse, error) {
@@ -665,6 +680,13 @@ func DecodeGRPCCreateCommentRequest(_ context.Context, grpcReq interface{}) (int
 	return req, nil
 }
 
+// DecodeGRPCDeleteCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC deletecomment request to a user-domain deletecomment request. Primarily useful in a server.
+func DecodeGRPCDeleteCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.DeleteCommentRequest)
+	return req, nil
+}
+
 // DecodeGRPCLikeCommentRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC likecomment request to a user-domain likecomment request. Primarily useful in a server.
 func DecodeGRPCLikeCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -874,6 +896,13 @@ func EncodeGRPCNewRecommendStatusResponse(_ context.Context, response interface{
 // user-domain createcomment response to a gRPC createcomment reply. Primarily useful in a server.
 func EncodeGRPCCreateCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.CreateCommentResponse)
+	return resp, nil
+}
+
+// EncodeGRPCDeleteCommentResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain deletecomment response to a gRPC deletecomment reply. Primarily useful in a server.
+func EncodeGRPCDeleteCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.SimpleResponse)
 	return resp, nil
 }
 

@@ -23,6 +23,36 @@ func ListComment(ctx context.Context, params *ListCommentParams) ([]*models.Comm
 	return models.ListComment(ctx, &params.ListCommentParams)
 }
 
+func DeleteComment(ctx context.Context, currentUID uint64, id primitive.ObjectID) error {
+	comment, err := models.FindComment(ctx, id)
+	if err != nil {
+		return err
+	}
+	if comment.UID != currentUID {
+		return codes.ErrNotFound
+	}
+	if err = comment.Delete(ctx); err != nil {
+		return err
+	}
+	status, err := models.FindStatus(ctx, comment.StatusID)
+	if err != nil {
+		return err
+	}
+	if err = status.IncStatusCounter(ctx, "comments_count", -1); err != nil {
+		return err
+	}
+	if !comment.GroupID.IsZero() && comment.GroupID != comment.ID {
+		groupComment, err := models.FindComment(ctx, comment.GroupID)
+		if err != nil {
+			return err
+		}
+		if err = groupComment.IncCommentCounter(ctx, "comments_count", -1); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func CreateComment(ctx context.Context, params *CreateCommentParams) (*models.Comment, error) {
 	commentParams := params.CreateCommentParams
 	// check status exsist
