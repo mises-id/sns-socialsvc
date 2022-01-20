@@ -8,6 +8,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type (
@@ -19,6 +20,7 @@ type (
 	}
 )
 
+//find one user
 func AdminFindUser(ctx context.Context, params IAdminParams) (*User, error) {
 
 	user := &User{}
@@ -31,6 +33,7 @@ func AdminFindUser(ctx context.Context, params IAdminParams) (*User, error) {
 	return user, preloadUserAvatar(ctx, user)
 }
 
+//list user
 func AdminListUser(ctx context.Context, params IAdminParams) ([]*User, error) {
 
 	users := make([]*User, 0)
@@ -43,6 +46,7 @@ func AdminListUser(ctx context.Context, params IAdminParams) ([]*User, error) {
 	return users, preloadUserAvatar(ctx, users...)
 }
 
+//page user
 func AdminPageUser(ctx context.Context, params IAdminPageParams) ([]*User, pagination.Pagination, error) {
 	users := make([]*User, 0)
 	chain := params.BuildAdminSearch(db.ODM(ctx))
@@ -56,6 +60,28 @@ func AdminPageUser(ctx context.Context, params IAdminPageParams) ([]*User, pagin
 	return users, page, preloadUserAvatar(ctx, users...)
 }
 
+//find problem user uids
+func AdminListProblemUserIDs(ctx context.Context) ([]uint64, error) {
+	cursor, err := db.DB().Collection("users").Find(ctx, &bson.M{
+		"tags": bson.M{"$in": []enum.TagType{enum.TagProblemUser}},
+	}, &options.FindOptions{
+		Projection: bson.M{"id": 1},
+	})
+	if err != nil {
+		return nil, err
+	}
+	users := make([]*User, 0)
+	if err = cursor.All(ctx, &users); err != nil {
+		return nil, err
+	}
+	ids := make([]uint64, len(users))
+	for i, user := range users {
+		ids[i] = user.UID
+	}
+	return ids, nil
+}
+
+//update user tags
 func UpdateUserTag(ctx context.Context, user *User) error {
 	_, err := db.DB().Collection("users").UpdateOne(ctx, &bson.M{
 		"_id": user.UID,
