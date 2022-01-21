@@ -56,7 +56,7 @@ func (params *AdminStatusParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	}
 	if params.NInUIDs != nil && len(params.NInUIDs) > 0 {
 		//chain = chain.Where(bson.M{"uid": bson.M{"$nin": params.NInUIDs}})
-		and = append(and, bson.M{"uid": bson.M{"$nin": params.UIDs}})
+		and = append(and, bson.M{"uid": bson.M{"$nin": params.NInUIDs}})
 	}
 	if params.FromTypes != nil {
 		chain = chain.Where(bson.M{"from_type": bson.M{"$in": params.FromTypes}})
