@@ -333,6 +333,17 @@ service Social {
       }
     };
   }
+  rpc GetComment (GetCommentRequest) returns (GetCommentResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/comment"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/comment/"
+      }
+    };
+  }
   rpc NewRecommendStatus (NewRecommendStatusRequest) returns (NewRecommendStatusResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
@@ -679,6 +690,16 @@ message Comment {
   uint64 like_count = 12;
 	uint64 created_at = 13;
   bool is_liked = 14;
+}
+
+message GetCommentRequest {
+  uint64 current_uid = 1;
+  string comment_id = 2;
+}
+
+message GetCommentResponse {
+  uint64 code = 1;
+  Comment comment = 2;
 }
 
 message ListCommentRequest {

@@ -614,3 +614,18 @@ func (s socialService) DeleteComment(ctx context.Context, in *pb.DeleteCommentRe
 	resp.Code = 0
 	return &resp, nil
 }
+
+func (s socialService) GetComment(ctx context.Context, in *pb.GetCommentRequest) (*pb.GetCommentResponse, error) {
+	var resp pb.GetCommentResponse
+	commentID, err := primitive.ObjectIDFromHex(in.CommentId)
+	if err != nil {
+		return nil, err
+	}
+	comment, err := commentSVC.GetComment(ctx, in.CurrentUid, commentID)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Comment = factory.NewComment(comment)
+	return &resp, nil
+}

@@ -56,6 +56,7 @@ type Endpoints struct {
 	ReadMessageEndpoint        endpoint.Endpoint
 	GetMessageSummaryEndpoint  endpoint.Endpoint
 	ListCommentEndpoint        endpoint.Endpoint
+	GetCommentEndpoint         endpoint.Endpoint
 	NewRecommendStatusEndpoint endpoint.Endpoint
 	CreateCommentEndpoint      endpoint.Endpoint
 	DeleteCommentEndpoint      endpoint.Endpoint
@@ -250,6 +251,14 @@ func (e Endpoints) ListComment(ctx context.Context, in *pb.ListCommentRequest) (
 		return nil, err
 	}
 	return response.(*pb.ListCommentResponse), nil
+}
+
+func (e Endpoints) GetComment(ctx context.Context, in *pb.GetCommentRequest) (*pb.GetCommentResponse, error) {
+	response, err := e.GetCommentEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.GetCommentResponse), nil
 }
 
 func (e Endpoints) NewRecommendStatus(ctx context.Context, in *pb.NewRecommendStatusRequest) (*pb.NewRecommendStatusResponse, error) {
@@ -571,6 +580,17 @@ func MakeListCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeGetCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.GetCommentRequest)
+		v, err := s.GetComment(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeNewRecommendStatusEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.NewRecommendStatusRequest)
@@ -689,6 +709,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"ReadMessage":        {},
 		"GetMessageSummary":  {},
 		"ListComment":        {},
+		"GetComment":         {},
 		"NewRecommendStatus": {},
 		"CreateComment":      {},
 		"DeleteComment":      {},
@@ -776,6 +797,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "ListComment" {
 			e.ListCommentEndpoint = middleware(e.ListCommentEndpoint)
 		}
+		if inc == "GetComment" {
+			e.GetCommentEndpoint = middleware(e.GetCommentEndpoint)
+		}
 		if inc == "NewRecommendStatus" {
 			e.NewRecommendStatusEndpoint = middleware(e.NewRecommendStatusEndpoint)
 		}
@@ -837,6 +861,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"ReadMessage":        {},
 		"GetMessageSummary":  {},
 		"ListComment":        {},
+		"GetComment":         {},
 		"NewRecommendStatus": {},
 		"CreateComment":      {},
 		"DeleteComment":      {},
@@ -923,6 +948,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "ListComment" {
 			e.ListCommentEndpoint = middleware("ListComment", e.ListCommentEndpoint)
+		}
+		if inc == "GetComment" {
+			e.GetCommentEndpoint = middleware("GetComment", e.GetCommentEndpoint)
 		}
 		if inc == "NewRecommendStatus" {
 			e.NewRecommendStatusEndpoint = middleware("NewRecommendStatus", e.NewRecommendStatusEndpoint)

@@ -357,6 +357,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("GET").Path("/comment/").Handler(httptransport.NewServer(
+		endpoints.GetCommentEndpoint,
+		DecodeHTTPGetCommentZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/comment").Handler(httptransport.NewServer(
+		endpoints.GetCommentEndpoint,
+		DecodeHTTPGetCommentOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("GET").Path("/status/new_recommend/").Handler(httptransport.NewServer(
 		endpoints.NewRecommendStatusEndpoint,
 		DecodeHTTPNewRecommendStatusZeroRequest,
@@ -2778,6 +2791,108 @@ func DecodeHTTPListCommentOneRequest(_ context.Context, r *http.Request) (interf
 			return nil, errors.Wrapf(err, "couldn't decode PaginatorListComment from %v", PaginatorListCommentStr)
 		}
 
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetCommentZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getcomment request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetCommentZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetCommentRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetCommentStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetCommentStr := CurrentUidGetCommentStrArr[0]
+		CurrentUidGetComment, err := strconv.ParseUint(CurrentUidGetCommentStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetComment from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetComment
+	}
+
+	if CommentIdGetCommentStrArr, ok := queryParams["comment_id"]; ok {
+		CommentIdGetCommentStr := CommentIdGetCommentStrArr[0]
+		CommentIdGetComment := CommentIdGetCommentStr
+		req.CommentId = CommentIdGetComment
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetCommentOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getcomment request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetCommentOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetCommentRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetCommentStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetCommentStr := CurrentUidGetCommentStrArr[0]
+		CurrentUidGetComment, err := strconv.ParseUint(CurrentUidGetCommentStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetComment from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetComment
+	}
+
+	if CommentIdGetCommentStrArr, ok := queryParams["comment_id"]; ok {
+		CommentIdGetCommentStr := CommentIdGetCommentStrArr[0]
+		CommentIdGetComment := CommentIdGetCommentStr
+		req.CommentId = CommentIdGetComment
 	}
 
 	return &req, err

@@ -335,6 +335,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var getcommentEndpoint endpoint.Endpoint
+	{
+		getcommentEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"GetComment",
+			EncodeGRPCGetCommentRequest,
+			DecodeGRPCGetCommentResponse,
+			pb.GetCommentResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	var newrecommendstatusEndpoint endpoint.Endpoint
 	{
 		newrecommendstatusEndpoint = grpctransport.NewClient(
@@ -463,6 +476,7 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		ReadMessageEndpoint:        readmessageEndpoint,
 		GetMessageSummaryEndpoint:  getmessagesummaryEndpoint,
 		ListCommentEndpoint:        listcommentEndpoint,
+		GetCommentEndpoint:         getcommentEndpoint,
 		NewRecommendStatusEndpoint: newrecommendstatusEndpoint,
 		CreateCommentEndpoint:      createcommentEndpoint,
 		DeleteCommentEndpoint:      deletecommentEndpoint,
@@ -634,6 +648,13 @@ func DecodeGRPCGetMessageSummaryResponse(_ context.Context, grpcReply interface{
 // gRPC listcomment reply to a user-domain listcomment response. Primarily useful in a client.
 func DecodeGRPCListCommentResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.ListCommentResponse)
+	return reply, nil
+}
+
+// DecodeGRPCGetCommentResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC getcomment reply to a user-domain getcomment response. Primarily useful in a client.
+func DecodeGRPCGetCommentResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.GetCommentResponse)
 	return reply, nil
 }
 
@@ -853,6 +874,13 @@ func EncodeGRPCGetMessageSummaryRequest(_ context.Context, request interface{}) 
 // user-domain listcomment request to a gRPC listcomment request. Primarily useful in a client.
 func EncodeGRPCListCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.ListCommentRequest)
+	return req, nil
+}
+
+// EncodeGRPCGetCommentRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain getcomment request to a gRPC getcomment request. Primarily useful in a client.
+func EncodeGRPCGetCommentRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.GetCommentRequest)
 	return req, nil
 }
 

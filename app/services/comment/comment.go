@@ -19,6 +19,15 @@ type CreateCommentParams struct {
 	*models.CreateCommentParams
 }
 
+func GetComment(ctx context.Context, currentUID uint64, id primitive.ObjectID) (*models.Comment, error) {
+
+	comment, err := models.FindComment(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return comment, nil
+}
+
 func ListComment(ctx context.Context, params *ListCommentParams) ([]*models.Comment, pagination.Pagination, error) {
 	return models.ListComment(ctx, &params.ListCommentParams)
 }
