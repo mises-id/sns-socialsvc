@@ -295,8 +295,10 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*Status, pagin
 	}
 	statuses := make([]*Status, 0)
 	chain := db.ODM(ctx)
+	and := bson.A{}
 	if params.UIDs != nil && len(params.UIDs) > 0 {
-		chain = chain.Where(bson.M{"uid": bson.M{"$in": params.UIDs}})
+		//chain = chain.Where(bson.M{"uid": bson.M{"$in": params.UIDs}})
+		and = append(and, bson.M{"uid": bson.M{"$in": params.UIDs}})
 	}
 	if !params.ParentStatusID.IsZero() {
 		chain = chain.Where(bson.M{"parent_id": params.ParentStatusID})
@@ -312,7 +314,11 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*Status, pagin
 		return nil, nil, err
 	}
 	if len(blockedUIDs) > 0 {
-		chain = chain.Where(bson.M{"uid": bson.M{"$nin": blockedUIDs}})
+		//chain = chain.Where(bson.M{"uid": bson.M{"$nin": blockedUIDs}})
+		and = append(and, bson.M{"uid": bson.M{"$nin": blockedUIDs}})
+	}
+	if len(and) > 0 {
+		chain = chain.Where(bson.M{"$and": and})
 	}
 	paginator := pagination.NewQuickPaginator(params.PageParams.Limit, params.PageParams.NextID, chain)
 	page, err := paginator.Paginate(&statuses)
