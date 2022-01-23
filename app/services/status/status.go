@@ -76,14 +76,7 @@ func UserTimeline(ctx context.Context, uid uint64, pageParams *pagination.PageQu
 	if err != nil {
 		return nil, nil, err
 	}
-	if len(friendIDs) == 0 {
-		return []*models.Status{}, &pagination.QuickPagination{
-			Limit: pageParams.Limit,
-		}, nil
-	} else {
-		friendIDs = append(friendIDs, uid)
-	}
-
+	friendIDs = append(friendIDs, uid)
 	statues, page, err := models.ListStatus(ctxWithUID, &models.ListStatusParams{
 		UIDs:           friendIDs,
 		ParentStatusID: primitive.NilObjectID,
