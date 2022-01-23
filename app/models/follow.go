@@ -82,7 +82,7 @@ func ReadNewFans(ctx context.Context, uid uint64) error {
 
 func LatestFollowing(ctx context.Context, uid uint64) ([]*Follow, error) {
 	follows := make([]*Follow, 0)
-	err := db.ODM(ctx).Where(bson.M{"from_uid": uid}).
+	err := db.ODM(ctx).Where(bson.M{"from_uid": uid, "is_read": false}).
 		Sort(bson.D{{Key: "is_read", Value: 1}, {Key: "latest_post_time", Value: -1}}).
 		Limit(20).Find(&follows).Error
 	if err != nil {
