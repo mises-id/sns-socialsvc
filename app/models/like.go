@@ -160,6 +160,13 @@ func ListLike(ctx context.Context, uid uint64, tp enum.LikeTargetType, pageParam
 	}
 	likes := make([]*Like, 0)
 	chain := db.ODM(ctx).Where(bson.M{"uid": uid, "target_type": tp, "deleted_at": nil})
+	blockedUIDs, err := ListBlockedUIDs(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	if len(blockedUIDs) > 0 {
+		chain = chain.Where(bson.M{"target_id": bson.M{"$nin": blockedUIDs}})
+	}
 	paginator := pagination.NewQuickPaginator(pageParams.Limit, pageParams.NextID, chain)
 	page, err := paginator.Paginate(&likes)
 	if err != nil {
