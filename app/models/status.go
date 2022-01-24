@@ -283,6 +283,7 @@ func DeleteStatus(ctx context.Context, id primitive.ObjectID) error {
 
 type ListStatusParams struct {
 	UIDs           []uint64
+	CurrentUID     uint64
 	ParentStatusID primitive.ObjectID
 	FromTypes      []enum.FromType
 	OnlyShow       bool
@@ -307,7 +308,11 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*Status, pagin
 		chain = chain.Where(bson.M{"from_type": bson.M{"$in": params.FromTypes}})
 	}
 	if params.OnlyShow {
-		chain = chain.Where(bson.M{"$or": bson.A{bson.M{"hide_time": nil}, bson.M{"hide_time": bson.M{"$gt": time.Now()}}}})
+		orFilter := bson.A{bson.M{"hide_time": nil}, bson.M{"hide_time": bson.M{"$gt": time.Now()}}}
+		if params.CurrentUID > 0 {
+			orFilter = append(orFilter, bson.M{"uid": params.CurrentUID})
+		}
+		chain = chain.Where(bson.M{"$or": orFilter})
 	}
 	blockedUIDs, err := ListBlockedUIDs(ctx)
 	if err != nil {
