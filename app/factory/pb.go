@@ -61,20 +61,22 @@ func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 		return nil
 	}
 	statusinfo := pb.StatusInfo{
-		Id:           docID(status.ID),
-		User:         NewUserInfo(status.User),
-		Content:      status.Content,
-		FromType:     status.FromType.String(),
-		StatusType:   status.StatusType.String(),
-		Parent:       NewStatusInfo(status.ParentStatus),
-		Origin:       NewStatusInfo(status.OriginStatus),
-		CommentCount: status.CommentsCount,
-		LikeCount:    status.LikesCount,
-		ForwardCount: status.ForwardsCount,
-		IsLiked:      status.IsLiked,
-		CreatedAt:    uint64(status.CreatedAt.Unix()),
-		IsPublic:     status.HideTime == nil,
-		HideTime:     status.GetHideTime(),
+		Id:                    docID(status.ID),
+		User:                  NewUserInfo(status.User),
+		Content:               status.Content,
+		FromType:              status.FromType.String(),
+		StatusType:            status.StatusType.String(),
+		Parent:                NewStatusInfo(status.ParentStatus),
+		Origin:                NewStatusInfo(status.OriginStatus),
+		CommentCount:          status.CommentsCount,
+		LikeCount:             status.LikesCount,
+		ForwardCount:          status.ForwardsCount,
+		IsLiked:               status.IsLiked,
+		ParentStatusIsDeleted: status.ParentStatusIsDeleted,
+		ParentStatusIsBlacked: status.ParentStatusIsBlocked,
+		CreatedAt:             uint64(status.CreatedAt.Unix()),
+		IsPublic:              status.HideTime == nil,
+		HideTime:              status.GetHideTime(),
 	}
 	switch status.StatusType {
 	case enum.LinkStatus:

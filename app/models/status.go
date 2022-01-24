@@ -18,26 +18,28 @@ import (
 
 type Status struct {
 	meta.MetaData
-	ID            primitive.ObjectID `bson:"_id,omitempty"`
-	ParentID      primitive.ObjectID `bson:"parent_id,omitempty"`
-	OriginID      primitive.ObjectID `bson:"origin_id,omitempty"`
-	UID           uint64             `bson:"uid,omitempty"`
-	FromType      enum.FromType      `bson:"from_type"`
-	StatusType    enum.StatusType    `bson:"status_type"`
-	Content       string             `bson:"content,omitempty" validate:"min=0,max=4000"`
-	CommentsCount uint64             `bson:"comments_count,omitempty"`
-	LikesCount    uint64             `bson:"likes_count,omitempty"`
-	ForwardsCount uint64             `bson:"forwards_count,omitempty"`
-	HideTime      *time.Time         `bson:"hide_time"`
-	Score         int64              `bson:"score"`
-	Tags          []enum.TagType     `bson:"tags"`
-	DeletedAt     *time.Time         `bson:"deleted_at,omitempty"`
-	CreatedAt     time.Time          `bson:"created_at,omitempty"`
-	UpdatedAt     time.Time          `bson:"updated_at,omitempty"`
-	User          *User              `bson:"-"`
-	IsLiked       bool               `bson:"-"`
-	ParentStatus  *Status            `bson:"-"`
-	OriginStatus  *Status            `bson:"-"`
+	ID                    primitive.ObjectID `bson:"_id,omitempty"`
+	ParentID              primitive.ObjectID `bson:"parent_id,omitempty"`
+	OriginID              primitive.ObjectID `bson:"origin_id,omitempty"`
+	UID                   uint64             `bson:"uid,omitempty"`
+	FromType              enum.FromType      `bson:"from_type"`
+	StatusType            enum.StatusType    `bson:"status_type"`
+	Content               string             `bson:"content,omitempty" validate:"min=0,max=4000"`
+	CommentsCount         uint64             `bson:"comments_count,omitempty"`
+	LikesCount            uint64             `bson:"likes_count,omitempty"`
+	ForwardsCount         uint64             `bson:"forwards_count,omitempty"`
+	HideTime              *time.Time         `bson:"hide_time"`
+	Score                 int64              `bson:"score"`
+	Tags                  []enum.TagType     `bson:"tags"`
+	DeletedAt             *time.Time         `bson:"deleted_at,omitempty"`
+	CreatedAt             time.Time          `bson:"created_at,omitempty"`
+	UpdatedAt             time.Time          `bson:"updated_at,omitempty"`
+	User                  *User              `bson:"-"`
+	IsLiked               bool               `bson:"-"`
+	ParentStatusIsDeleted bool               `bson:"-"`
+	ParentStatusIsBlocked bool               `bson:"-"`
+	ParentStatus          *Status            `bson:"-"`
+	OriginStatus          *Status            `bson:"-"`
 }
 
 func (s *Status) validate(ctx context.Context) error {
@@ -371,6 +373,16 @@ func preloadStatusUser(ctx context.Context, statuses ...*Status) error {
 }
 
 func preloadRelatedStatus(ctx context.Context, statuses ...*Status) error {
+
+	//parent status black
+	currentUID, ok := ctx.Value(utils.CurrentUIDKey{}).(uint64)
+	blackUids := []uint64{}
+	if ok && currentUID > 0 {
+		uids, err := AdminListBlackListUserIDs(ctx, currentUID)
+		if err != nil {
+			blackUids = uids
+		}
+	}
 	statusIds := make([]primitive.ObjectID, 0)
 	for _, status := range statuses {
 		if !status.ParentID.IsZero() {
@@ -394,6 +406,16 @@ func preloadRelatedStatus(ctx context.Context, statuses ...*Status) error {
 		statusMap[status.ID] = status
 	}
 	for _, status := range statuses {
+		if !status.ParentID.IsZero() && statusMap[status.ParentID] == nil {
+			status.ParentStatusIsDeleted = true
+		}
+		if len(blackUids) > 0 && !status.ParentStatusIsDeleted && status.ParentStatus != nil {
+			for _, v := range blackUids {
+				if status.ParentStatus.UID == v {
+					status.ParentStatusIsBlocked = true
+				}
+			}
+		}
 		status.ParentStatus = statusMap[status.ParentID]
 		status.OriginStatus = statusMap[status.OriginID]
 	}

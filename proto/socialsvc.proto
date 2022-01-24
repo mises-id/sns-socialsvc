@@ -546,6 +546,8 @@ message StatusInfo {
   ImageMetaInfo image_meta = 14;
   bool is_public = 15;
   uint64 hide_time = 16;
+  bool parent_status_is_deleted = 17;
+  bool parent_status_is_blacked = 18;
 }
 
 message GetStatusRequest {
