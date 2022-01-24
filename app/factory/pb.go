@@ -73,7 +73,7 @@ func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 		ForwardCount:          status.ForwardsCount,
 		IsLiked:               status.IsLiked,
 		ParentStatusIsDeleted: status.ParentStatusIsDeleted,
-		ParentStatusIsBlacked: status.ParentStatusIsBlocked,
+		ParentStatusIsBlacked: status.ParentStatusIsBlacked,
 		CreatedAt:             uint64(status.CreatedAt.Unix()),
 		IsPublic:              status.HideTime == nil,
 		HideTime:              status.GetHideTime(),
