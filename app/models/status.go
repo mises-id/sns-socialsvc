@@ -37,7 +37,7 @@ type Status struct {
 	User                  *User              `bson:"-"`
 	IsLiked               bool               `bson:"-"`
 	ParentStatusIsDeleted bool               `bson:"-"`
-	ParentStatusIsBlocked bool               `bson:"-"`
+	ParentStatusIsBlacked bool               `bson:"-"`
 	ParentStatus          *Status            `bson:"-"`
 	OriginStatus          *Status            `bson:"-"`
 }
@@ -417,7 +417,7 @@ func preloadRelatedStatus(ctx context.Context, statuses ...*Status) error {
 		if len(blackUids) > 0 && !status.ParentStatusIsDeleted && status.ParentStatus != nil {
 			for _, v := range blackUids {
 				if status.ParentStatus.UID == v {
-					status.ParentStatusIsBlocked = true
+					status.ParentStatusIsBlacked = true
 				}
 			}
 		}
