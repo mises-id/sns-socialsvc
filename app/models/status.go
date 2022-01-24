@@ -384,7 +384,7 @@ func preloadRelatedStatus(ctx context.Context, statuses ...*Status) error {
 	blackUids := []uint64{}
 	if ok && currentUID > 0 {
 		uids, err := AdminListBlackListUserIDs(ctx, currentUID)
-		if err != nil {
+		if err == nil {
 			blackUids = uids
 		}
 	}
@@ -414,6 +414,8 @@ func preloadRelatedStatus(ctx context.Context, statuses ...*Status) error {
 		if !status.ParentID.IsZero() && statusMap[status.ParentID] == nil {
 			status.ParentStatusIsDeleted = true
 		}
+		status.ParentStatus = statusMap[status.ParentID]
+		status.OriginStatus = statusMap[status.OriginID]
 		if len(blackUids) > 0 && !status.ParentStatusIsDeleted && status.ParentStatus != nil {
 			for _, v := range blackUids {
 				if status.ParentStatus.UID == v {
@@ -421,8 +423,6 @@ func preloadRelatedStatus(ctx context.Context, statuses ...*Status) error {
 				}
 			}
 		}
-		status.ParentStatus = statusMap[status.ParentID]
-		status.OriginStatus = statusMap[status.OriginID]
 	}
 	return nil
 }
