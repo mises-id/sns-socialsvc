@@ -62,6 +62,10 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*models.Status
 		ParentStatusID: params.ParentID,
 		PageParams:     params.PageQuickParams,
 		FromTypes:      params.FromTypes,
+		OnlyShow:       true,
+	}
+	if params.UID == params.CurrentUID {
+		listParams.CurrentUID = params.CurrentUID
 	}
 	statues, page, err := models.ListStatus(ctxWithUID, listParams)
 	if err != nil {
