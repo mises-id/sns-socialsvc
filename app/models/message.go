@@ -34,16 +34,19 @@ type CreateMessageParams struct {
 
 type Message struct {
 	message.MetaData
-	ID          primitive.ObjectID `bson:"_id,omitempty"`
-	UID         uint64             `bson:"uid,omitempty"`
-	FromUID     uint64             `bson:"from_uid,omitempty"`
-	StatusID    primitive.ObjectID `bson:"status_id,omitempty"`
-	MessageType enum.MessageType   `bson:"message_type,omitempty"`
-	ReadTime    *time.Time         `bson:"read_time"`
-	CreatedAt   time.Time          `bson:"created_at,omitempty"`
-	UpdatedAt   time.Time          `bson:"updated_at,omitempty"`
-	FromUser    *User              `bson:"-"`
-	Status      *Status            `bson:"-"`
+	ID               primitive.ObjectID `bson:"_id,omitempty"`
+	UID              uint64             `bson:"uid,omitempty"`
+	FromUID          uint64             `bson:"from_uid,omitempty"`
+	StatusID         primitive.ObjectID `bson:"status_id,omitempty"`
+	MessageType      enum.MessageType   `bson:"message_type,omitempty"`
+	ReadTime         *time.Time         `bson:"read_time"`
+	CreatedAt        time.Time          `bson:"created_at,omitempty"`
+	UpdatedAt        time.Time          `bson:"updated_at,omitempty"`
+	FromUser         *User              `bson:"-"`
+	Status           *Status            `bson:"-"`
+	Comment          *Comment           `bson:"-"`
+	StatusIsDeleted  bool               `bson:"-"`
+	CommentIsDeleted bool               `bson:"-"`
 }
 
 func (m *Message) State() string {
@@ -132,6 +135,9 @@ func PreloadMessageData(ctx context.Context, messages ...*Message) error {
 	if err := preloadMessageStatus(ctx, messages...); err != nil {
 		return err
 	}
+	if err := preloadMessageComment(ctx, messages...); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -168,6 +174,34 @@ func preloadMessageStatus(ctx context.Context, messages ...*Message) error {
 	for _, message := range messages {
 		if !message.StatusID.IsZero() {
 			message.Status = statusMap[message.StatusID]
+			if message.Status == nil {
+				message.StatusIsDeleted = true
+			}
+		}
+	}
+	return nil
+}
+func preloadMessageComment(ctx context.Context, messages ...*Message) error {
+	commentIDs := make([]primitive.ObjectID, 0)
+	for _, message := range messages {
+		if message.CommentMeta != nil && !message.CommentMeta.CommentID.IsZero() {
+			commentIDs = append(commentIDs, message.CommentMeta.CommentID)
+		}
+	}
+	comments, err := FindCommentByIDs(ctx, commentIDs...)
+	if err != nil {
+		return err
+	}
+	commentMap := map[primitive.ObjectID]*Comment{}
+	for _, comment := range comments {
+		commentMap[comment.ID] = comment
+	}
+	for _, message := range messages {
+		if message.CommentMeta != nil && !message.CommentMeta.CommentID.IsZero() {
+			//message.Comment = commentMap[message.CommentMeta.CommentID]
+			if commentMap[message.CommentMeta.CommentID] == nil {
+				message.CommentIsDeleted = true
+			}
 		}
 	}
 	return nil
