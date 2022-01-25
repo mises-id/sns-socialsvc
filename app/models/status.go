@@ -97,27 +97,30 @@ func (s *Status) AfterCreate(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		message := &CreateMessageParams{
-			UID:         s.ParentStatus.UID,
-			FromUID:     s.UID,
-			StatusID:    s.ID,
-			MessageType: enum.NewForward,
-			MetaData: &message.MetaData{
-				ForwardMeta: &message.ForwardMeta{
-					UID:            s.UID,
-					StatusID:       s.ID,
-					ForwardContent: s.Content,
-					ContentSummary: s.ParentStatus.ContentSummary(),
-					ImagePath:      s.ParentStatus.FirstImage(),
+		//forward public status  notify parent status user
+		if s.HideTime == nil {
+			message := &CreateMessageParams{
+				UID:         s.ParentStatus.UID,
+				FromUID:     s.UID,
+				StatusID:    s.ID,
+				MessageType: enum.NewForward,
+				MetaData: &message.MetaData{
+					ForwardMeta: &message.ForwardMeta{
+						UID:            s.UID,
+						StatusID:       s.ID,
+						ForwardContent: s.Content,
+						ContentSummary: s.ParentStatus.ContentSummary(),
+						ImagePath:      s.ParentStatus.FirstImage(),
+					},
 				},
-			},
-		}
-		_, err = CreateMessage(ctx, message)
-		if err != nil {
-			return err
+			}
+			_, err = CreateMessage(ctx, message)
+			if err != nil {
+				return err
+			}
 		}
 	}
-	//private status not notify
+	//public status notify fans
 	if s.HideTime == nil {
 		return s.notifyFans(ctx)
 	}
