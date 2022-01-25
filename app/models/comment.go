@@ -257,7 +257,7 @@ func ListComment(ctx context.Context, params *ListCommentParams) ([]*Comment, pa
 		chain = chain.Where(bson.M{"uid": bson.M{"$nin": blockedUIDs}})
 	}
 	chain = chain.Sort(bson.M{"_id": 1})
-	paginator := pagination.NewQuickPaginator(params.PageParams.Limit, params.PageParams.NextID, chain)
+	paginator := pagination.NewQuickPaginator(params.PageParams.Limit, params.PageParams.NextID, chain, pagination.SortAsc())
 	page, err := paginator.Paginate(&comments)
 	if err != nil {
 		return nil, nil, err

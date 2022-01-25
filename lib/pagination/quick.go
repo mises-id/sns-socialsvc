@@ -32,20 +32,32 @@ type QuickPagination struct {
 }
 
 type QuickPaginator struct {
-	Limit  int64   `json:"-"`
-	NextID string  `json:"-"`
-	DB     *odm.DB `json:"-"`
+	Limit    int64   `json:"-"`
+	NextID   string  `json:"-"`
+	SortType string  `json:"-"`
+	DB       *odm.DB `json:"-"`
 }
 
-func NewQuickPaginator(limit int64, nextID string, db *odm.DB) Paginator {
+type Options func(p *QuickPaginator)
+
+func NewQuickPaginator(limit int64, nextID string, db *odm.DB, opts ...Options) Paginator {
 	if limit == 0 {
 		limit = 50
 	}
-
-	return &QuickPaginator{
+	qp := &QuickPaginator{
 		Limit:  limit,
 		NextID: nextID,
 		DB:     db,
+	}
+	for _, opt := range opts {
+		opt(qp)
+	}
+	return qp
+}
+
+func SortAsc() Options {
+	return func(p *QuickPaginator) {
+		p.SortType = "asc"
 	}
 }
 
@@ -62,6 +74,9 @@ func (p *QuickPaginator) Paginate(dataSource interface{}) (Pagination, error) {
 			return nil, err
 		}
 		db = db.Where(bson.M{"_id": bson.M{"$lte": hex}})
+		if p.SortType == "asc" {
+			db = db.Where(bson.M{"_id": bson.M{"$gte": hex}})
+		}
 	}
 	err = db.Sort(bson.M{"_id": -1}).Limit(p.Limit).Find(dataSource).Error
 	if err != nil {
