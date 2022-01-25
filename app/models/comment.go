@@ -188,9 +188,36 @@ func (c *Comment) AddChildComment(ctx context.Context, commentID primitive.Objec
 	}
 	return result.Decode(c)
 }
+func (c *Comment) RemoveChildComment(ctx context.Context, commentID primitive.ObjectID) error {
+	result := db.DB().Collection("comments").FindOneAndUpdate(ctx, bson.M{"_id": c.ID},
+		bson.D{{
+			Key: "$pull",
+			Value: bson.D{{
+				Key:   "comment_ids",
+				Value: commentID,
+			}}},
+		})
+	if err := result.Err(); err != nil {
+		return err
+	}
+	return result.Decode(c)
+}
 
 func (c *Comment) Delete(ctx context.Context) error {
 	return db.ODM(ctx).Delete(c, c.ID).Error
+}
+
+func DeleteMany(ctx context.Context, ids []primitive.ObjectID) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	_, err := db.DB().Collection("comments").DeleteMany(ctx, bson.M{"_id": bson.M{"$in": ids}})
+	return err
+}
+
+func DeleteManyByGroupId(ctx context.Context, group_id primitive.ObjectID) error {
+	_, err := db.DB().Collection("comments").DeleteMany(ctx, bson.M{"group_id": group_id})
+	return err
 }
 
 func FindComment(ctx context.Context, id primitive.ObjectID) (*Comment, error) {
@@ -297,7 +324,12 @@ func preloadCommentChildren(ctx context.Context, comments ...*Comment) error {
 		if comment.CommentIDs == nil {
 			continue
 		}
-		ids = append(ids, comment.CommentIDs...)
+		if len(comment.CommentIDs) > 3 {
+			ids = append(ids, comment.CommentIDs[:3]...)
+		} else {
+			ids = append(ids, comment.CommentIDs...)
+		}
+
 	}
 	children, err := FindCommentByIDs(ctx, ids...)
 	if err != nil {

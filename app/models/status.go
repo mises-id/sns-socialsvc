@@ -117,7 +117,12 @@ func (s *Status) AfterCreate(ctx context.Context) error {
 			return err
 		}
 	}
-	return s.notifyFans(ctx)
+	//private status not notify
+	if s.HideTime == nil {
+		return s.notifyFans(ctx)
+	}
+	return nil
+
 }
 
 func (s *Status) GetHideTime() uint64 {

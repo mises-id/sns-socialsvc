@@ -184,13 +184,15 @@ func NewMessage(message *models.Message) *pb.Message {
 		return nil
 	}
 	result := &pb.Message{
-		Id:          docID(message.ID),
-		Uid:         message.UID,
-		MessageType: message.MessageType.String(),
-		FromUser:    NewUserInfo(message.FromUser),
-		State:       message.State(),
-		Status:      NewStatusInfo(message.Status),
-		CreatedAt:   uint64(message.CreatedAt.Unix()),
+		Id:               docID(message.ID),
+		Uid:              message.UID,
+		MessageType:      message.MessageType.String(),
+		FromUser:         NewUserInfo(message.FromUser),
+		State:            message.State(),
+		Status:           NewStatusInfo(message.Status),
+		CreatedAt:        uint64(message.CreatedAt.Unix()),
+		StatusIsDeleted:  message.StatusIsDeleted,
+		CommentIsDeleted: message.CommentIsDeleted,
 	}
 	switch message.MessageType {
 	case enum.NewComment:
