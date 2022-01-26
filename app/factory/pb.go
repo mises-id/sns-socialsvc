@@ -1,6 +1,8 @@
 package factory
 
 import (
+	"time"
+
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/message"
@@ -78,6 +80,11 @@ func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 		IsPublic:              status.HideTime == nil,
 		HideTime:              status.GetHideTime(),
 	}
+	var IsPublic bool
+	if status.HideTime == nil || status.HideTime.Unix() > time.Now().UTC().Unix() {
+		IsPublic = true
+	}
+	statusinfo.IsPublic = IsPublic
 	switch status.StatusType {
 	case enum.LinkStatus:
 		statusinfo.LinkMeta = NewLinkMetaInfo(status.LinkMeta)
@@ -99,13 +106,21 @@ func NewRelationInfoSlice(relationType enum.RelationType, follows []*models.Foll
 	result := make([]*pb.RelationInfo, len(follows))
 	for i, follow := range follows {
 		user := follow.ToUser
-		currentRelationType := enum.Following
+		currentRelationType := enum.Fan
 		if relationType == enum.Fan {
 			user = follow.FromUser
-			currentRelationType = enum.Fan
+			//currentRelationType = enum.Fan
 		}
-		if follow.IsFriend {
+		/* if follow.IsFriend {
 			currentRelationType = enum.Friend
+		} */
+		if user != nil {
+			if user.IsFollowed {
+				currentRelationType = enum.Following
+			}
+			if user.IsFriend {
+				currentRelationType = enum.Friend
+			}
 		}
 		result[i] = &pb.RelationInfo{
 			User:         NewUserInfo(user),
