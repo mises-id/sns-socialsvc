@@ -318,7 +318,7 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*Status, pagin
 		chain = chain.Where(bson.M{"from_type": bson.M{"$in": params.FromTypes}})
 	}
 	if params.OnlyShow {
-		orFilter := bson.A{bson.M{"hide_time": nil}, bson.M{"hide_time": bson.M{"$gt": time.Now()}}}
+		orFilter := bson.A{bson.M{"hide_time": nil}, bson.M{"hide_time": bson.M{"$gt": time.Now().UTC()}}}
 		if params.CurrentUID > 0 {
 			orFilter = append(orFilter, bson.M{"uid": params.CurrentUID})
 		}

@@ -35,6 +35,7 @@ type User struct {
 	UpdatedAt      time.Time         `bson:"updated_at,omitempty"`
 	AvatarUrl      string            `bson:"-"`
 	IsFollowed     bool              `bson:"-"`
+	IsFriend       bool              `bson:"-"`
 	Tags           []enum.TagType    `bson:"tags"`
 	IsBlocked      bool              `bson:"-"`
 	NewFansCount   uint32            `bson:"-"`
@@ -252,6 +253,7 @@ func preloadCurrentUserRelationship(ctx context.Context, users ...*User) error {
 	}
 	for _, user := range users {
 		user.IsFollowed = followMap[user.UID] != nil
+		user.IsFriend = followMap[user.UID] != nil && followMap[user.UID].IsFriend
 		user.IsBlocked = blacklistMap[user.UID] != nil
 	}
 	return nil
