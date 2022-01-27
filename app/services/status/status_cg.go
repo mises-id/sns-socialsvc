@@ -8,6 +8,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/admin"
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 )
 
 var (
@@ -36,6 +37,7 @@ func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) 
 
 	var totalNum, following2Num, recommendPoolNum, commonPoolNum int64
 	//start
+	ctx = context.WithValue(ctx, utils.CurrentUIDKey{}, uid)
 	updateUserCursor = &models.UserExt{
 		UID: uid,
 	}
@@ -123,7 +125,7 @@ func findListFollowing2Status(ctx context.Context, uid uint64, num int64) ([]*mo
 	}
 	//filter login user
 	params.NInUIDs = append(params.NInUIDs, uid)
-	status_list, err := models.AdminListStatus(ctx, params)
+	status_list, err := models.NewListStatus(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +179,7 @@ func findListRecommendStatus(ctx context.Context, uid uint64, num int64) ([]*mod
 		}
 		params.ScoreMax = smax
 	}
-	status_list, err := models.AdminListStatus(ctx, params)
+	status_list, err := models.NewListStatus(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +248,7 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 		}
 		params.ScoreMax = smax
 	}
-	status_list, err := models.AdminListStatus(ctx, params)
+	status_list, err := models.NewListStatus(ctx, params)
 	if err != nil {
 		return nil, err
 	}
