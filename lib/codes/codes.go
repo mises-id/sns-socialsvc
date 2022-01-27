@@ -79,6 +79,6 @@ var (
 	ErrNotFound            = Code{HTTPStatus: http.StatusNotFound, Code: NotFoundCode, Msg: "not found"}
 	ErrUnprocessableEntity = Code{HTTPStatus: http.StatusUnprocessableEntity, Code: UnprocessableEntityCode, Msg: "unprocessable entity"}
 	ErrUsernameDuplicate   = Code{HTTPStatus: http.StatusUnprocessableEntity, Code: UsernameDuplicateCode, Msg: "username duplicate"}
-	ErrInternal            = Code{HTTPStatus: http.StatusInternalServerError, Code: InternalCode, Msg: "internal error"}
-	ErrUnimplemented       = Code{HTTPStatus: http.StatusInternalServerError, Code: InternalCode, Msg: "internal error"}
+	ErrInternal            = Code{HTTPStatus: http.StatusInternalServerError, Code: InternalCode, Msg: "Unknown error"}
+	ErrUnimplemented       = Code{HTTPStatus: http.StatusInternalServerError, Code: InternalCode, Msg: "Unknown error"}
 )

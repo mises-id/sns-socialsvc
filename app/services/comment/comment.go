@@ -96,6 +96,10 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*models.Co
 	if err != nil {
 		return nil, err
 	}
+	//access rights
+	if status != nil && !status.IsPublic && status.UID != params.UID {
+		return nil, codes.ErrForbidden
+	}
 	statusBlocked, err := models.IsBlocked(ctx, status.UID, params.UID)
 	if err != nil {
 		return nil, err
