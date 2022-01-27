@@ -3,6 +3,7 @@ package status
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/admin"
@@ -71,6 +72,7 @@ func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) 
 	//now_total_num := now_following2_num + now_recommend_num + now_comment_num
 	fmt.Printf("following2_num:%d,recommend_num:%d,common_num:%d", now_following2_num, now_recommend_num, now_common_num)
 	data := append(following2_status_list, append(recommend_pool_status_list, common_pool_status...)...)
+	randShuffle(data)
 	newRecommendOutput.Data = data
 	if newRecommendOutput.Next.LastRecommendTime == 0 {
 		newRecommendOutput.Next.LastRecommendTime = in.LastRecommendTime
@@ -83,6 +85,16 @@ func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) 
 		updateUserCursor.Update(ctx)
 	}
 	return newRecommendOutput, err
+}
+
+func randShuffle(slice []*models.Status) {
+	if len(slice) < 1 {
+		return
+	}
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(slice), func(i, j int) {
+		slice[i], slice[j] = slice[j], slice[i]
+	})
 }
 
 //find following2 pool status
