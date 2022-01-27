@@ -265,7 +265,7 @@ func CreateStatus(ctx context.Context, params *CreateStatusParams) (*Status, err
 		return nil, err
 	}
 	if params.IsPrivate {
-		t := status.CreatedAt.Add(time.Duration(params.ShowDuration - 10))
+		t := status.CreatedAt.Add(time.Duration(params.ShowDuration-10) * time.Second)
 		status.HideTime = &t
 	}
 	if err = db.ODM(ctx).Create(status).Error; err != nil {
