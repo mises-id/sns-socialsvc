@@ -288,7 +288,7 @@ func (u *User) validateEmail(ctx context.Context) error {
 	}
 	match, _ := regexp.MatchString(emailReg, u.Email)
 	if !match {
-		return codes.ErrUnprocessableEntity
+		return codes.ErrUnprocessableEntity.New("invalid email")
 	}
 	return nil
 }

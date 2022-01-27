@@ -43,6 +43,10 @@ func GetStatus(ctx context.Context, currentUID uint64, id primitive.ObjectID) (*
 	if err != nil {
 		return nil, err
 	}
+	//access rights
+	if status != nil && !status.IsPublic && status.UID != currentUID {
+		return nil, codes.ErrForbidden
+	}
 	return status, nil
 }
 

@@ -207,7 +207,10 @@ func preloadLikeStatus(ctx context.Context, likes ...*Like) error {
 		if like.TargetType != enum.LikeStatus {
 			continue
 		}
-		like.Status = statusMap[like.TargetID]
+		if statusMap[like.TargetID] != nil && statusMap[like.TargetID].IsPublic {
+			like.Status = statusMap[like.TargetID]
+		}
+
 	}
 	return nil
 }

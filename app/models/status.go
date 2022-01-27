@@ -36,6 +36,7 @@ type Status struct {
 	UpdatedAt             time.Time          `bson:"updated_at,omitempty"`
 	User                  *User              `bson:"-"`
 	IsLiked               bool               `bson:"-"`
+	IsPublic              bool               `bson:"-"`
 	ParentStatusIsDeleted bool               `bson:"-"`
 	ParentStatusIsBlacked bool               `bson:"-"`
 	ParentStatus          *Status            `bson:"-"`
@@ -380,6 +381,11 @@ func preloadStatusUser(ctx context.Context, statuses ...*Status) error {
 		userMap[user.UID] = user
 	}
 	for _, status := range statuses {
+		var IsPublic bool
+		if status.HideTime == nil || status.HideTime.Unix() > time.Now().UTC().Unix() {
+			IsPublic = true
+		}
+		status.IsPublic = IsPublic
 		status.User = userMap[status.UID]
 	}
 	return nil

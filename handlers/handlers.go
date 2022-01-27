@@ -110,7 +110,7 @@ func (s socialService) GetStatus(ctx context.Context, in *pb.GetStatusRequest) (
 	var resp pb.GetStatusResponse
 	statusID, err := primitive.ObjectIDFromHex(in.Statusid)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 
 	status, err := statusSVC.GetStatus(ctx, in.CurrentUid, statusID)
@@ -128,7 +128,7 @@ func (s socialService) ListStatus(ctx context.Context, in *pb.ListStatusRequest)
 	for _, from := range in.FromTypes {
 		fromType, err := enum.FromTypeFromString(from)
 		if err != nil {
-			return nil, err
+			return nil, codes.ErrInvalidArgument
 		}
 		fromTypes = append(fromTypes, fromType)
 	}
@@ -166,19 +166,19 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 	fmt.Println(in)
 	fromType, err := enum.FromTypeFromString(in.FromType)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	param.FromType = fromType
 	if len(in.ParentId) > 0 {
 		parentID, err := primitive.ObjectIDFromHex(in.ParentId)
 		if err != nil {
-			return nil, err
+			return nil, codes.ErrInvalidArgument
 		}
 		param.ParentID = parentID
 	}
 	statusType, err := enum.StatusTypeFromString(in.StatusType)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	var data meta.MetaData
 	switch statusType {
@@ -208,7 +208,7 @@ func (s socialService) UpdateStatus(ctx context.Context, in *pb.UpdateStatusRequ
 	var resp pb.UpdateStatusResponse
 	statusID, err := primitive.ObjectIDFromHex(in.StatusId)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	param := &statusSVC.UpdateStatusParams{
 		ID:           statusID,
@@ -228,7 +228,7 @@ func (s socialService) DeleteStatus(ctx context.Context, in *pb.DeleteStatusRequ
 	var resp pb.SimpleResponse
 	statusID, err := primitive.ObjectIDFromHex(in.Statusid)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	if err := statusSVC.DeleteStatus(ctx, in.CurrentUid, statusID); err != nil {
 		return nil, err
@@ -241,7 +241,7 @@ func (s socialService) UnLikeStatus(ctx context.Context, in *pb.UnLikeStatusRequ
 	var resp pb.SimpleResponse
 	statusID, err := primitive.ObjectIDFromHex(in.Statusid)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	if err := statusSVC.UnlikeStatus(ctx, in.CurrentUid, statusID); err != nil {
 		return nil, err
@@ -254,7 +254,7 @@ func (s socialService) LikeStatus(ctx context.Context, in *pb.LikeStatusRequest)
 	var resp pb.SimpleResponse
 	statusID, err := primitive.ObjectIDFromHex(in.Statusid)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	if _, err := statusSVC.LikeStatus(ctx, in.CurrentUid, statusID); err != nil {
 		return nil, err
@@ -287,7 +287,7 @@ func (s socialService) ListRelationship(ctx context.Context, in *pb.ListRelation
 	var resp pb.ListRelationshipResponse
 	relationType, err := enum.RelationTypeFromString(in.RelationType)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	relations, page, err := friendshipSVC.ListFriendship(contextWithCurrentUID(ctx, in), in.Uid, relationType, &pagination.QuickPagination{
 		Limit:  int64(in.Paginator.Limit),
@@ -407,13 +407,13 @@ func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentReques
 	var resp pb.ListCommentResponse
 	statusID, err := primitive.ObjectIDFromHex(in.GetStatusId())
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	var groupID primitive.ObjectID
 	if in.GetTopicId() != "" {
 		groupID, err = primitive.ObjectIDFromHex(in.GetTopicId())
 		if err != nil {
-			return nil, err
+			return nil, codes.ErrInvalidArgument
 		}
 	}
 	comments, page, err := commentSVC.ListComment(contextWithCurrentUID(ctx, in), &commentSVC.ListCommentParams{
@@ -455,13 +455,13 @@ func (s socialService) CreateComment(ctx context.Context, in *pb.CreateCommentRe
 	var resp pb.CreateCommentResponse
 	statusID, err := primitive.ObjectIDFromHex(in.GetStatusId())
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	var parentID primitive.ObjectID
 	if in.GetParentId() != "" {
 		parentID, err = primitive.ObjectIDFromHex(in.GetParentId())
 		if err != nil {
-			return nil, err
+			return nil, codes.ErrInvalidArgument
 		}
 	}
 	comment, err := commentSVC.CreateComment(ctx, &commentSVC.CreateCommentParams{
@@ -606,7 +606,7 @@ func (s socialService) DeleteComment(ctx context.Context, in *pb.DeleteCommentRe
 	var resp pb.SimpleResponse
 	commentID, err := primitive.ObjectIDFromHex(in.Id)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	if err := commentSVC.DeleteComment(ctx, in.CurrentUid, commentID); err != nil {
 		return nil, err
@@ -619,7 +619,7 @@ func (s socialService) GetComment(ctx context.Context, in *pb.GetCommentRequest)
 	var resp pb.GetCommentResponse
 	commentID, err := primitive.ObjectIDFromHex(in.CommentId)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	comment, err := commentSVC.GetComment(ctx, in.CurrentUid, commentID)
 	if err != nil {

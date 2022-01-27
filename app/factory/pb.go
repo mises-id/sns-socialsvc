@@ -1,8 +1,6 @@
 package factory
 
 import (
-	"time"
-
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/message"
@@ -77,14 +75,9 @@ func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 		ParentStatusIsDeleted: status.ParentStatusIsDeleted,
 		ParentStatusIsBlacked: status.ParentStatusIsBlacked,
 		CreatedAt:             uint64(status.CreatedAt.Unix()),
-		IsPublic:              status.HideTime == nil,
+		IsPublic:              status.IsPublic,
 		HideTime:              status.GetHideTime(),
 	}
-	var IsPublic bool
-	if status.HideTime == nil || status.HideTime.Unix() > time.Now().UTC().Unix() {
-		IsPublic = true
-	}
-	statusinfo.IsPublic = IsPublic
 	switch status.StatusType {
 	case enum.LinkStatus:
 		statusinfo.LinkMeta = NewLinkMetaInfo(status.LinkMeta)
