@@ -8,6 +8,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -188,6 +189,12 @@ func PreloadLikeData(ctx context.Context, likes ...*Like) error {
 }
 
 func preloadLikeStatus(ctx context.Context, likes ...*Like) error {
+
+	var uid uint64
+	currentUID, ok := ctx.Value(utils.CurrentUIDKey{}).(uint64)
+	if ok {
+		uid = currentUID
+	}
 	statusIDs := make([]primitive.ObjectID, 0)
 	for _, like := range likes {
 		if like.TargetType != enum.LikeStatus {
@@ -207,7 +214,7 @@ func preloadLikeStatus(ctx context.Context, likes ...*Like) error {
 		if like.TargetType != enum.LikeStatus {
 			continue
 		}
-		if statusMap[like.TargetID] != nil && statusMap[like.TargetID].IsPublic {
+		if statusMap[like.TargetID] != nil && (statusMap[like.TargetID].IsPublic || uid == statusMap[like.TargetID].UID) {
 			like.Status = statusMap[like.TargetID]
 		}
 

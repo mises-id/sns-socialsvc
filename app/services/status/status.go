@@ -157,6 +157,7 @@ func CreateStatus(ctx context.Context, uid uint64, params *CreateStatusParams) (
 }
 
 func LikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) (*models.Like, error) {
+	ctx = context.WithValue(ctx, utils.CurrentUIDKey{}, uid)
 	status, err := models.FindStatus(ctx, statusID)
 	if err != nil {
 		return nil, err
