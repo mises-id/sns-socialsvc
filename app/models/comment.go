@@ -160,6 +160,18 @@ func (c *Comment) IncCommentCounter(ctx context.Context, counterKey string, valu
 	if len(values) > 0 {
 		value = values[0]
 	}
+	if value < 0 {
+		switch counterKey {
+		case "likes_count":
+			if int(c.LikesCount)+value < 0 {
+				value = -int(c.LikesCount)
+			}
+		case "comments_count":
+			if int(c.CommentsCount)+value < 0 {
+				value = -int(c.CommentsCount)
+			}
+		}
+	}
 	result := db.DB().Collection("comments").FindOneAndUpdate(ctx, bson.M{"_id": c.ID},
 		bson.D{{
 			Key: "$inc",

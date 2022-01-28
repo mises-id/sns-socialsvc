@@ -180,6 +180,18 @@ func (s *Status) IncStatusCounter(ctx context.Context, counterKey string, values
 	if len(values) > 0 {
 		value = values[0]
 	}
+	if value < 0 {
+		switch counterKey {
+		case "likes_count":
+			if int(s.LikesCount)+value < 0 {
+				value = -int(s.LikesCount)
+			}
+		case "comments_count":
+			if int(s.CommentsCount)+value < 0 {
+				value = -int(s.CommentsCount)
+			}
+		}
+	}
 	return db.DB().Collection("statuses").FindOneAndUpdate(ctx, bson.M{"_id": s.ID},
 		bson.D{{
 			Key: "$inc",

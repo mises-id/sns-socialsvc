@@ -157,6 +157,7 @@ func CreateStatus(ctx context.Context, uid uint64, params *CreateStatusParams) (
 }
 
 func LikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) (*models.Like, error) {
+	ctx = context.WithValue(ctx, utils.CurrentUIDKey{}, uid)
 	status, err := models.FindStatus(ctx, statusID)
 	if err != nil {
 		return nil, err
@@ -178,6 +179,9 @@ func LikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) (*
 func UnlikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) error {
 	like, err := models.FindLike(ctx, uid, statusID, enum.LikeStatus)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil
+		}
 		return err
 	}
 	status, err := models.FindStatus(ctx, statusID)
