@@ -179,6 +179,9 @@ func LikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) (*
 func UnlikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) error {
 	like, err := models.FindLike(ctx, uid, statusID, enum.LikeStatus)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil
+		}
 		return err
 	}
 	status, err := models.FindStatus(ctx, statusID)
