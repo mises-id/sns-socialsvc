@@ -49,6 +49,14 @@ func GetStatus(ctx context.Context, currentUID uint64, id primitive.ObjectID) (*
 	}
 	return status, nil
 }
+func GetStatusData(ctx context.Context, currentUID uint64, id primitive.ObjectID) (*models.Status, error) {
+	ctxWithUID := context.WithValue(ctx, utils.CurrentUIDKey{}, currentUID)
+	status, err := models.FindStatusData(ctxWithUID, id)
+	if err != nil {
+		return nil, err
+	}
+	return status, nil
+}
 
 func ListStatus(ctx context.Context, params *ListStatusParams) ([]*models.Status, pagination.Pagination, error) {
 	ctxWithUID := context.WithValue(ctx, utils.CurrentUIDKey{}, params.CurrentUID)

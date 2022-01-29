@@ -211,6 +211,15 @@ func FindStatus(ctx context.Context, id primitive.ObjectID) (*Status, error) {
 	return status, PreloadStatusData(ctx, true, status)
 }
 
+func FindStatusData(ctx context.Context, id primitive.ObjectID) (*Status, error) {
+	status := &Status{}
+	err := db.ODM(ctx).First(status, bson.M{"_id": id}).Error
+	if err != nil {
+		return nil, err
+	}
+	return status, nil
+}
+
 func PreloadStatusData(ctx context.Context, loadRelated bool, statuses ...*Status) error {
 	err := preloadAttachment(ctx, statuses...)
 	if err != nil {

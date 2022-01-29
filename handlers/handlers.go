@@ -429,13 +429,18 @@ func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentReques
 	if err != nil {
 		return nil, err
 	}
+	var total uint64
+	status, err := statusSVC.GetStatusData(ctx, in.CurrentUid, statusID)
+	if err == nil {
+		total = status.CommentsCount
+	}
 	resp.Code = 0
 	resp.Comments = factory.NewCommentSlice(comments)
 	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
 	resp.Paginator = &pb.PageQuick{
 		Limit:  uint64(quickpage.Limit),
 		NextId: quickpage.NextID,
-		Total:  uint64(quickpage.TotalRecords),
+		Total:  total,
 	}
 	return &resp, nil
 }
