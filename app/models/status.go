@@ -521,6 +521,9 @@ func preloadImage(ctx context.Context, statuses ...*Status) error {
 			meta.ImageURLs = append(meta.ImageURLs, images[path])
 			meta.ThumbImageURLs = append(meta.ThumbImageURLs, thumbImages[path])
 		}
+		if len(meta.ThumbImageURLs) == 1 {
+			meta.ThumbImageURLs = meta.ImageURLs
+		}
 
 	}
 	return nil
