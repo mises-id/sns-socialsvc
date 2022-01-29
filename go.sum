@@ -638,8 +638,8 @@ github.com/mises-id/mises-tm v0.0.0-20211229053907-7f70cc1f8835 h1:9e1auQyGkhhHr
 github.com/mises-id/mises-tm v0.0.0-20211229053907-7f70cc1f8835/go.mod h1:N7XxmfWQlphHhbsKyIPxUb542YHDQBVwVdryuHV5nWY=
 github.com/mises-id/sdk v0.0.0-20220112092616-f50463033a82 h1:/dqbrWK9tOrchAITj4WDWt4x8uNFb4sqkgHDynvmZeE=
 github.com/mises-id/sdk v0.0.0-20220112092616-f50463033a82/go.mod h1:7HLWQbY3sxTPQR/P3osQoDraHfYxMDblrz5rxQN96VI=
-github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220124102532-82e7c17f5d65 h1:C1jv9yEDb0ADCdu0imzg8J70rDjHsO96QlX6VGfXv4k=
-github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220124102532-82e7c17f5d65/go.mod h1:j0mQ7sMhlLdY5LmOBN23fXJF+lCI2EQXpgJLxWoVY/Q=
+github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220129090309-1380706d4aa8 h1:jUueNREv9ERyTN6Y21jfE4ZN8HQ44diSHxsIsB+JuH4=
+github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220129090309-1380706d4aa8/go.mod h1:j0mQ7sMhlLdY5LmOBN23fXJF+lCI2EQXpgJLxWoVY/Q=
 github.com/mises-id/tendermint v0.34.15-0.20211207033151-1f29b59c0edf h1:oWnyYnSgdT3F4aNmfHj0lC1ChJCCiMuTQmL65kfRGLI=
 github.com/mises-id/tendermint v0.34.15-0.20211207033151-1f29b59c0edf/go.mod h1:FrwVm3TvsVicI9Z7FlucHV6Znfd5KBc/Lpp69cCwtk0=
 github.com/mitchellh/cli v1.0.0/go.mod h1:hNIlj7HEI86fIcpObd7a0FcrxTWetlwJDGcceTlRvqc=
@@ -1483,7 +1483,6 @@ google.golang.org/grpc v1.39.0/go.mod h1:PImNr+rS9TWYb2O4/emRugxiyHZ5JyHW5F+RPnD
 google.golang.org/grpc v1.39.1/go.mod h1:PImNr+rS9TWYb2O4/emRugxiyHZ5JyHW5F+RPnDzfrE=
 google.golang.org/grpc v1.40.0/go.mod h1:ogyxbiOoUXAkP+4+xa6PZSE9DZgIHtSpzjDTB9KAK34=
 google.golang.org/grpc v1.42.0/go.mod h1:k+4IHHFw41K8+bbowsex27ge2rCb65oeWqe4jJ590SU=
-google.golang.org/grpc v1.43.0 h1:Eeu7bZtDZ2DpRCsLhUlcrLnvYaMK1Gz86a+hMVvELmM=
 google.golang.org/grpc v1.43.0/go.mod h1:k+4IHHFw41K8+bbowsex27ge2rCb65oeWqe4jJ590SU=
 google.golang.org/grpc v1.44.0 h1:weqSxi/TMs1SqFRMHCtBgXRs8k3X39QIDEZ0pRcttUg=
 google.golang.org/grpc v1.44.0/go.mod h1:k+4IHHFw41K8+bbowsex27ge2rCb65oeWqe4jJ590SU=

@@ -527,6 +527,7 @@ message LinkMetaInfo {
 
 message ImageMetaInfo {
   repeated string images  = 1;
+  repeated string thumb_images  = 2;
 }
 
 message StatusInfo {

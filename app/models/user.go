@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	usernameReg = "^[a-z\\d]\\w{1,19}$"
+	usernameReg = "^[A-Za-z\\d]\\w{1,19}$"
 	emailReg    = "^\\w+@[a-z0-9]+(\\.[a-z]+){1,3}$"
 )
 
