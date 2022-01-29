@@ -564,6 +564,7 @@ message GetStatusResponse {
 message PageQuick {
   uint64 limit = 1;
   string next_id = 2;
+  uint64 total = 3;
 }
 
 message ListStatusRequest {

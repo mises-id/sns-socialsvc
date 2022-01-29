@@ -27,14 +27,16 @@ func (p *PageQuickParams) GetLimit() int64 {
 }
 
 type QuickPagination struct {
-	Limit  int64  `json:"limit" query:"limit"`
-	NextID string `json:"last_id" query:"last_id"`
+	TotalRecords int64  `json:"total_records" query:"total_records"`
+	Limit        int64  `json:"limit" query:"limit"`
+	NextID       string `json:"last_id" query:"last_id"`
 }
 
 type QuickPaginator struct {
 	Limit    int64   `json:"-"`
 	NextID   string  `json:"-"`
 	SortType string  `json:"-"`
+	Count    bool    `json:"-"`
 	DB       *odm.DB `json:"-"`
 }
 
@@ -60,6 +62,11 @@ func SortAsc() Options {
 		p.SortType = "asc"
 	}
 }
+func IsCount(count bool) Options {
+	return func(p *QuickPaginator) {
+		p.Count = count
+	}
+}
 
 type nextItem struct {
 	ID string `bson:"_id,omitempty"`
@@ -68,6 +75,13 @@ type nextItem struct {
 func (p *QuickPaginator) Paginate(dataSource interface{}) (Pagination, error) {
 	db := p.DB
 	var err error
+	var count int64
+	if p.Count {
+		err1 := db.Model(dataSource).Count(&count).Error
+		if err1 != nil {
+			count = 0
+		}
+	}
 	if p.NextID != "" {
 		hex, err := primitive.ObjectIDFromHex(p.NextID)
 		if err != nil {
@@ -92,8 +106,9 @@ func (p *QuickPaginator) Paginate(dataSource interface{}) (Pagination, error) {
 		nextID = items[0].ID
 	}
 	return &QuickPagination{
-		Limit:  p.Limit,
-		NextID: nextID,
+		Limit:        p.Limit,
+		NextID:       nextID,
+		TotalRecords: count,
 	}, nil
 }
 

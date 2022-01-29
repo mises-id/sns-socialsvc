@@ -435,6 +435,7 @@ func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentReques
 	resp.Paginator = &pb.PageQuick{
 		Limit:  uint64(quickpage.Limit),
 		NextId: quickpage.NextID,
+		Total:  uint64(quickpage.TotalRecords),
 	}
 	return &resp, nil
 }
