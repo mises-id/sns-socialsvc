@@ -51,7 +51,8 @@ func NewImageMetaInfo(meta *meta.ImageMeta) *pb.ImageMetaInfo {
 		return nil
 	}
 	info := &pb.ImageMetaInfo{
-		Images: meta.ImageURLs,
+		Images:      meta.ImageURLs,
+		ThumbImages: meta.ThumbImageURLs,
 	}
 	return info
 }
