@@ -507,11 +507,7 @@ func preloadImage(ctx context.Context, statuses ...*Status) error {
 	}
 	//thumb image
 	opts := &storage.ImageOptions{
-		CropOptions: &storage.CropOptions{
-			Width:  500,
-			Height: 500,
-		},
-		Quality: 95,
+		Quality: 15,
 	}
 	thumbImages, err := storage.ImageClient.GetFileUrlOptions(ctx, opts, paths...)
 	for _, meta := range metas {
@@ -521,10 +517,6 @@ func preloadImage(ctx context.Context, statuses ...*Status) error {
 			meta.ImageURLs = append(meta.ImageURLs, images[path])
 			meta.ThumbImageURLs = append(meta.ThumbImageURLs, thumbImages[path])
 		}
-		if len(meta.ThumbImageURLs) == 1 {
-			meta.ThumbImageURLs = meta.ImageURLs
-		}
-
 	}
 	return nil
 }
