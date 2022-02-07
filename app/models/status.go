@@ -507,7 +507,7 @@ func preloadImage(ctx context.Context, statuses ...*Status) error {
 	}
 	//thumb image
 	opts := &storage.ImageOptions{
-		Quality: 15,
+		Quality: 20,
 	}
 	thumbImages, err := storage.ImageClient.GetFileUrlOptions(ctx, opts, paths...)
 	for _, meta := range metas {
