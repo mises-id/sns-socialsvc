@@ -33,6 +33,7 @@ func TestCreateComment(t *testing.T) {
 		StatusType:    enum.TextStatus,
 		CommentsCount: 2,
 		Content:       "hello",
+		IsPublic:      true,
 	}
 	db.ODM(context.Background()).Create(status)
 	firstComment := &models.Comment{

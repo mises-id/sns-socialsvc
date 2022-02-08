@@ -66,6 +66,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		listlikestatusEndpoint     = svc.MakeListLikeStatusEndpoint(service)
 		getstatusEndpoint          = svc.MakeGetStatusEndpoint(service)
 		liststatusEndpoint         = svc.MakeListStatusEndpoint(service)
+		newliststatusEndpoint      = svc.MakeNewListStatusEndpoint(service)
 		listrecommendedEndpoint    = svc.MakeListRecommendedEndpoint(service)
 		listusertimelineEndpoint   = svc.MakeListUserTimelineEndpoint(service)
 		latestfollowingEndpoint    = svc.MakeLatestFollowingEndpoint(service)
@@ -101,6 +102,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		ListLikeStatusEndpoint:     listlikestatusEndpoint,
 		GetStatusEndpoint:          getstatusEndpoint,
 		ListStatusEndpoint:         liststatusEndpoint,
+		NewListStatusEndpoint:      newliststatusEndpoint,
 		ListRecommendedEndpoint:    listrecommendedEndpoint,
 		ListUserTimelineEndpoint:   listusertimelineEndpoint,
 		LatestFollowingEndpoint:    latestfollowingEndpoint,

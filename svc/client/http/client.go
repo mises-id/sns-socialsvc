@@ -181,6 +181,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var NewListStatusZeroEndpoint endpoint.Endpoint
+	{
+		NewListStatusZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/status/new_list/"),
+			EncodeHTTPNewListStatusZeroRequest,
+			DecodeHTTPNewListStatusResponse,
+			options...,
+		).Endpoint()
+	}
 	var ListRecommendedZeroEndpoint endpoint.Endpoint
 	{
 		ListRecommendedZeroEndpoint = httptransport.NewClient(
@@ -386,6 +396,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		ListLikeStatusEndpoint:     ListLikeStatusZeroEndpoint,
 		GetStatusEndpoint:          GetStatusZeroEndpoint,
 		ListStatusEndpoint:         ListStatusZeroEndpoint,
+		NewListStatusEndpoint:      NewListStatusZeroEndpoint,
 		ListRecommendedEndpoint:    ListRecommendedZeroEndpoint,
 		ListUserTimelineEndpoint:   ListUserTimelineZeroEndpoint,
 		LatestFollowingEndpoint:    LatestFollowingZeroEndpoint,
@@ -775,6 +786,33 @@ func DecodeHTTPListStatusResponse(_ context.Context, r *http.Response) (interfac
 	}
 
 	var resp pb.ListStatusResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPNewListStatusResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded NewListStatusResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPNewListStatusResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.NewListStatusResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -2528,6 +2566,95 @@ func EncodeHTTPListStatusOneRequest(_ context.Context, r *http.Request, request 
 	}
 	strval = string(tmp)
 	values.Add("paginator", strval)
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPNewListStatusZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a newliststatus request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPNewListStatusZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.NewListStatusRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"status",
+		"new_list",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("target_uid", fmt.Sprint(req.TargetUid))
+
+	values["ids"] = req.Ids
+
+	values.Add("list_num", fmt.Sprint(req.ListNum))
+
+	values["from_types"] = req.FromTypes
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPNewListStatusOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a newliststatus request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPNewListStatusOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.NewListStatusRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"status",
+		"new_list",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("target_uid", fmt.Sprint(req.TargetUid))
+
+	values["ids"] = req.Ids
+
+	values.Add("list_num", fmt.Sprint(req.ListNum))
+
+	values["from_types"] = req.FromTypes
 
 	r.URL.RawQuery = values.Encode()
 	return nil

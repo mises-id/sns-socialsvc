@@ -635,3 +635,35 @@ func (s socialService) GetComment(ctx context.Context, in *pb.GetCommentRequest)
 	resp.Comment = factory.NewComment(comment)
 	return &resp, nil
 }
+
+func (s socialService) NewListStatus(ctx context.Context, in *pb.NewListStatusRequest) (*pb.NewListStatusResponse, error) {
+	var resp pb.NewListStatusResponse
+	fromTypes := []enum.FromType{}
+	for _, from := range in.FromTypes {
+		fromType, err := enum.FromTypeFromString(from)
+		if err != nil {
+			return nil, codes.ErrInvalidArgument
+		}
+		fromTypes = append(fromTypes, fromType)
+	}
+	ids := []primitive.ObjectID{}
+	for _, id := range in.Ids {
+		Id, err := primitive.ObjectIDFromHex(id)
+		if err == nil {
+			ids = append(ids, Id)
+		}
+	}
+	svcin := &statusSVC.NewListStatusInput{
+		CurrentUID: in.CurrentUid,
+		ListNum:    int64(in.ListNum),
+		FromTypes:  fromTypes,
+		IDs:        ids,
+	}
+	svcout, err := statusSVC.NewListStatus(ctx, svcin)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Statuses = factory.NewStatusInfoSlice(svcout)
+	return &resp, nil
+}
