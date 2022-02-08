@@ -205,6 +205,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var newliststatusEndpoint endpoint.Endpoint
+	{
+		newliststatusEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"NewListStatus",
+			EncodeGRPCNewListStatusRequest,
+			DecodeGRPCNewListStatusResponse,
+			pb.NewListStatusResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	var listrecommendedEndpoint endpoint.Endpoint
 	{
 		listrecommendedEndpoint = grpctransport.NewClient(
@@ -466,6 +479,7 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		ListLikeStatusEndpoint:     listlikestatusEndpoint,
 		GetStatusEndpoint:          getstatusEndpoint,
 		ListStatusEndpoint:         liststatusEndpoint,
+		NewListStatusEndpoint:      newliststatusEndpoint,
 		ListRecommendedEndpoint:    listrecommendedEndpoint,
 		ListUserTimelineEndpoint:   listusertimelineEndpoint,
 		LatestFollowingEndpoint:    latestfollowingEndpoint,
@@ -578,6 +592,13 @@ func DecodeGRPCGetStatusResponse(_ context.Context, grpcReply interface{}) (inte
 // gRPC liststatus reply to a user-domain liststatus response. Primarily useful in a client.
 func DecodeGRPCListStatusResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.ListStatusResponse)
+	return reply, nil
+}
+
+// DecodeGRPCNewListStatusResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC newliststatus reply to a user-domain newliststatus response. Primarily useful in a client.
+func DecodeGRPCNewListStatusResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.NewListStatusResponse)
 	return reply, nil
 }
 
@@ -804,6 +825,13 @@ func EncodeGRPCGetStatusRequest(_ context.Context, request interface{}) (interfa
 // user-domain liststatus request to a gRPC liststatus request. Primarily useful in a client.
 func EncodeGRPCListStatusRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.ListStatusRequest)
+	return req, nil
+}
+
+// EncodeGRPCNewListStatusRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain newliststatus request to a gRPC newliststatus request. Primarily useful in a client.
+func EncodeGRPCNewListStatusRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.NewListStatusRequest)
 	return req, nil
 }
 

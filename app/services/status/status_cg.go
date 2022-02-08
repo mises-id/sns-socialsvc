@@ -10,6 +10,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/lib/utils"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var (
@@ -31,7 +32,34 @@ type (
 		Data []*models.Status
 		Next *NewRecommendNext
 	}
+
+	NewListStatusInput struct {
+		CurrentUID uint64
+		IDs        []primitive.ObjectID
+		ListNum    int64
+		UID        uint64
+		FromTypes  []enum.FromType
+	}
 )
+
+//new list status
+func NewListStatus(ctx context.Context, in *NewListStatusInput) ([]*models.Status, error) {
+
+	params := &admin.AdminStatusParams{
+		IDs:       in.IDs,
+		FromTypes: in.FromTypes,
+	}
+	list_num := in.ListNum
+	if list_num == 0 || list_num > 200 {
+		list_num = 200
+	}
+	params.ListNum = list_num
+	status_list, err := models.NewListStatus(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return status_list, nil
+}
 
 // new recommend status
 func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) (*NewRecommendOutput, error) {

@@ -46,6 +46,7 @@ type Endpoints struct {
 	ListLikeStatusEndpoint     endpoint.Endpoint
 	GetStatusEndpoint          endpoint.Endpoint
 	ListStatusEndpoint         endpoint.Endpoint
+	NewListStatusEndpoint      endpoint.Endpoint
 	ListRecommendedEndpoint    endpoint.Endpoint
 	ListUserTimelineEndpoint   endpoint.Endpoint
 	LatestFollowingEndpoint    endpoint.Endpoint
@@ -171,6 +172,14 @@ func (e Endpoints) ListStatus(ctx context.Context, in *pb.ListStatusRequest) (*p
 		return nil, err
 	}
 	return response.(*pb.ListStatusResponse), nil
+}
+
+func (e Endpoints) NewListStatus(ctx context.Context, in *pb.NewListStatusRequest) (*pb.NewListStatusResponse, error) {
+	response, err := e.NewListStatusEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.NewListStatusResponse), nil
 }
 
 func (e Endpoints) ListRecommended(ctx context.Context, in *pb.ListStatusRequest) (*pb.ListStatusResponse, error) {
@@ -470,6 +479,17 @@ func MakeListStatusEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeNewListStatusEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.NewListStatusRequest)
+		v, err := s.NewListStatus(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeListRecommendedEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.ListStatusRequest)
@@ -699,6 +719,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"ListLikeStatus":     {},
 		"GetStatus":          {},
 		"ListStatus":         {},
+		"NewListStatus":      {},
 		"ListRecommended":    {},
 		"ListUserTimeline":   {},
 		"LatestFollowing":    {},
@@ -766,6 +787,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		}
 		if inc == "ListStatus" {
 			e.ListStatusEndpoint = middleware(e.ListStatusEndpoint)
+		}
+		if inc == "NewListStatus" {
+			e.NewListStatusEndpoint = middleware(e.NewListStatusEndpoint)
 		}
 		if inc == "ListRecommended" {
 			e.ListRecommendedEndpoint = middleware(e.ListRecommendedEndpoint)
@@ -851,6 +875,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"ListLikeStatus":     {},
 		"GetStatus":          {},
 		"ListStatus":         {},
+		"NewListStatus":      {},
 		"ListRecommended":    {},
 		"ListUserTimeline":   {},
 		"LatestFollowing":    {},
@@ -918,6 +943,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "ListStatus" {
 			e.ListStatusEndpoint = middleware("ListStatus", e.ListStatusEndpoint)
+		}
+		if inc == "NewListStatus" {
+			e.NewListStatusEndpoint = middleware("NewListStatus", e.NewListStatusEndpoint)
 		}
 		if inc == "ListRecommended" {
 			e.ListRecommendedEndpoint = middleware("ListRecommended", e.ListRecommendedEndpoint)

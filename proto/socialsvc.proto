@@ -195,6 +195,18 @@ service Social {
       }
     };
   }
+  //query batch status
+  rpc NewListStatus (NewListStatusRequest) returns (NewListStatusResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/status/new_list"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/status/new_list/"
+      }
+    };
+  }
 
   //query recommended status
   rpc ListRecommended (ListStatusRequest) returns (ListStatusResponse) {
@@ -465,6 +477,12 @@ message SignInResponse {
   string jwt = 2;
 }
 
+message UserAvatar {
+  string small = 1;
+	string		medium = 2;
+  string	large = 3;
+}
+
 message UserInfo {
   uint64 uid = 1;
   string username = 2;
@@ -480,6 +498,7 @@ message UserInfo {
   uint32 fans_count = 12;
   uint32 liked_count = 13;
   uint32 new_fans_count = 14;
+  UserAvatar avatar_url = 15;
 }
 
 message FindUserRequest {
@@ -580,6 +599,19 @@ message ListStatusResponse {
   uint64 code = 1;
   repeated StatusInfo statuses = 2;
   PageQuick paginator = 3;
+}
+message NewListStatusRequest {
+  uint64 current_uid = 1;
+  uint64 target_uid = 2;
+  repeated string ids = 3;
+  uint64 list_num = 4;
+  repeated string from_types = 5;
+}
+
+message NewListStatusResponse {
+  uint64 code = 1;
+  repeated StatusInfo statuses = 2;
+ 
 }
 
 message NewRecommendNext {

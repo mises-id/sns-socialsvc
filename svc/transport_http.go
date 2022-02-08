@@ -227,6 +227,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("GET").Path("/status/new_list/").Handler(httptransport.NewServer(
+		endpoints.NewListStatusEndpoint,
+		DecodeHTTPNewListStatusZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/status/new_list").Handler(httptransport.NewServer(
+		endpoints.NewListStatusEndpoint,
+		DecodeHTTPNewListStatusOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("GET").Path("/status/recommended/").Handler(httptransport.NewServer(
 		endpoints.ListRecommendedEndpoint,
 		DecodeHTTPListRecommendedZeroRequest,
@@ -1683,6 +1696,180 @@ func DecodeHTTPListStatusOneRequest(_ context.Context, r *http.Request) (interfa
 			return nil, errors.Wrapf(err, "couldn't decode PaginatorListStatus from %v", PaginatorListStatusStr)
 		}
 
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPNewListStatusZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded newliststatus request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPNewListStatusZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.NewListStatusRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidNewListStatusStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidNewListStatusStr := CurrentUidNewListStatusStrArr[0]
+		CurrentUidNewListStatus, err := strconv.ParseUint(CurrentUidNewListStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidNewListStatus from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidNewListStatus
+	}
+
+	if TargetUidNewListStatusStrArr, ok := queryParams["target_uid"]; ok {
+		TargetUidNewListStatusStr := TargetUidNewListStatusStrArr[0]
+		TargetUidNewListStatus, err := strconv.ParseUint(TargetUidNewListStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting TargetUidNewListStatus from query, queryParams: %v", queryParams))
+		}
+		req.TargetUid = TargetUidNewListStatus
+	}
+
+	if IdsNewListStatusStrArr, ok := queryParams["ids"]; ok {
+		IdsNewListStatusStr := IdsNewListStatusStrArr[0]
+
+		var IdsNewListStatus []string
+		if len(IdsNewListStatusStrArr) > 1 {
+			IdsNewListStatus = IdsNewListStatusStrArr
+		} else {
+			IdsNewListStatus = strings.Split(IdsNewListStatusStr, ",")
+		}
+		req.Ids = IdsNewListStatus
+	}
+
+	if ListNumNewListStatusStrArr, ok := queryParams["list_num"]; ok {
+		ListNumNewListStatusStr := ListNumNewListStatusStrArr[0]
+		ListNumNewListStatus, err := strconv.ParseUint(ListNumNewListStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting ListNumNewListStatus from query, queryParams: %v", queryParams))
+		}
+		req.ListNum = ListNumNewListStatus
+	}
+
+	if FromTypesNewListStatusStrArr, ok := queryParams["from_types"]; ok {
+		FromTypesNewListStatusStr := FromTypesNewListStatusStrArr[0]
+
+		var FromTypesNewListStatus []string
+		if len(FromTypesNewListStatusStrArr) > 1 {
+			FromTypesNewListStatus = FromTypesNewListStatusStrArr
+		} else {
+			FromTypesNewListStatus = strings.Split(FromTypesNewListStatusStr, ",")
+		}
+		req.FromTypes = FromTypesNewListStatus
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPNewListStatusOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded newliststatus request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPNewListStatusOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.NewListStatusRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidNewListStatusStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidNewListStatusStr := CurrentUidNewListStatusStrArr[0]
+		CurrentUidNewListStatus, err := strconv.ParseUint(CurrentUidNewListStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidNewListStatus from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidNewListStatus
+	}
+
+	if TargetUidNewListStatusStrArr, ok := queryParams["target_uid"]; ok {
+		TargetUidNewListStatusStr := TargetUidNewListStatusStrArr[0]
+		TargetUidNewListStatus, err := strconv.ParseUint(TargetUidNewListStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting TargetUidNewListStatus from query, queryParams: %v", queryParams))
+		}
+		req.TargetUid = TargetUidNewListStatus
+	}
+
+	if IdsNewListStatusStrArr, ok := queryParams["ids"]; ok {
+		IdsNewListStatusStr := IdsNewListStatusStrArr[0]
+
+		var IdsNewListStatus []string
+		if len(IdsNewListStatusStrArr) > 1 {
+			IdsNewListStatus = IdsNewListStatusStrArr
+		} else {
+			IdsNewListStatus = strings.Split(IdsNewListStatusStr, ",")
+		}
+		req.Ids = IdsNewListStatus
+	}
+
+	if ListNumNewListStatusStrArr, ok := queryParams["list_num"]; ok {
+		ListNumNewListStatusStr := ListNumNewListStatusStrArr[0]
+		ListNumNewListStatus, err := strconv.ParseUint(ListNumNewListStatusStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting ListNumNewListStatus from query, queryParams: %v", queryParams))
+		}
+		req.ListNum = ListNumNewListStatus
+	}
+
+	if FromTypesNewListStatusStrArr, ok := queryParams["from_types"]; ok {
+		FromTypesNewListStatusStr := FromTypesNewListStatusStrArr[0]
+
+		var FromTypesNewListStatus []string
+		if len(FromTypesNewListStatusStrArr) > 1 {
+			FromTypesNewListStatus = FromTypesNewListStatusStrArr
+		} else {
+			FromTypesNewListStatus = strings.Split(FromTypesNewListStatusStr, ",")
+		}
+		req.FromTypes = FromTypesNewListStatus
 	}
 
 	return &req, err
