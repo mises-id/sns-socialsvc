@@ -12,7 +12,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/jinzhu/inflection v1.0.0
 	github.com/joho/godotenv v1.4.0
-	github.com/mises-id/sdk v0.0.0-20220112092616-f50463033a82
+	github.com/mises-id/sdk v0.0.0-20220222195434-7a8548437e2f
 	github.com/mises-id/sns-storagesvc/sdk v0.0.0-20211221064425-26bd51fd6a98
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
