@@ -18,16 +18,16 @@ var (
 	misesClient mises.Client
 )
 
-func SignIn(ctx context.Context, auth string) (string, error) {
+func SignIn(ctx context.Context, auth string) (string, bool, error) {
 	fmt.Println("misesClient: ", misesClient)
 	misesid, pubkey, err := misesClient.Auth(auth)
 	if err != nil {
 		logrus.Errorf("mises verify error: %v", err)
-		return "", codes.ErrAuthorizeFailed
+		return "", false, codes.ErrAuthorizeFailed
 	}
 	user, created, err := models.FindOrCreateUserByMisesid(ctx, misesid)
 	if err != nil {
-		return "", err
+		return "", created, err
 	}
 	if created && len(pubkey) > 0 {
 		_ = misesClient.Register(misesid, pubkey)
@@ -38,7 +38,8 @@ func SignIn(ctx context.Context, auth string) (string, error) {
 		"username": user.Username,
 		"exp":      time.Now().Add(env.Envs.TokenDuration).Unix(),
 	})
-	return at.SignedString([]byte(secret))
+	token, err := at.SignedString([]byte(secret))
+	return token, created, err
 }
 
 func Auth(ctx context.Context, authToken string) (*models.User, error) {

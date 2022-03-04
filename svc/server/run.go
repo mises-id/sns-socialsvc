@@ -86,6 +86,9 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		listblacklistEndpoint      = svc.MakeListBlacklistEndpoint(service)
 		createblacklistEndpoint    = svc.MakeCreateBlacklistEndpoint(service)
 		deleteblacklistEndpoint    = svc.MakeDeleteBlacklistEndpoint(service)
+		sharetweeturlEndpoint      = svc.MakeShareTweetUrlEndpoint(service)
+		usertwitterauthEndpoint    = svc.MakeUserTwitterAuthEndpoint(service)
+		usertwitterairdropEndpoint = svc.MakeUserTwitterAirdropEndpoint(service)
 	)
 
 	endpoints := svc.Endpoints{
@@ -122,6 +125,9 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		ListBlacklistEndpoint:      listblacklistEndpoint,
 		CreateBlacklistEndpoint:    createblacklistEndpoint,
 		DeleteBlacklistEndpoint:    deleteblacklistEndpoint,
+		ShareTweetUrlEndpoint:      sharetweeturlEndpoint,
+		UserTwitterAuthEndpoint:    usertwitterauthEndpoint,
+		UserTwitterAirdropEndpoint: usertwitterairdropEndpoint,
 	}
 
 	// Wrap selected Endpoints with middlewares. See handlers/middlewares.go

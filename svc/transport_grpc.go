@@ -227,6 +227,24 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCDeleteBlacklistResponse,
 			serverOptions...,
 		),
+		sharetweeturl: grpctransport.NewServer(
+			endpoints.ShareTweetUrlEndpoint,
+			DecodeGRPCShareTweetUrlRequest,
+			EncodeGRPCShareTweetUrlResponse,
+			serverOptions...,
+		),
+		usertwitterauth: grpctransport.NewServer(
+			endpoints.UserTwitterAuthEndpoint,
+			DecodeGRPCUserTwitterAuthRequest,
+			EncodeGRPCUserTwitterAuthResponse,
+			serverOptions...,
+		),
+		usertwitterairdrop: grpctransport.NewServer(
+			endpoints.UserTwitterAirdropEndpoint,
+			DecodeGRPCUserTwitterAirdropRequest,
+			EncodeGRPCUserTwitterAirdropResponse,
+			serverOptions...,
+		),
 	}
 }
 
@@ -265,6 +283,9 @@ type grpcServer struct {
 	listblacklist      grpctransport.Handler
 	createblacklist    grpctransport.Handler
 	deleteblacklist    grpctransport.Handler
+	sharetweeturl      grpctransport.Handler
+	usertwitterauth    grpctransport.Handler
+	usertwitterairdrop grpctransport.Handler
 }
 
 // Methods for grpcServer to implement SocialServer interface
@@ -533,6 +554,30 @@ func (s *grpcServer) DeleteBlacklist(ctx context.Context, req *pb.DeleteBlacklis
 	return rep.(*pb.SimpleResponse), nil
 }
 
+func (s *grpcServer) ShareTweetUrl(ctx context.Context, req *pb.ShareTweetUrlRequest) (*pb.ShareTweetUrlResponse, error) {
+	_, rep, err := s.sharetweeturl.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.ShareTweetUrlResponse), nil
+}
+
+func (s *grpcServer) UserTwitterAuth(ctx context.Context, req *pb.UserTwitterAuthRequest) (*pb.UserTwitterAuthResponse, error) {
+	_, rep, err := s.usertwitterauth.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.UserTwitterAuthResponse), nil
+}
+
+func (s *grpcServer) UserTwitterAirdrop(ctx context.Context, req *pb.UserTwitterAirdropRequest) (*pb.UserTwitterAirdropResponse, error) {
+	_, rep, err := s.usertwitterairdrop.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.UserTwitterAirdropResponse), nil
+}
+
 // Server Decode
 
 // DecodeGRPCSignInRequest is a transport/grpc.DecodeRequestFunc that converts a
@@ -766,6 +811,27 @@ func DecodeGRPCDeleteBlacklistRequest(_ context.Context, grpcReq interface{}) (i
 	return req, nil
 }
 
+// DecodeGRPCShareTweetUrlRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC sharetweeturl request to a user-domain sharetweeturl request. Primarily useful in a server.
+func DecodeGRPCShareTweetUrlRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ShareTweetUrlRequest)
+	return req, nil
+}
+
+// DecodeGRPCUserTwitterAuthRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC usertwitterauth request to a user-domain usertwitterauth request. Primarily useful in a server.
+func DecodeGRPCUserTwitterAuthRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.UserTwitterAuthRequest)
+	return req, nil
+}
+
+// DecodeGRPCUserTwitterAirdropRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC usertwitterairdrop request to a user-domain usertwitterairdrop request. Primarily useful in a server.
+func DecodeGRPCUserTwitterAirdropRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.UserTwitterAirdropRequest)
+	return req, nil
+}
+
 // Server Encode
 
 // EncodeGRPCSignInResponse is a transport/grpc.EncodeResponseFunc that converts a
@@ -996,6 +1062,27 @@ func EncodeGRPCCreateBlacklistResponse(_ context.Context, response interface{}) 
 // user-domain deleteblacklist response to a gRPC deleteblacklist reply. Primarily useful in a server.
 func EncodeGRPCDeleteBlacklistResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.SimpleResponse)
+	return resp, nil
+}
+
+// EncodeGRPCShareTweetUrlResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain sharetweeturl response to a gRPC sharetweeturl reply. Primarily useful in a server.
+func EncodeGRPCShareTweetUrlResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.ShareTweetUrlResponse)
+	return resp, nil
+}
+
+// EncodeGRPCUserTwitterAuthResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain usertwitterauth response to a gRPC usertwitterauth reply. Primarily useful in a server.
+func EncodeGRPCUserTwitterAuthResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.UserTwitterAuthResponse)
+	return resp, nil
+}
+
+// EncodeGRPCUserTwitterAirdropResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain usertwitterairdrop response to a gRPC usertwitterairdrop reply. Primarily useful in a server.
+func EncodeGRPCUserTwitterAirdropResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.UserTwitterAirdropResponse)
 	return resp, nil
 }
 

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
+	"github.com/mises-id/sns-socialsvc/app/services/airdrop"
 	"github.com/mises-id/sns-socialsvc/app/services/session"
 	_ "github.com/mises-id/sns-socialsvc/config"
 	"github.com/mises-id/sns-socialsvc/lib/db"
@@ -30,6 +31,8 @@ func main() {
 
 	fmt.Println("setup mises...")
 	session.SetupMisesClient()
+	fmt.Println("setup airdrop...")
+	airdrop.SetAirdropClient()
 
 	cfg := server.DefaultConfig
 	cfg = handlers.SetConfig(cfg)

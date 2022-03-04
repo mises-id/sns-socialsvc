@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/lib/db"
@@ -28,6 +27,8 @@ type (
 	UserExt struct {
 		ID                        primitive.ObjectID         `bson:"_id,omitempty"`
 		UID                       uint64                     `bson:"uid"`
+		AirdropCoin               uint64                     `bson:"airdrop_coin"`
+		TwitterAirdrop            bool                       `bson:"twitter_airdrop"`
 		LastViewTime              time.Time                  `bson:"last_view_time"`
 		RecommendStatusPoolCursor *RecommendStatusPoolCursor `bson:"recommend_status_pool_cursor"`
 		Following2PoolCursor      *Following2PoolCursor      `bson:"following2_cursor"`
@@ -56,6 +57,15 @@ func FindOrCreateUserExt(ctx context.Context, uid uint64) (*UserExt, error) {
 
 }
 
+func UserMergeUserExt(ctx context.Context, user *User) *User {
+	user_ext, err := FindOrCreateUserExt(ctx, user.UID)
+	if err != nil {
+		return user
+	}
+	user.IsAirdropped = user_ext.TwitterAirdrop
+	return user
+}
+
 func (m *UserExt) BeforeSave(ctx context.Context) error {
 
 	//create
@@ -64,6 +74,18 @@ func (m *UserExt) BeforeSave(ctx context.Context) error {
 	}
 	m.UpdatedAt = time.Now()
 	return nil
+}
+
+func (m *UserExt) UpdateAirdrop(ctx context.Context) error {
+	update := bson.M{}
+	update["twitter_airdrop"] = true
+	update["airdrop_coin"] = m.AirdropCoin
+	_, err := db.DB().Collection("userexts").UpdateOne(ctx, &bson.M{
+		"uid": m.UID,
+	}, bson.D{{
+		Key:   "$set",
+		Value: update}})
+	return err
 }
 
 //update user ext
@@ -86,8 +108,6 @@ func (m *UserExt) Update(ctx context.Context) error {
 	if m.CommonPoolCursor != nil {
 		update["common_cursor"] = m.CommonPoolCursor
 	}
-	fmt.Println("user ext update :", update)
-	fmt.Println("user ext uid :", m.UID)
 	_, err := db.DB().Collection("userexts").UpdateOne(ctx, &bson.M{
 		"uid": m.UID,
 	}, bson.D{{

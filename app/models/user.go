@@ -35,12 +35,21 @@ type User struct {
 	UpdatedAt      time.Time         `bson:"updated_at,omitempty"`
 	AvatarUrl      string            `bson:"-"`
 	IsFollowed     bool              `bson:"-"`
+	IsAirdropped   bool              `bson:"-"`
 	IsFriend       bool              `bson:"-"`
 	Tags           []enum.TagType    `bson:"tags"`
 	IsBlocked      bool              `bson:"-"`
 	NewFansCount   uint32            `bson:"-"`
 	RelationType   enum.RelationType `bson:"-"`
 	BlockState     enum.BlockState   `bson:"-"`
+	Avatar         *Avatar           `bson:"-"`
+}
+
+type Avatar struct {
+	Orgin  string
+	Large  string
+	Medium string
+	Small  string
 }
 
 func (u *User) Validate(ctx context.Context) error {
@@ -186,6 +195,14 @@ func FindUserByIDs(ctx context.Context, ids ...uint64) ([]*User, error) {
 		return nil, err
 	}
 	return users, PreloadUserData(ctx, users...)
+}
+func FindUserByMisesids(ctx context.Context, misesids ...string) ([]*User, error) {
+	users := make([]*User, 0)
+	err := db.ODM(ctx).Where(bson.M{"misesid": bson.M{"$in": misesids}}).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func GetUserMap(ctx context.Context, ids ...uint64) (map[uint64]*User, error) {
