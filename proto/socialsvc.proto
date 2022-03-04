@@ -466,6 +466,39 @@ service Social {
       }
     };
   }
+  rpc ShareTweetUrl (ShareTweetUrlRequest) returns (ShareTweetUrlResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/share/twitter"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/share/twitter/"
+      }
+    };
+  }
+  rpc UserTwitterAuth (UserTwitterAuthRequest) returns (UserTwitterAuthResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/user/twitter/auth"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/user/twitter/auth/"
+      }
+    };
+  }
+  rpc UserTwitterAirdrop (UserTwitterAirdropRequest) returns (UserTwitterAirdropResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/user/twitter/airdrop"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/user/twitter/airdrop/"
+      }
+    };
+  }
 }
 
 message SignInRequest {
@@ -475,6 +508,7 @@ message SignInRequest {
 message SignInResponse {
   uint64 code = 1;
   string jwt = 2;
+  bool is_created = 3;
 }
 
 message UserAvatar {
@@ -499,6 +533,7 @@ message UserInfo {
   uint32 liked_count = 13;
   uint32 new_fans_count = 14;
   UserAvatar avatar_url = 15;
+  bool is_airdropped = 16;
 }
 
 message FindUserRequest {
@@ -921,4 +956,23 @@ message LikeCommentRequest {
 message UnlikeCommentRequest {
   uint64 current_uid = 1;
   string comment_id = 2;
+}
+message ShareTweetUrlRequest {
+  uint64 current_uid = 1;
+}
+message ShareTweetUrlResponse {
+  uint64 code = 1;
+  string url = 2;
+}
+message UserTwitterAuthRequest {
+  
+}
+message UserTwitterAuthResponse {
+  
+}
+message UserTwitterAirdropRequest {
+  string misesid = 1;
+}
+message UserTwitterAirdropResponse {
+  
 }

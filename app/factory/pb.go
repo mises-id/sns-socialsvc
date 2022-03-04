@@ -23,6 +23,7 @@ func NewUserInfo(user *models.User) *pb.UserInfo {
 		Address:         user.Address,
 		Avatar:          user.AvatarUrl,
 		IsFollowed:      user.IsFollowed,
+		IsAirdropped:    user.IsAirdropped,
 		IsBlocked:       user.IsBlocked,
 		FollowingsCount: user.FollowingCount,
 		FansCount:       user.FansCount,

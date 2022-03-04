@@ -23,6 +23,7 @@ func FindUser(ctx context.Context, uid uint64) (*models.User, error) {
 	if err = models.PreloadUserData(ctx, user); err != nil {
 		return nil, err
 	}
+	models.UserMergeUserExt(ctx, user)
 	user.NewFansCount, err = models.NewFansCount(ctx, uid)
 	if err != nil {
 		return nil, err

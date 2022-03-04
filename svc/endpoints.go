@@ -66,6 +66,9 @@ type Endpoints struct {
 	ListBlacklistEndpoint      endpoint.Endpoint
 	CreateBlacklistEndpoint    endpoint.Endpoint
 	DeleteBlacklistEndpoint    endpoint.Endpoint
+	ShareTweetUrlEndpoint      endpoint.Endpoint
+	UserTwitterAuthEndpoint    endpoint.Endpoint
+	UserTwitterAirdropEndpoint endpoint.Endpoint
 }
 
 // Endpoints
@@ -332,6 +335,30 @@ func (e Endpoints) DeleteBlacklist(ctx context.Context, in *pb.DeleteBlacklistRe
 		return nil, err
 	}
 	return response.(*pb.SimpleResponse), nil
+}
+
+func (e Endpoints) ShareTweetUrl(ctx context.Context, in *pb.ShareTweetUrlRequest) (*pb.ShareTweetUrlResponse, error) {
+	response, err := e.ShareTweetUrlEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.ShareTweetUrlResponse), nil
+}
+
+func (e Endpoints) UserTwitterAuth(ctx context.Context, in *pb.UserTwitterAuthRequest) (*pb.UserTwitterAuthResponse, error) {
+	response, err := e.UserTwitterAuthEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.UserTwitterAuthResponse), nil
+}
+
+func (e Endpoints) UserTwitterAirdrop(ctx context.Context, in *pb.UserTwitterAirdropRequest) (*pb.UserTwitterAirdropResponse, error) {
+	response, err := e.UserTwitterAirdropEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.UserTwitterAirdropResponse), nil
 }
 
 // Make Endpoints
@@ -699,6 +726,39 @@ func MakeDeleteBlacklistEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeShareTweetUrlEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ShareTweetUrlRequest)
+		v, err := s.ShareTweetUrl(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeUserTwitterAuthEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.UserTwitterAuthRequest)
+		v, err := s.UserTwitterAuth(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeUserTwitterAirdropEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.UserTwitterAirdropRequest)
+		v, err := s.UserTwitterAirdrop(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 // WrapAllExcept wraps each Endpoint field of struct Endpoints with a
 // go-kit/kit/endpoint.Middleware.
 // Use this for applying a set of middlewares to every endpoint in the service.
@@ -739,6 +799,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"ListBlacklist":      {},
 		"CreateBlacklist":    {},
 		"DeleteBlacklist":    {},
+		"ShareTweetUrl":      {},
+		"UserTwitterAuth":    {},
+		"UserTwitterAirdrop": {},
 	}
 
 	for _, ex := range excluded {
@@ -848,6 +911,15 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "DeleteBlacklist" {
 			e.DeleteBlacklistEndpoint = middleware(e.DeleteBlacklistEndpoint)
 		}
+		if inc == "ShareTweetUrl" {
+			e.ShareTweetUrlEndpoint = middleware(e.ShareTweetUrlEndpoint)
+		}
+		if inc == "UserTwitterAuth" {
+			e.UserTwitterAuthEndpoint = middleware(e.UserTwitterAuthEndpoint)
+		}
+		if inc == "UserTwitterAirdrop" {
+			e.UserTwitterAirdropEndpoint = middleware(e.UserTwitterAirdropEndpoint)
+		}
 	}
 }
 
@@ -895,6 +967,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"ListBlacklist":      {},
 		"CreateBlacklist":    {},
 		"DeleteBlacklist":    {},
+		"ShareTweetUrl":      {},
+		"UserTwitterAuth":    {},
+		"UserTwitterAirdrop": {},
 	}
 
 	for _, ex := range excluded {
@@ -1003,6 +1078,15 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "DeleteBlacklist" {
 			e.DeleteBlacklistEndpoint = middleware("DeleteBlacklist", e.DeleteBlacklistEndpoint)
+		}
+		if inc == "ShareTweetUrl" {
+			e.ShareTweetUrlEndpoint = middleware("ShareTweetUrl", e.ShareTweetUrlEndpoint)
+		}
+		if inc == "UserTwitterAuth" {
+			e.UserTwitterAuthEndpoint = middleware("UserTwitterAuth", e.UserTwitterAuthEndpoint)
+		}
+		if inc == "UserTwitterAirdrop" {
+			e.UserTwitterAirdropEndpoint = middleware("UserTwitterAirdrop", e.UserTwitterAirdropEndpoint)
 		}
 	}
 }

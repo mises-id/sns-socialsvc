@@ -9,6 +9,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
+	airdropSVC "github.com/mises-id/sns-socialsvc/app/services/airdrop"
 	blacklistSVC "github.com/mises-id/sns-socialsvc/app/services/blacklist"
 	commentSVC "github.com/mises-id/sns-socialsvc/app/services/comment"
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
@@ -16,6 +17,7 @@ import (
 	sessionSVC "github.com/mises-id/sns-socialsvc/app/services/session"
 	statusSVC "github.com/mises-id/sns-socialsvc/app/services/status"
 	userSVC "github.com/mises-id/sns-socialsvc/app/services/user"
+	twitterSVC "github.com/mises-id/sns-socialsvc/app/services/user_twitter"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"github.com/mises-id/sns-socialsvc/lib/utils"
@@ -43,11 +45,12 @@ type socialService struct{}
 
 func (s socialService) SignIn(ctx context.Context, in *pb.SignInRequest) (*pb.SignInResponse, error) {
 	var resp pb.SignInResponse
-	jwt, err := sessionSVC.SignIn(ctx, in.Auth)
+	jwt, created, err := sessionSVC.SignIn(ctx, in.Auth)
 	if err != nil {
 		return nil, err
 	}
 	resp.Jwt = jwt
+	resp.IsCreated = created
 	return &resp, nil
 }
 
@@ -665,5 +668,28 @@ func (s socialService) NewListStatus(ctx context.Context, in *pb.NewListStatusRe
 	}
 	resp.Code = 0
 	resp.Statuses = factory.NewStatusInfoSlice(svcout)
+	return &resp, nil
+}
+
+func (s socialService) ShareTweetUrl(ctx context.Context, in *pb.ShareTweetUrlRequest) (*pb.ShareTweetUrlResponse, error) {
+	var resp pb.ShareTweetUrlResponse
+	url, err := twitterSVC.GetShareTweetUrl(ctx, in.CurrentUid)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Url = url
+	return &resp, nil
+}
+
+func (s socialService) UserTwitterAuth(ctx context.Context, in *pb.UserTwitterAuthRequest) (*pb.UserTwitterAuthResponse, error) {
+	var resp pb.UserTwitterAuthResponse
+	twitterSVC.UserTwitterAuth()
+	return &resp, nil
+}
+
+func (s socialService) UserTwitterAirdrop(ctx context.Context, in *pb.UserTwitterAirdropRequest) (*pb.UserTwitterAirdropResponse, error) {
+	var resp pb.UserTwitterAirdropResponse
+	airdropSVC.TwitterAirdrop(ctx)
 	return &resp, nil
 }

@@ -29,12 +29,12 @@ type ClientImpl struct {
 
 func (c *ClientImpl) Register(misesUID string, pubKey string) error {
 
-	return c.app.RegisterUserAsync(
-		types.Registration{
-			MisesUID:         misesUID,
-			PubKey:           pubKey,
-			FeeGrantedPerDay: 1000000,
-		},
+	return c.app.RunAsync(
+		c.app.NewRegisterUserCmd(
+			misesUID,
+			pubKey,
+			1000000,
+		),
 	)
 }
 func (c *ClientImpl) Auth(auth string) (string, string, error) {
@@ -48,8 +48,8 @@ func (c *ClientImpl) Auth(auth string) (string, string, error) {
 
 	return c.client.VerifyLogin(auth)
 }
-
 func New() Client {
+
 	if env.Envs.DebugMisesPrefix != "" {
 		return &ClientImpl{
 			client: nil,
