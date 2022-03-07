@@ -5,6 +5,7 @@ import (
 
 	"github.com/mises-id/sdk"
 	"github.com/mises-id/sdk/types"
+	"github.com/mises-id/sns-socialsvc/config/env"
 )
 
 type (
@@ -30,6 +31,11 @@ func (c Client) RunAsync(uid string, pubkey string, coin int64) error {
 }
 
 func New() IClient {
+	if env.Envs.DebugAirdropPrefix != "" {
+		return &Client{
+			app: nil,
+		}
+	}
 	mo := sdk.MSdkOption{
 		ChainID:    "test",
 		Debug:      true,
@@ -44,7 +50,7 @@ func New() IClient {
 	)
 	_, app := sdk.NewSdkForApp(mo, appinfo)
 	fmt.Println("new sdk for app airdrop success")
-	client := Client{
+	client := &Client{
 		app: app,
 	}
 	return client

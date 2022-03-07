@@ -31,6 +31,7 @@ type Env struct {
 	MisesEndpoint               string        `env:"MISES_ENDPOINT" envDefault:""`
 	MisesChainID                string        `env:"MISES_CHAIN_ID" envDefault:""`
 	DebugMisesPrefix            string        `env:"DEBUG_MISES_PREFIX" envDefault:""`
+	DebugAirdropPrefix          string        `env:"DEBUG_AIRDROP_PREFIX" envDefault:""`
 	GOTWI_API_KEY               string        `env:"GOTWI_API_KEY" envDefault:""`
 	GOTWI_API_KEY_SECRET        string        `env:"GOTWI_API_KEY_SECRET" envDefault:""`
 	TWEET_TAG                   string        `env:"TWEET_TAG"`
