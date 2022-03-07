@@ -30,7 +30,6 @@ type (
 
 func (params *AirdropSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	//base
-
 	//where
 	if params.UID != 0 {
 		params.UIDs = []uint64{params.UID}
@@ -56,7 +55,6 @@ func (params *AirdropSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.NotTxID {
 		chain = chain.Where(bson.M{"tx_id": ""})
 	}
-	//sort
 	//sort
 	if params.SortKey != "" && params.SortType != 0 {
 		chain = chain.Sort(bson.M{params.SortKey: params.SortType})

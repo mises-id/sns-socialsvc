@@ -110,14 +110,15 @@ func successAfter(ctx context.Context, misesid string) error {
 	params := &search.AirdropSearch{
 		Misesid: misesid,
 		Type:    enum.AirdropTwitter,
+		Status:  enum.AirdropPending,
 	}
 	airdrop, err := models.FindAirdrop(ctx, params)
 	if err != nil {
 		fmt.Println("find airdrop error: ", err.Error())
 		return err
 	}
-	if airdrop.Status != 0 {
-		fmt.Printf("misesid:%s,  finished", misesid)
+	if airdrop.Status != enum.AirdropPending {
+		fmt.Printf("misesid:%s,  status error ", misesid)
 		return errors.New("misesid finished")
 	}
 	if err = airdrop.UpdateStatus(ctx, enum.AirdropSuccess); err != nil {
@@ -136,14 +137,15 @@ func failedAfter(ctx context.Context, misesid string) error {
 	params := &search.AirdropSearch{
 		Misesid: misesid,
 		Type:    enum.AirdropTwitter,
+		Status:  enum.AirdropPending,
 	}
 	airdrop, err := models.FindAirdrop(ctx, params)
 	if err != nil {
 		fmt.Println("find airdrop error: ", err.Error())
 		return err
 	}
-	if airdrop.Status != 0 {
-		fmt.Printf("misesid:%s,  finished", misesid)
+	if airdrop.Status != enum.AirdropPending {
+		fmt.Printf("misesid:%s,  status error", misesid)
 		return errors.New("misesid finished")
 	}
 	if err = airdrop.UpdateStatus(ctx, enum.AirdropFailed); err != nil {
@@ -168,13 +170,14 @@ func txGeneratedAfter(ctx context.Context, misesid string, tx_id string) error {
 	params := &search.AirdropSearch{
 		Misesid: misesid,
 		Type:    enum.AirdropTwitter,
+		Status:  enum.AirdropDefault,
 	}
 	airdrop, err := models.FindAirdrop(ctx, params)
 	if err != nil {
 		fmt.Println("find airdrop error: ", err.Error())
 		return err
 	}
-	if airdrop.TxID != "" {
+	if airdrop.TxID != "" || airdrop.Status != enum.AirdropDefault {
 		fmt.Printf("misesid:%s has tx_id,old tx_id:%s,new_tx_id:%s", misesid, airdrop.TxID, tx_id)
 		return errors.New("tx_id exists")
 	}
