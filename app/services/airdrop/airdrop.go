@@ -25,6 +25,10 @@ type FaucetCallback struct {
 }
 
 func TwitterAirdrop(ctx context.Context) {
+	if !models.GetAirdropStatus(ctx) {
+		fmt.Println("airdrop end")
+		return
+	}
 	airdropClient.SetListener(&FaucetCallback{})
 	airdropCreate(ctx)
 	airdropTx(ctx)

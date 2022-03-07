@@ -534,6 +534,7 @@ message UserInfo {
   uint32 new_fans_count = 14;
   UserAvatar avatar_url = 15;
   bool is_airdropped = 16;
+  bool airdrop_status = 17;
 }
 
 message FindUserRequest {

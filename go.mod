@@ -13,8 +13,8 @@ require (
 	github.com/jinzhu/inflection v1.0.0
 	github.com/joho/godotenv v1.4.0
 	github.com/michimani/gotwi v0.10.0
-	github.com/mises-id/sdk v0.0.0-20220304082136-7b1ccc4f15bb
-	github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220129090309-1380706d4aa8
+	github.com/mises-id/sdk v0.0.0-20220307024405-bfcd3b412b77
+	github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220207063000-8a91039b2f09
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	go.mongodb.org/mongo-driver v1.8.1

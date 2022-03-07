@@ -36,6 +36,7 @@ type User struct {
 	AvatarUrl      string            `bson:"-"`
 	IsFollowed     bool              `bson:"-"`
 	IsAirdropped   bool              `bson:"-"`
+	AirdropStatus  bool              `bson:"-"`
 	IsFriend       bool              `bson:"-"`
 	Tags           []enum.TagType    `bson:"tags"`
 	IsBlocked      bool              `bson:"-"`

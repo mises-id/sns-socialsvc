@@ -60,7 +60,7 @@ func New() Client {
 		ChainID: env.Envs.MisesChainID,
 	}
 	appinfo := types.NewMisesAppInfoReadonly(
-		"Mises Discover'",
+		"Mises Discover",
 		"https://www.mises.site",
 		"https://home.mises.site",
 		[]string{"mises.site"},
