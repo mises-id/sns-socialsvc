@@ -12,6 +12,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/search"
 	"github.com/mises-id/sns-socialsvc/lib/airdrop"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -24,15 +25,22 @@ var (
 type FaucetCallback struct {
 }
 
-func TwitterAirdrop(ctx context.Context) {
-	if !models.GetAirdropStatus(ctx) {
-		fmt.Println("airdrop end")
-		return
-	}
+func AirdropTwitter(ctx context.Context) {
+	planJobLog("./log/airdrop.log")
+	fmt.Println("airdrop start")
 	airdropClient.SetListener(&FaucetCallback{})
-	airdropCreate(ctx)
 	airdropTx(ctx)
 	fmt.Println("airdrop finished")
+}
+func CretaeAirdropTwitter(ctx context.Context) {
+	planJobLog("./log/create_airdrop.log")
+	fmt.Println("create airdrop start")
+	if !models.GetAirdropStatus(ctx) {
+		fmt.Println("airdrop status end")
+		return
+	}
+	airdropCreate(ctx)
+	fmt.Println("create airdrop finished")
 }
 
 func airdropCreate(ctx context.Context) {
@@ -279,4 +287,12 @@ func getAirdropList(ctx context.Context) ([]*models.Airdrop, error) {
 
 func SetAirdropClient() {
 	airdropClient = airdrop.New()
+}
+func planJobLog(path string) {
+
+	content := time.Now().String() + "\n"
+	err := utils.WirteLogDay(path, content)
+	if err != nil {
+		fmt.Println("plan log error: ", err.Error())
+	}
 }

@@ -20,6 +20,7 @@ type (
 	}
 
 	TweetInfo struct {
+		TweetID   string    `bson:"tweet_id"`
 		Text      string    `bson:"text"`
 		CreatedAt time.Time `bson:"created_at"`
 	}
@@ -30,7 +31,7 @@ type (
 		Misesid       string             `bson:"misesid,omitempty"`
 		TwitterUserId string             `bson:"twitter_user_id"`
 		TwitterUser   *TwitterUser       `bson:"twitter_user"`
-		AuthTweetID   string             `bson:"auth_tweet_id"`
+		TweetInfo     *TweetInfo         `bson:"tweet_info"`
 		CreatedAt     time.Time          `bson:"created_at"`
 	}
 )

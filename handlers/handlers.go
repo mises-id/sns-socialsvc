@@ -682,14 +682,20 @@ func (s socialService) ShareTweetUrl(ctx context.Context, in *pb.ShareTweetUrlRe
 	return &resp, nil
 }
 
-func (s socialService) UserTwitterAuth(ctx context.Context, in *pb.UserTwitterAuthRequest) (*pb.UserTwitterAuthResponse, error) {
-	var resp pb.UserTwitterAuthResponse
-	twitterSVC.UserTwitterAuth()
+func (s socialService) TwitterAuth(ctx context.Context, in *pb.TwitterAuthRequest) (*pb.TwitterAuthResponse, error) {
+	var resp pb.TwitterAuthResponse
+	twitterSVC.TwitterAuth(ctx)
 	return &resp, nil
 }
 
-func (s socialService) UserTwitterAirdrop(ctx context.Context, in *pb.UserTwitterAirdropRequest) (*pb.UserTwitterAirdropResponse, error) {
-	var resp pb.UserTwitterAirdropResponse
-	airdropSVC.TwitterAirdrop(ctx)
+func (s socialService) AirdropTwitter(ctx context.Context, in *pb.AirdropTwitterRequest) (*pb.AirdropTwitterResponse, error) {
+	var resp pb.AirdropTwitterResponse
+	airdropSVC.AirdropTwitter(ctx)
+	return &resp, nil
+}
+
+func (s socialService) CreateAirdropTwitter(ctx context.Context, in *pb.CreateAirdropTwitterRequest) (*pb.CreateAirdropTwitterResponse, error) {
+	var resp pb.CreateAirdropTwitterResponse
+	airdropSVC.CretaeAirdropTwitter(ctx)
 	return &resp, nil
 }

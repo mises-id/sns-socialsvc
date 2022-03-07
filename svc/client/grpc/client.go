@@ -478,69 +478,83 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
-	var usertwitterauthEndpoint endpoint.Endpoint
+	var twitterauthEndpoint endpoint.Endpoint
 	{
-		usertwitterauthEndpoint = grpctransport.NewClient(
+		twitterauthEndpoint = grpctransport.NewClient(
 			conn,
 			"socialsvc.Social",
-			"UserTwitterAuth",
-			EncodeGRPCUserTwitterAuthRequest,
-			DecodeGRPCUserTwitterAuthResponse,
-			pb.UserTwitterAuthResponse{},
+			"TwitterAuth",
+			EncodeGRPCTwitterAuthRequest,
+			DecodeGRPCTwitterAuthResponse,
+			pb.TwitterAuthResponse{},
 			clientOptions...,
 		).Endpoint()
 	}
 
-	var usertwitterairdropEndpoint endpoint.Endpoint
+	var airdroptwitterEndpoint endpoint.Endpoint
 	{
-		usertwitterairdropEndpoint = grpctransport.NewClient(
+		airdroptwitterEndpoint = grpctransport.NewClient(
 			conn,
 			"socialsvc.Social",
-			"UserTwitterAirdrop",
-			EncodeGRPCUserTwitterAirdropRequest,
-			DecodeGRPCUserTwitterAirdropResponse,
-			pb.UserTwitterAirdropResponse{},
+			"AirdropTwitter",
+			EncodeGRPCAirdropTwitterRequest,
+			DecodeGRPCAirdropTwitterResponse,
+			pb.AirdropTwitterResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var createairdroptwitterEndpoint endpoint.Endpoint
+	{
+		createairdroptwitterEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"CreateAirdropTwitter",
+			EncodeGRPCCreateAirdropTwitterRequest,
+			DecodeGRPCCreateAirdropTwitterResponse,
+			pb.CreateAirdropTwitterResponse{},
 			clientOptions...,
 		).Endpoint()
 	}
 
 	return svc.Endpoints{
-		SignInEndpoint:             signinEndpoint,
-		FindUserEndpoint:           finduserEndpoint,
-		UpdateUserProfileEndpoint:  updateuserprofileEndpoint,
-		UpdateUserAvatarEndpoint:   updateuseravatarEndpoint,
-		UpdateUserNameEndpoint:     updateusernameEndpoint,
-		CreateStatusEndpoint:       createstatusEndpoint,
-		UpdateStatusEndpoint:       updatestatusEndpoint,
-		DeleteStatusEndpoint:       deletestatusEndpoint,
-		LikeStatusEndpoint:         likestatusEndpoint,
-		UnLikeStatusEndpoint:       unlikestatusEndpoint,
-		ListLikeStatusEndpoint:     listlikestatusEndpoint,
-		GetStatusEndpoint:          getstatusEndpoint,
-		ListStatusEndpoint:         liststatusEndpoint,
-		NewListStatusEndpoint:      newliststatusEndpoint,
-		ListRecommendedEndpoint:    listrecommendedEndpoint,
-		ListUserTimelineEndpoint:   listusertimelineEndpoint,
-		LatestFollowingEndpoint:    latestfollowingEndpoint,
-		ListRelationshipEndpoint:   listrelationshipEndpoint,
-		FollowEndpoint:             followEndpoint,
-		UnFollowEndpoint:           unfollowEndpoint,
-		ListMessageEndpoint:        listmessageEndpoint,
-		ReadMessageEndpoint:        readmessageEndpoint,
-		GetMessageSummaryEndpoint:  getmessagesummaryEndpoint,
-		ListCommentEndpoint:        listcommentEndpoint,
-		GetCommentEndpoint:         getcommentEndpoint,
-		NewRecommendStatusEndpoint: newrecommendstatusEndpoint,
-		CreateCommentEndpoint:      createcommentEndpoint,
-		DeleteCommentEndpoint:      deletecommentEndpoint,
-		LikeCommentEndpoint:        likecommentEndpoint,
-		UnlikeCommentEndpoint:      unlikecommentEndpoint,
-		ListBlacklistEndpoint:      listblacklistEndpoint,
-		CreateBlacklistEndpoint:    createblacklistEndpoint,
-		DeleteBlacklistEndpoint:    deleteblacklistEndpoint,
-		ShareTweetUrlEndpoint:      sharetweeturlEndpoint,
-		UserTwitterAuthEndpoint:    usertwitterauthEndpoint,
-		UserTwitterAirdropEndpoint: usertwitterairdropEndpoint,
+		SignInEndpoint:               signinEndpoint,
+		FindUserEndpoint:             finduserEndpoint,
+		UpdateUserProfileEndpoint:    updateuserprofileEndpoint,
+		UpdateUserAvatarEndpoint:     updateuseravatarEndpoint,
+		UpdateUserNameEndpoint:       updateusernameEndpoint,
+		CreateStatusEndpoint:         createstatusEndpoint,
+		UpdateStatusEndpoint:         updatestatusEndpoint,
+		DeleteStatusEndpoint:         deletestatusEndpoint,
+		LikeStatusEndpoint:           likestatusEndpoint,
+		UnLikeStatusEndpoint:         unlikestatusEndpoint,
+		ListLikeStatusEndpoint:       listlikestatusEndpoint,
+		GetStatusEndpoint:            getstatusEndpoint,
+		ListStatusEndpoint:           liststatusEndpoint,
+		NewListStatusEndpoint:        newliststatusEndpoint,
+		ListRecommendedEndpoint:      listrecommendedEndpoint,
+		ListUserTimelineEndpoint:     listusertimelineEndpoint,
+		LatestFollowingEndpoint:      latestfollowingEndpoint,
+		ListRelationshipEndpoint:     listrelationshipEndpoint,
+		FollowEndpoint:               followEndpoint,
+		UnFollowEndpoint:             unfollowEndpoint,
+		ListMessageEndpoint:          listmessageEndpoint,
+		ReadMessageEndpoint:          readmessageEndpoint,
+		GetMessageSummaryEndpoint:    getmessagesummaryEndpoint,
+		ListCommentEndpoint:          listcommentEndpoint,
+		GetCommentEndpoint:           getcommentEndpoint,
+		NewRecommendStatusEndpoint:   newrecommendstatusEndpoint,
+		CreateCommentEndpoint:        createcommentEndpoint,
+		DeleteCommentEndpoint:        deletecommentEndpoint,
+		LikeCommentEndpoint:          likecommentEndpoint,
+		UnlikeCommentEndpoint:        unlikecommentEndpoint,
+		ListBlacklistEndpoint:        listblacklistEndpoint,
+		CreateBlacklistEndpoint:      createblacklistEndpoint,
+		DeleteBlacklistEndpoint:      deleteblacklistEndpoint,
+		ShareTweetUrlEndpoint:        sharetweeturlEndpoint,
+		TwitterAuthEndpoint:          twitterauthEndpoint,
+		AirdropTwitterEndpoint:       airdroptwitterEndpoint,
+		CreateAirdropTwitterEndpoint: createairdroptwitterEndpoint,
 	}, nil
 }
 
@@ -784,17 +798,24 @@ func DecodeGRPCShareTweetUrlResponse(_ context.Context, grpcReply interface{}) (
 	return reply, nil
 }
 
-// DecodeGRPCUserTwitterAuthResponse is a transport/grpc.DecodeResponseFunc that converts a
-// gRPC usertwitterauth reply to a user-domain usertwitterauth response. Primarily useful in a client.
-func DecodeGRPCUserTwitterAuthResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
-	reply := grpcReply.(*pb.UserTwitterAuthResponse)
+// DecodeGRPCTwitterAuthResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC twitterauth reply to a user-domain twitterauth response. Primarily useful in a client.
+func DecodeGRPCTwitterAuthResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.TwitterAuthResponse)
 	return reply, nil
 }
 
-// DecodeGRPCUserTwitterAirdropResponse is a transport/grpc.DecodeResponseFunc that converts a
-// gRPC usertwitterairdrop reply to a user-domain usertwitterairdrop response. Primarily useful in a client.
-func DecodeGRPCUserTwitterAirdropResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
-	reply := grpcReply.(*pb.UserTwitterAirdropResponse)
+// DecodeGRPCAirdropTwitterResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC airdroptwitter reply to a user-domain airdroptwitter response. Primarily useful in a client.
+func DecodeGRPCAirdropTwitterResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.AirdropTwitterResponse)
+	return reply, nil
+}
+
+// DecodeGRPCCreateAirdropTwitterResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC createairdroptwitter reply to a user-domain createairdroptwitter response. Primarily useful in a client.
+func DecodeGRPCCreateAirdropTwitterResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.CreateAirdropTwitterResponse)
 	return reply, nil
 }
 
@@ -1038,17 +1059,24 @@ func EncodeGRPCShareTweetUrlRequest(_ context.Context, request interface{}) (int
 	return req, nil
 }
 
-// EncodeGRPCUserTwitterAuthRequest is a transport/grpc.EncodeRequestFunc that converts a
-// user-domain usertwitterauth request to a gRPC usertwitterauth request. Primarily useful in a client.
-func EncodeGRPCUserTwitterAuthRequest(_ context.Context, request interface{}) (interface{}, error) {
-	req := request.(*pb.UserTwitterAuthRequest)
+// EncodeGRPCTwitterAuthRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain twitterauth request to a gRPC twitterauth request. Primarily useful in a client.
+func EncodeGRPCTwitterAuthRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.TwitterAuthRequest)
 	return req, nil
 }
 
-// EncodeGRPCUserTwitterAirdropRequest is a transport/grpc.EncodeRequestFunc that converts a
-// user-domain usertwitterairdrop request to a gRPC usertwitterairdrop request. Primarily useful in a client.
-func EncodeGRPCUserTwitterAirdropRequest(_ context.Context, request interface{}) (interface{}, error) {
-	req := request.(*pb.UserTwitterAirdropRequest)
+// EncodeGRPCAirdropTwitterRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain airdroptwitter request to a gRPC airdroptwitter request. Primarily useful in a client.
+func EncodeGRPCAirdropTwitterRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.AirdropTwitterRequest)
+	return req, nil
+}
+
+// EncodeGRPCCreateAirdropTwitterRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain createairdroptwitter request to a gRPC createairdroptwitter request. Primarily useful in a client.
+func EncodeGRPCCreateAirdropTwitterRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.CreateAirdropTwitterRequest)
 	return req, nil
 }
 

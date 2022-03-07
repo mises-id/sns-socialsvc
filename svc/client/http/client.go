@@ -391,64 +391,75 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
-	var UserTwitterAuthZeroEndpoint endpoint.Endpoint
+	var TwitterAuthZeroEndpoint endpoint.Endpoint
 	{
-		UserTwitterAuthZeroEndpoint = httptransport.NewClient(
+		TwitterAuthZeroEndpoint = httptransport.NewClient(
 			"GET",
-			copyURL(u, "/user/twitter/auth/"),
-			EncodeHTTPUserTwitterAuthZeroRequest,
-			DecodeHTTPUserTwitterAuthResponse,
+			copyURL(u, "/twitter/auth/"),
+			EncodeHTTPTwitterAuthZeroRequest,
+			DecodeHTTPTwitterAuthResponse,
 			options...,
 		).Endpoint()
 	}
-	var UserTwitterAirdropZeroEndpoint endpoint.Endpoint
+	var AirdropTwitterZeroEndpoint endpoint.Endpoint
 	{
-		UserTwitterAirdropZeroEndpoint = httptransport.NewClient(
+		AirdropTwitterZeroEndpoint = httptransport.NewClient(
 			"GET",
-			copyURL(u, "/user/twitter/airdrop/"),
-			EncodeHTTPUserTwitterAirdropZeroRequest,
-			DecodeHTTPUserTwitterAirdropResponse,
+			copyURL(u, "/airdrop/twitter/"),
+			EncodeHTTPAirdropTwitterZeroRequest,
+			DecodeHTTPAirdropTwitterResponse,
+			options...,
+		).Endpoint()
+	}
+	var CreateAirdropTwitterZeroEndpoint endpoint.Endpoint
+	{
+		CreateAirdropTwitterZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/airdrop/create/"),
+			EncodeHTTPCreateAirdropTwitterZeroRequest,
+			DecodeHTTPCreateAirdropTwitterResponse,
 			options...,
 		).Endpoint()
 	}
 
 	return svc.Endpoints{
-		SignInEndpoint:             SignInZeroEndpoint,
-		FindUserEndpoint:           FindUserZeroEndpoint,
-		UpdateUserProfileEndpoint:  UpdateUserProfileZeroEndpoint,
-		UpdateUserAvatarEndpoint:   UpdateUserAvatarZeroEndpoint,
-		UpdateUserNameEndpoint:     UpdateUserNameZeroEndpoint,
-		CreateStatusEndpoint:       CreateStatusZeroEndpoint,
-		UpdateStatusEndpoint:       UpdateStatusZeroEndpoint,
-		DeleteStatusEndpoint:       DeleteStatusZeroEndpoint,
-		LikeStatusEndpoint:         LikeStatusZeroEndpoint,
-		UnLikeStatusEndpoint:       UnLikeStatusZeroEndpoint,
-		ListLikeStatusEndpoint:     ListLikeStatusZeroEndpoint,
-		GetStatusEndpoint:          GetStatusZeroEndpoint,
-		ListStatusEndpoint:         ListStatusZeroEndpoint,
-		NewListStatusEndpoint:      NewListStatusZeroEndpoint,
-		ListRecommendedEndpoint:    ListRecommendedZeroEndpoint,
-		ListUserTimelineEndpoint:   ListUserTimelineZeroEndpoint,
-		LatestFollowingEndpoint:    LatestFollowingZeroEndpoint,
-		ListRelationshipEndpoint:   ListRelationshipZeroEndpoint,
-		FollowEndpoint:             FollowZeroEndpoint,
-		UnFollowEndpoint:           UnFollowZeroEndpoint,
-		ListMessageEndpoint:        ListMessageZeroEndpoint,
-		ReadMessageEndpoint:        ReadMessageZeroEndpoint,
-		GetMessageSummaryEndpoint:  GetMessageSummaryZeroEndpoint,
-		ListCommentEndpoint:        ListCommentZeroEndpoint,
-		GetCommentEndpoint:         GetCommentZeroEndpoint,
-		NewRecommendStatusEndpoint: NewRecommendStatusZeroEndpoint,
-		CreateCommentEndpoint:      CreateCommentZeroEndpoint,
-		DeleteCommentEndpoint:      DeleteCommentZeroEndpoint,
-		LikeCommentEndpoint:        LikeCommentZeroEndpoint,
-		UnlikeCommentEndpoint:      UnlikeCommentZeroEndpoint,
-		ListBlacklistEndpoint:      ListBlacklistZeroEndpoint,
-		CreateBlacklistEndpoint:    CreateBlacklistZeroEndpoint,
-		DeleteBlacklistEndpoint:    DeleteBlacklistZeroEndpoint,
-		ShareTweetUrlEndpoint:      ShareTweetUrlZeroEndpoint,
-		UserTwitterAuthEndpoint:    UserTwitterAuthZeroEndpoint,
-		UserTwitterAirdropEndpoint: UserTwitterAirdropZeroEndpoint,
+		SignInEndpoint:               SignInZeroEndpoint,
+		FindUserEndpoint:             FindUserZeroEndpoint,
+		UpdateUserProfileEndpoint:    UpdateUserProfileZeroEndpoint,
+		UpdateUserAvatarEndpoint:     UpdateUserAvatarZeroEndpoint,
+		UpdateUserNameEndpoint:       UpdateUserNameZeroEndpoint,
+		CreateStatusEndpoint:         CreateStatusZeroEndpoint,
+		UpdateStatusEndpoint:         UpdateStatusZeroEndpoint,
+		DeleteStatusEndpoint:         DeleteStatusZeroEndpoint,
+		LikeStatusEndpoint:           LikeStatusZeroEndpoint,
+		UnLikeStatusEndpoint:         UnLikeStatusZeroEndpoint,
+		ListLikeStatusEndpoint:       ListLikeStatusZeroEndpoint,
+		GetStatusEndpoint:            GetStatusZeroEndpoint,
+		ListStatusEndpoint:           ListStatusZeroEndpoint,
+		NewListStatusEndpoint:        NewListStatusZeroEndpoint,
+		ListRecommendedEndpoint:      ListRecommendedZeroEndpoint,
+		ListUserTimelineEndpoint:     ListUserTimelineZeroEndpoint,
+		LatestFollowingEndpoint:      LatestFollowingZeroEndpoint,
+		ListRelationshipEndpoint:     ListRelationshipZeroEndpoint,
+		FollowEndpoint:               FollowZeroEndpoint,
+		UnFollowEndpoint:             UnFollowZeroEndpoint,
+		ListMessageEndpoint:          ListMessageZeroEndpoint,
+		ReadMessageEndpoint:          ReadMessageZeroEndpoint,
+		GetMessageSummaryEndpoint:    GetMessageSummaryZeroEndpoint,
+		ListCommentEndpoint:          ListCommentZeroEndpoint,
+		GetCommentEndpoint:           GetCommentZeroEndpoint,
+		NewRecommendStatusEndpoint:   NewRecommendStatusZeroEndpoint,
+		CreateCommentEndpoint:        CreateCommentZeroEndpoint,
+		DeleteCommentEndpoint:        DeleteCommentZeroEndpoint,
+		LikeCommentEndpoint:          LikeCommentZeroEndpoint,
+		UnlikeCommentEndpoint:        UnlikeCommentZeroEndpoint,
+		ListBlacklistEndpoint:        ListBlacklistZeroEndpoint,
+		CreateBlacklistEndpoint:      CreateBlacklistZeroEndpoint,
+		DeleteBlacklistEndpoint:      DeleteBlacklistZeroEndpoint,
+		ShareTweetUrlEndpoint:        ShareTweetUrlZeroEndpoint,
+		TwitterAuthEndpoint:          TwitterAuthZeroEndpoint,
+		AirdropTwitterEndpoint:       AirdropTwitterZeroEndpoint,
+		CreateAirdropTwitterEndpoint: CreateAirdropTwitterZeroEndpoint,
 	}, nil
 }
 
@@ -1393,12 +1404,12 @@ func DecodeHTTPShareTweetUrlResponse(_ context.Context, r *http.Response) (inter
 	return &resp, nil
 }
 
-// DecodeHTTPUserTwitterAuthResponse is a transport/http.DecodeResponseFunc that decodes
-// a JSON-encoded UserTwitterAuthResponse response from the HTTP response body.
+// DecodeHTTPTwitterAuthResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded TwitterAuthResponse response from the HTTP response body.
 // If the response has a non-200 status code, we will interpret that as an
 // error and attempt to decode the specific error message from the response
 // body. Primarily useful in a client.
-func DecodeHTTPUserTwitterAuthResponse(_ context.Context, r *http.Response) (interface{}, error) {
+func DecodeHTTPTwitterAuthResponse(_ context.Context, r *http.Response) (interface{}, error) {
 	defer r.Body.Close()
 	buf, err := ioutil.ReadAll(r.Body)
 	if err == io.EOF {
@@ -1412,7 +1423,7 @@ func DecodeHTTPUserTwitterAuthResponse(_ context.Context, r *http.Response) (int
 		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
 	}
 
-	var resp pb.UserTwitterAuthResponse
+	var resp pb.TwitterAuthResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -1420,12 +1431,12 @@ func DecodeHTTPUserTwitterAuthResponse(_ context.Context, r *http.Response) (int
 	return &resp, nil
 }
 
-// DecodeHTTPUserTwitterAirdropResponse is a transport/http.DecodeResponseFunc that decodes
-// a JSON-encoded UserTwitterAirdropResponse response from the HTTP response body.
+// DecodeHTTPAirdropTwitterResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded AirdropTwitterResponse response from the HTTP response body.
 // If the response has a non-200 status code, we will interpret that as an
 // error and attempt to decode the specific error message from the response
 // body. Primarily useful in a client.
-func DecodeHTTPUserTwitterAirdropResponse(_ context.Context, r *http.Response) (interface{}, error) {
+func DecodeHTTPAirdropTwitterResponse(_ context.Context, r *http.Response) (interface{}, error) {
 	defer r.Body.Close()
 	buf, err := ioutil.ReadAll(r.Body)
 	if err == io.EOF {
@@ -1439,7 +1450,34 @@ func DecodeHTTPUserTwitterAirdropResponse(_ context.Context, r *http.Response) (
 		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
 	}
 
-	var resp pb.UserTwitterAirdropResponse
+	var resp pb.AirdropTwitterResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPCreateAirdropTwitterResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded CreateAirdropTwitterResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPCreateAirdropTwitterResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.CreateAirdropTwitterResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -4601,13 +4639,13 @@ func EncodeHTTPShareTweetUrlOneRequest(_ context.Context, r *http.Request, reque
 	return nil
 }
 
-// EncodeHTTPUserTwitterAuthZeroRequest is a transport/http.EncodeRequestFunc
-// that encodes a usertwitterauth request into the various portions of
+// EncodeHTTPTwitterAuthZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a twitterauth request into the various portions of
 // the http request (path, query, and body).
-func EncodeHTTPUserTwitterAuthZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+func EncodeHTTPTwitterAuthZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
 	strval := ""
 	_ = strval
-	req := request.(*pb.UserTwitterAuthRequest)
+	req := request.(*pb.TwitterAuthRequest)
 	_ = req
 
 	r.Header.Set("transport", "HTTPJSON")
@@ -4616,7 +4654,6 @@ func EncodeHTTPUserTwitterAuthZeroRequest(_ context.Context, r *http.Request, re
 	// Set the path parameters
 	path := strings.Join([]string{
 		"",
-		"user",
 		"twitter",
 		"auth",
 		"",
@@ -4637,13 +4674,13 @@ func EncodeHTTPUserTwitterAuthZeroRequest(_ context.Context, r *http.Request, re
 	return nil
 }
 
-// EncodeHTTPUserTwitterAuthOneRequest is a transport/http.EncodeRequestFunc
-// that encodes a usertwitterauth request into the various portions of
+// EncodeHTTPTwitterAuthOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a twitterauth request into the various portions of
 // the http request (path, query, and body).
-func EncodeHTTPUserTwitterAuthOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+func EncodeHTTPTwitterAuthOneRequest(_ context.Context, r *http.Request, request interface{}) error {
 	strval := ""
 	_ = strval
-	req := request.(*pb.UserTwitterAuthRequest)
+	req := request.(*pb.TwitterAuthRequest)
 	_ = req
 
 	r.Header.Set("transport", "HTTPJSON")
@@ -4652,7 +4689,6 @@ func EncodeHTTPUserTwitterAuthOneRequest(_ context.Context, r *http.Request, req
 	// Set the path parameters
 	path := strings.Join([]string{
 		"",
-		"user",
 		"twitter",
 		"auth",
 	}, "/")
@@ -4672,13 +4708,13 @@ func EncodeHTTPUserTwitterAuthOneRequest(_ context.Context, r *http.Request, req
 	return nil
 }
 
-// EncodeHTTPUserTwitterAirdropZeroRequest is a transport/http.EncodeRequestFunc
-// that encodes a usertwitterairdrop request into the various portions of
+// EncodeHTTPAirdropTwitterZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a airdroptwitter request into the various portions of
 // the http request (path, query, and body).
-func EncodeHTTPUserTwitterAirdropZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+func EncodeHTTPAirdropTwitterZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
 	strval := ""
 	_ = strval
-	req := request.(*pb.UserTwitterAirdropRequest)
+	req := request.(*pb.AirdropTwitterRequest)
 	_ = req
 
 	r.Header.Set("transport", "HTTPJSON")
@@ -4687,9 +4723,8 @@ func EncodeHTTPUserTwitterAirdropZeroRequest(_ context.Context, r *http.Request,
 	// Set the path parameters
 	path := strings.Join([]string{
 		"",
-		"user",
-		"twitter",
 		"airdrop",
+		"twitter",
 		"",
 	}, "/")
 	u, err := url.Parse(path)
@@ -4710,13 +4745,13 @@ func EncodeHTTPUserTwitterAirdropZeroRequest(_ context.Context, r *http.Request,
 	return nil
 }
 
-// EncodeHTTPUserTwitterAirdropOneRequest is a transport/http.EncodeRequestFunc
-// that encodes a usertwitterairdrop request into the various portions of
+// EncodeHTTPAirdropTwitterOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a airdroptwitter request into the various portions of
 // the http request (path, query, and body).
-func EncodeHTTPUserTwitterAirdropOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+func EncodeHTTPAirdropTwitterOneRequest(_ context.Context, r *http.Request, request interface{}) error {
 	strval := ""
 	_ = strval
-	req := request.(*pb.UserTwitterAirdropRequest)
+	req := request.(*pb.AirdropTwitterRequest)
 	_ = req
 
 	r.Header.Set("transport", "HTTPJSON")
@@ -4725,9 +4760,8 @@ func EncodeHTTPUserTwitterAirdropOneRequest(_ context.Context, r *http.Request, 
 	// Set the path parameters
 	path := strings.Join([]string{
 		"",
-		"user",
-		"twitter",
 		"airdrop",
+		"twitter",
 	}, "/")
 	u, err := url.Parse(path)
 	if err != nil {
@@ -4742,6 +4776,75 @@ func EncodeHTTPUserTwitterAirdropOneRequest(_ context.Context, r *http.Request, 
 	_ = tmp
 
 	values.Add("misesid", fmt.Sprint(req.Misesid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPCreateAirdropTwitterZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a createairdroptwitter request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPCreateAirdropTwitterZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.CreateAirdropTwitterRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"airdrop",
+		"create",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPCreateAirdropTwitterOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a createairdroptwitter request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPCreateAirdropTwitterOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.CreateAirdropTwitterRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"airdrop",
+		"create",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
 
 	r.URL.RawQuery = values.Encode()
 	return nil

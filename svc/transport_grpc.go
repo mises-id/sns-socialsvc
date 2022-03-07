@@ -233,16 +233,22 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCShareTweetUrlResponse,
 			serverOptions...,
 		),
-		usertwitterauth: grpctransport.NewServer(
-			endpoints.UserTwitterAuthEndpoint,
-			DecodeGRPCUserTwitterAuthRequest,
-			EncodeGRPCUserTwitterAuthResponse,
+		twitterauth: grpctransport.NewServer(
+			endpoints.TwitterAuthEndpoint,
+			DecodeGRPCTwitterAuthRequest,
+			EncodeGRPCTwitterAuthResponse,
 			serverOptions...,
 		),
-		usertwitterairdrop: grpctransport.NewServer(
-			endpoints.UserTwitterAirdropEndpoint,
-			DecodeGRPCUserTwitterAirdropRequest,
-			EncodeGRPCUserTwitterAirdropResponse,
+		airdroptwitter: grpctransport.NewServer(
+			endpoints.AirdropTwitterEndpoint,
+			DecodeGRPCAirdropTwitterRequest,
+			EncodeGRPCAirdropTwitterResponse,
+			serverOptions...,
+		),
+		createairdroptwitter: grpctransport.NewServer(
+			endpoints.CreateAirdropTwitterEndpoint,
+			DecodeGRPCCreateAirdropTwitterRequest,
+			EncodeGRPCCreateAirdropTwitterResponse,
 			serverOptions...,
 		),
 	}
@@ -250,42 +256,43 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 
 // grpcServer implements the SocialServer interface
 type grpcServer struct {
-	signin             grpctransport.Handler
-	finduser           grpctransport.Handler
-	updateuserprofile  grpctransport.Handler
-	updateuseravatar   grpctransport.Handler
-	updateusername     grpctransport.Handler
-	createstatus       grpctransport.Handler
-	updatestatus       grpctransport.Handler
-	deletestatus       grpctransport.Handler
-	likestatus         grpctransport.Handler
-	unlikestatus       grpctransport.Handler
-	listlikestatus     grpctransport.Handler
-	getstatus          grpctransport.Handler
-	liststatus         grpctransport.Handler
-	newliststatus      grpctransport.Handler
-	listrecommended    grpctransport.Handler
-	listusertimeline   grpctransport.Handler
-	latestfollowing    grpctransport.Handler
-	listrelationship   grpctransport.Handler
-	follow             grpctransport.Handler
-	unfollow           grpctransport.Handler
-	listmessage        grpctransport.Handler
-	readmessage        grpctransport.Handler
-	getmessagesummary  grpctransport.Handler
-	listcomment        grpctransport.Handler
-	getcomment         grpctransport.Handler
-	newrecommendstatus grpctransport.Handler
-	createcomment      grpctransport.Handler
-	deletecomment      grpctransport.Handler
-	likecomment        grpctransport.Handler
-	unlikecomment      grpctransport.Handler
-	listblacklist      grpctransport.Handler
-	createblacklist    grpctransport.Handler
-	deleteblacklist    grpctransport.Handler
-	sharetweeturl      grpctransport.Handler
-	usertwitterauth    grpctransport.Handler
-	usertwitterairdrop grpctransport.Handler
+	signin               grpctransport.Handler
+	finduser             grpctransport.Handler
+	updateuserprofile    grpctransport.Handler
+	updateuseravatar     grpctransport.Handler
+	updateusername       grpctransport.Handler
+	createstatus         grpctransport.Handler
+	updatestatus         grpctransport.Handler
+	deletestatus         grpctransport.Handler
+	likestatus           grpctransport.Handler
+	unlikestatus         grpctransport.Handler
+	listlikestatus       grpctransport.Handler
+	getstatus            grpctransport.Handler
+	liststatus           grpctransport.Handler
+	newliststatus        grpctransport.Handler
+	listrecommended      grpctransport.Handler
+	listusertimeline     grpctransport.Handler
+	latestfollowing      grpctransport.Handler
+	listrelationship     grpctransport.Handler
+	follow               grpctransport.Handler
+	unfollow             grpctransport.Handler
+	listmessage          grpctransport.Handler
+	readmessage          grpctransport.Handler
+	getmessagesummary    grpctransport.Handler
+	listcomment          grpctransport.Handler
+	getcomment           grpctransport.Handler
+	newrecommendstatus   grpctransport.Handler
+	createcomment        grpctransport.Handler
+	deletecomment        grpctransport.Handler
+	likecomment          grpctransport.Handler
+	unlikecomment        grpctransport.Handler
+	listblacklist        grpctransport.Handler
+	createblacklist      grpctransport.Handler
+	deleteblacklist      grpctransport.Handler
+	sharetweeturl        grpctransport.Handler
+	twitterauth          grpctransport.Handler
+	airdroptwitter       grpctransport.Handler
+	createairdroptwitter grpctransport.Handler
 }
 
 // Methods for grpcServer to implement SocialServer interface
@@ -562,20 +569,28 @@ func (s *grpcServer) ShareTweetUrl(ctx context.Context, req *pb.ShareTweetUrlReq
 	return rep.(*pb.ShareTweetUrlResponse), nil
 }
 
-func (s *grpcServer) UserTwitterAuth(ctx context.Context, req *pb.UserTwitterAuthRequest) (*pb.UserTwitterAuthResponse, error) {
-	_, rep, err := s.usertwitterauth.ServeGRPC(ctx, req)
+func (s *grpcServer) TwitterAuth(ctx context.Context, req *pb.TwitterAuthRequest) (*pb.TwitterAuthResponse, error) {
+	_, rep, err := s.twitterauth.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	return rep.(*pb.UserTwitterAuthResponse), nil
+	return rep.(*pb.TwitterAuthResponse), nil
 }
 
-func (s *grpcServer) UserTwitterAirdrop(ctx context.Context, req *pb.UserTwitterAirdropRequest) (*pb.UserTwitterAirdropResponse, error) {
-	_, rep, err := s.usertwitterairdrop.ServeGRPC(ctx, req)
+func (s *grpcServer) AirdropTwitter(ctx context.Context, req *pb.AirdropTwitterRequest) (*pb.AirdropTwitterResponse, error) {
+	_, rep, err := s.airdroptwitter.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, err
 	}
-	return rep.(*pb.UserTwitterAirdropResponse), nil
+	return rep.(*pb.AirdropTwitterResponse), nil
+}
+
+func (s *grpcServer) CreateAirdropTwitter(ctx context.Context, req *pb.CreateAirdropTwitterRequest) (*pb.CreateAirdropTwitterResponse, error) {
+	_, rep, err := s.createairdroptwitter.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.CreateAirdropTwitterResponse), nil
 }
 
 // Server Decode
@@ -818,17 +833,24 @@ func DecodeGRPCShareTweetUrlRequest(_ context.Context, grpcReq interface{}) (int
 	return req, nil
 }
 
-// DecodeGRPCUserTwitterAuthRequest is a transport/grpc.DecodeRequestFunc that converts a
-// gRPC usertwitterauth request to a user-domain usertwitterauth request. Primarily useful in a server.
-func DecodeGRPCUserTwitterAuthRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*pb.UserTwitterAuthRequest)
+// DecodeGRPCTwitterAuthRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC twitterauth request to a user-domain twitterauth request. Primarily useful in a server.
+func DecodeGRPCTwitterAuthRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.TwitterAuthRequest)
 	return req, nil
 }
 
-// DecodeGRPCUserTwitterAirdropRequest is a transport/grpc.DecodeRequestFunc that converts a
-// gRPC usertwitterairdrop request to a user-domain usertwitterairdrop request. Primarily useful in a server.
-func DecodeGRPCUserTwitterAirdropRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*pb.UserTwitterAirdropRequest)
+// DecodeGRPCAirdropTwitterRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC airdroptwitter request to a user-domain airdroptwitter request. Primarily useful in a server.
+func DecodeGRPCAirdropTwitterRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.AirdropTwitterRequest)
+	return req, nil
+}
+
+// DecodeGRPCCreateAirdropTwitterRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC createairdroptwitter request to a user-domain createairdroptwitter request. Primarily useful in a server.
+func DecodeGRPCCreateAirdropTwitterRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.CreateAirdropTwitterRequest)
 	return req, nil
 }
 
@@ -1072,17 +1094,24 @@ func EncodeGRPCShareTweetUrlResponse(_ context.Context, response interface{}) (i
 	return resp, nil
 }
 
-// EncodeGRPCUserTwitterAuthResponse is a transport/grpc.EncodeResponseFunc that converts a
-// user-domain usertwitterauth response to a gRPC usertwitterauth reply. Primarily useful in a server.
-func EncodeGRPCUserTwitterAuthResponse(_ context.Context, response interface{}) (interface{}, error) {
-	resp := response.(*pb.UserTwitterAuthResponse)
+// EncodeGRPCTwitterAuthResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain twitterauth response to a gRPC twitterauth reply. Primarily useful in a server.
+func EncodeGRPCTwitterAuthResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.TwitterAuthResponse)
 	return resp, nil
 }
 
-// EncodeGRPCUserTwitterAirdropResponse is a transport/grpc.EncodeResponseFunc that converts a
-// user-domain usertwitterairdrop response to a gRPC usertwitterairdrop reply. Primarily useful in a server.
-func EncodeGRPCUserTwitterAirdropResponse(_ context.Context, response interface{}) (interface{}, error) {
-	resp := response.(*pb.UserTwitterAirdropResponse)
+// EncodeGRPCAirdropTwitterResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain airdroptwitter response to a gRPC airdroptwitter reply. Primarily useful in a server.
+func EncodeGRPCAirdropTwitterResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.AirdropTwitterResponse)
+	return resp, nil
+}
+
+// EncodeGRPCCreateAirdropTwitterResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain createairdroptwitter response to a gRPC createairdroptwitter reply. Primarily useful in a server.
+func EncodeGRPCCreateAirdropTwitterResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.CreateAirdropTwitterResponse)
 	return resp, nil
 }
 

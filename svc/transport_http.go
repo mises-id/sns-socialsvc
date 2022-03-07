@@ -500,28 +500,41 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
-	m.Methods("GET").Path("/user/twitter/auth/").Handler(httptransport.NewServer(
-		endpoints.UserTwitterAuthEndpoint,
-		DecodeHTTPUserTwitterAuthZeroRequest,
+	m.Methods("GET").Path("/twitter/auth/").Handler(httptransport.NewServer(
+		endpoints.TwitterAuthEndpoint,
+		DecodeHTTPTwitterAuthZeroRequest,
 		responseEncoder,
 		serverOptions...,
 	))
-	m.Methods("GET").Path("/user/twitter/auth").Handler(httptransport.NewServer(
-		endpoints.UserTwitterAuthEndpoint,
-		DecodeHTTPUserTwitterAuthOneRequest,
+	m.Methods("GET").Path("/twitter/auth").Handler(httptransport.NewServer(
+		endpoints.TwitterAuthEndpoint,
+		DecodeHTTPTwitterAuthOneRequest,
 		responseEncoder,
 		serverOptions...,
 	))
 
-	m.Methods("GET").Path("/user/twitter/airdrop/").Handler(httptransport.NewServer(
-		endpoints.UserTwitterAirdropEndpoint,
-		DecodeHTTPUserTwitterAirdropZeroRequest,
+	m.Methods("GET").Path("/airdrop/twitter/").Handler(httptransport.NewServer(
+		endpoints.AirdropTwitterEndpoint,
+		DecodeHTTPAirdropTwitterZeroRequest,
 		responseEncoder,
 		serverOptions...,
 	))
-	m.Methods("GET").Path("/user/twitter/airdrop").Handler(httptransport.NewServer(
-		endpoints.UserTwitterAirdropEndpoint,
-		DecodeHTTPUserTwitterAirdropOneRequest,
+	m.Methods("GET").Path("/airdrop/twitter").Handler(httptransport.NewServer(
+		endpoints.AirdropTwitterEndpoint,
+		DecodeHTTPAirdropTwitterOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/airdrop/create/").Handler(httptransport.NewServer(
+		endpoints.CreateAirdropTwitterEndpoint,
+		DecodeHTTPCreateAirdropTwitterZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/airdrop/create").Handler(httptransport.NewServer(
+		endpoints.CreateAirdropTwitterEndpoint,
+		DecodeHTTPCreateAirdropTwitterOneRequest,
 		responseEncoder,
 		serverOptions...,
 	))
@@ -3882,12 +3895,12 @@ func DecodeHTTPShareTweetUrlOneRequest(_ context.Context, r *http.Request) (inte
 	return &req, err
 }
 
-// DecodeHTTPUserTwitterAuthZeroRequest is a transport/http.DecodeRequestFunc that
-// decodes a JSON-encoded usertwitterauth request from the HTTP request
+// DecodeHTTPTwitterAuthZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded twitterauth request from the HTTP request
 // body. Primarily useful in a server.
-func DecodeHTTPUserTwitterAuthZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func DecodeHTTPTwitterAuthZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	defer r.Body.Close()
-	var req pb.UserTwitterAuthRequest
+	var req pb.TwitterAuthRequest
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot read body of http request")
@@ -3918,12 +3931,12 @@ func DecodeHTTPUserTwitterAuthZeroRequest(_ context.Context, r *http.Request) (i
 	return &req, err
 }
 
-// DecodeHTTPUserTwitterAuthOneRequest is a transport/http.DecodeRequestFunc that
-// decodes a JSON-encoded usertwitterauth request from the HTTP request
+// DecodeHTTPTwitterAuthOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded twitterauth request from the HTTP request
 // body. Primarily useful in a server.
-func DecodeHTTPUserTwitterAuthOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func DecodeHTTPTwitterAuthOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	defer r.Body.Close()
-	var req pb.UserTwitterAuthRequest
+	var req pb.TwitterAuthRequest
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot read body of http request")
@@ -3954,12 +3967,12 @@ func DecodeHTTPUserTwitterAuthOneRequest(_ context.Context, r *http.Request) (in
 	return &req, err
 }
 
-// DecodeHTTPUserTwitterAirdropZeroRequest is a transport/http.DecodeRequestFunc that
-// decodes a JSON-encoded usertwitterairdrop request from the HTTP request
+// DecodeHTTPAirdropTwitterZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded airdroptwitter request from the HTTP request
 // body. Primarily useful in a server.
-func DecodeHTTPUserTwitterAirdropZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func DecodeHTTPAirdropTwitterZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	defer r.Body.Close()
-	var req pb.UserTwitterAirdropRequest
+	var req pb.AirdropTwitterRequest
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot read body of http request")
@@ -3987,21 +4000,21 @@ func DecodeHTTPUserTwitterAirdropZeroRequest(_ context.Context, r *http.Request)
 	queryParams := r.URL.Query()
 	_ = queryParams
 
-	if MisesidUserTwitterAirdropStrArr, ok := queryParams["misesid"]; ok {
-		MisesidUserTwitterAirdropStr := MisesidUserTwitterAirdropStrArr[0]
-		MisesidUserTwitterAirdrop := MisesidUserTwitterAirdropStr
-		req.Misesid = MisesidUserTwitterAirdrop
+	if MisesidAirdropTwitterStrArr, ok := queryParams["misesid"]; ok {
+		MisesidAirdropTwitterStr := MisesidAirdropTwitterStrArr[0]
+		MisesidAirdropTwitter := MisesidAirdropTwitterStr
+		req.Misesid = MisesidAirdropTwitter
 	}
 
 	return &req, err
 }
 
-// DecodeHTTPUserTwitterAirdropOneRequest is a transport/http.DecodeRequestFunc that
-// decodes a JSON-encoded usertwitterairdrop request from the HTTP request
+// DecodeHTTPAirdropTwitterOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded airdroptwitter request from the HTTP request
 // body. Primarily useful in a server.
-func DecodeHTTPUserTwitterAirdropOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func DecodeHTTPAirdropTwitterOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	defer r.Body.Close()
-	var req pb.UserTwitterAirdropRequest
+	var req pb.AirdropTwitterRequest
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot read body of http request")
@@ -4029,11 +4042,83 @@ func DecodeHTTPUserTwitterAirdropOneRequest(_ context.Context, r *http.Request) 
 	queryParams := r.URL.Query()
 	_ = queryParams
 
-	if MisesidUserTwitterAirdropStrArr, ok := queryParams["misesid"]; ok {
-		MisesidUserTwitterAirdropStr := MisesidUserTwitterAirdropStrArr[0]
-		MisesidUserTwitterAirdrop := MisesidUserTwitterAirdropStr
-		req.Misesid = MisesidUserTwitterAirdrop
+	if MisesidAirdropTwitterStrArr, ok := queryParams["misesid"]; ok {
+		MisesidAirdropTwitterStr := MisesidAirdropTwitterStrArr[0]
+		MisesidAirdropTwitter := MisesidAirdropTwitterStr
+		req.Misesid = MisesidAirdropTwitter
 	}
+
+	return &req, err
+}
+
+// DecodeHTTPCreateAirdropTwitterZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded createairdroptwitter request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPCreateAirdropTwitterZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.CreateAirdropTwitterRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPCreateAirdropTwitterOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded createairdroptwitter request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPCreateAirdropTwitterOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.CreateAirdropTwitterRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
 
 	return &req, err
 }
