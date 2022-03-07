@@ -53,81 +53,83 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 
 	// Endpoint domain.
 	var (
-		signinEndpoint             = svc.MakeSignInEndpoint(service)
-		finduserEndpoint           = svc.MakeFindUserEndpoint(service)
-		updateuserprofileEndpoint  = svc.MakeUpdateUserProfileEndpoint(service)
-		updateuseravatarEndpoint   = svc.MakeUpdateUserAvatarEndpoint(service)
-		updateusernameEndpoint     = svc.MakeUpdateUserNameEndpoint(service)
-		createstatusEndpoint       = svc.MakeCreateStatusEndpoint(service)
-		updatestatusEndpoint       = svc.MakeUpdateStatusEndpoint(service)
-		deletestatusEndpoint       = svc.MakeDeleteStatusEndpoint(service)
-		likestatusEndpoint         = svc.MakeLikeStatusEndpoint(service)
-		unlikestatusEndpoint       = svc.MakeUnLikeStatusEndpoint(service)
-		listlikestatusEndpoint     = svc.MakeListLikeStatusEndpoint(service)
-		getstatusEndpoint          = svc.MakeGetStatusEndpoint(service)
-		liststatusEndpoint         = svc.MakeListStatusEndpoint(service)
-		newliststatusEndpoint      = svc.MakeNewListStatusEndpoint(service)
-		listrecommendedEndpoint    = svc.MakeListRecommendedEndpoint(service)
-		listusertimelineEndpoint   = svc.MakeListUserTimelineEndpoint(service)
-		latestfollowingEndpoint    = svc.MakeLatestFollowingEndpoint(service)
-		listrelationshipEndpoint   = svc.MakeListRelationshipEndpoint(service)
-		followEndpoint             = svc.MakeFollowEndpoint(service)
-		unfollowEndpoint           = svc.MakeUnFollowEndpoint(service)
-		listmessageEndpoint        = svc.MakeListMessageEndpoint(service)
-		readmessageEndpoint        = svc.MakeReadMessageEndpoint(service)
-		getmessagesummaryEndpoint  = svc.MakeGetMessageSummaryEndpoint(service)
-		listcommentEndpoint        = svc.MakeListCommentEndpoint(service)
-		getcommentEndpoint         = svc.MakeGetCommentEndpoint(service)
-		newrecommendstatusEndpoint = svc.MakeNewRecommendStatusEndpoint(service)
-		createcommentEndpoint      = svc.MakeCreateCommentEndpoint(service)
-		deletecommentEndpoint      = svc.MakeDeleteCommentEndpoint(service)
-		likecommentEndpoint        = svc.MakeLikeCommentEndpoint(service)
-		unlikecommentEndpoint      = svc.MakeUnlikeCommentEndpoint(service)
-		listblacklistEndpoint      = svc.MakeListBlacklistEndpoint(service)
-		createblacklistEndpoint    = svc.MakeCreateBlacklistEndpoint(service)
-		deleteblacklistEndpoint    = svc.MakeDeleteBlacklistEndpoint(service)
-		sharetweeturlEndpoint      = svc.MakeShareTweetUrlEndpoint(service)
-		usertwitterauthEndpoint    = svc.MakeUserTwitterAuthEndpoint(service)
-		usertwitterairdropEndpoint = svc.MakeUserTwitterAirdropEndpoint(service)
+		signinEndpoint               = svc.MakeSignInEndpoint(service)
+		finduserEndpoint             = svc.MakeFindUserEndpoint(service)
+		updateuserprofileEndpoint    = svc.MakeUpdateUserProfileEndpoint(service)
+		updateuseravatarEndpoint     = svc.MakeUpdateUserAvatarEndpoint(service)
+		updateusernameEndpoint       = svc.MakeUpdateUserNameEndpoint(service)
+		createstatusEndpoint         = svc.MakeCreateStatusEndpoint(service)
+		updatestatusEndpoint         = svc.MakeUpdateStatusEndpoint(service)
+		deletestatusEndpoint         = svc.MakeDeleteStatusEndpoint(service)
+		likestatusEndpoint           = svc.MakeLikeStatusEndpoint(service)
+		unlikestatusEndpoint         = svc.MakeUnLikeStatusEndpoint(service)
+		listlikestatusEndpoint       = svc.MakeListLikeStatusEndpoint(service)
+		getstatusEndpoint            = svc.MakeGetStatusEndpoint(service)
+		liststatusEndpoint           = svc.MakeListStatusEndpoint(service)
+		newliststatusEndpoint        = svc.MakeNewListStatusEndpoint(service)
+		listrecommendedEndpoint      = svc.MakeListRecommendedEndpoint(service)
+		listusertimelineEndpoint     = svc.MakeListUserTimelineEndpoint(service)
+		latestfollowingEndpoint      = svc.MakeLatestFollowingEndpoint(service)
+		listrelationshipEndpoint     = svc.MakeListRelationshipEndpoint(service)
+		followEndpoint               = svc.MakeFollowEndpoint(service)
+		unfollowEndpoint             = svc.MakeUnFollowEndpoint(service)
+		listmessageEndpoint          = svc.MakeListMessageEndpoint(service)
+		readmessageEndpoint          = svc.MakeReadMessageEndpoint(service)
+		getmessagesummaryEndpoint    = svc.MakeGetMessageSummaryEndpoint(service)
+		listcommentEndpoint          = svc.MakeListCommentEndpoint(service)
+		getcommentEndpoint           = svc.MakeGetCommentEndpoint(service)
+		newrecommendstatusEndpoint   = svc.MakeNewRecommendStatusEndpoint(service)
+		createcommentEndpoint        = svc.MakeCreateCommentEndpoint(service)
+		deletecommentEndpoint        = svc.MakeDeleteCommentEndpoint(service)
+		likecommentEndpoint          = svc.MakeLikeCommentEndpoint(service)
+		unlikecommentEndpoint        = svc.MakeUnlikeCommentEndpoint(service)
+		listblacklistEndpoint        = svc.MakeListBlacklistEndpoint(service)
+		createblacklistEndpoint      = svc.MakeCreateBlacklistEndpoint(service)
+		deleteblacklistEndpoint      = svc.MakeDeleteBlacklistEndpoint(service)
+		sharetweeturlEndpoint        = svc.MakeShareTweetUrlEndpoint(service)
+		twitterauthEndpoint          = svc.MakeTwitterAuthEndpoint(service)
+		airdroptwitterEndpoint       = svc.MakeAirdropTwitterEndpoint(service)
+		createairdroptwitterEndpoint = svc.MakeCreateAirdropTwitterEndpoint(service)
 	)
 
 	endpoints := svc.Endpoints{
-		SignInEndpoint:             signinEndpoint,
-		FindUserEndpoint:           finduserEndpoint,
-		UpdateUserProfileEndpoint:  updateuserprofileEndpoint,
-		UpdateUserAvatarEndpoint:   updateuseravatarEndpoint,
-		UpdateUserNameEndpoint:     updateusernameEndpoint,
-		CreateStatusEndpoint:       createstatusEndpoint,
-		UpdateStatusEndpoint:       updatestatusEndpoint,
-		DeleteStatusEndpoint:       deletestatusEndpoint,
-		LikeStatusEndpoint:         likestatusEndpoint,
-		UnLikeStatusEndpoint:       unlikestatusEndpoint,
-		ListLikeStatusEndpoint:     listlikestatusEndpoint,
-		GetStatusEndpoint:          getstatusEndpoint,
-		ListStatusEndpoint:         liststatusEndpoint,
-		NewListStatusEndpoint:      newliststatusEndpoint,
-		ListRecommendedEndpoint:    listrecommendedEndpoint,
-		ListUserTimelineEndpoint:   listusertimelineEndpoint,
-		LatestFollowingEndpoint:    latestfollowingEndpoint,
-		ListRelationshipEndpoint:   listrelationshipEndpoint,
-		FollowEndpoint:             followEndpoint,
-		UnFollowEndpoint:           unfollowEndpoint,
-		ListMessageEndpoint:        listmessageEndpoint,
-		ReadMessageEndpoint:        readmessageEndpoint,
-		GetMessageSummaryEndpoint:  getmessagesummaryEndpoint,
-		ListCommentEndpoint:        listcommentEndpoint,
-		GetCommentEndpoint:         getcommentEndpoint,
-		NewRecommendStatusEndpoint: newrecommendstatusEndpoint,
-		CreateCommentEndpoint:      createcommentEndpoint,
-		DeleteCommentEndpoint:      deletecommentEndpoint,
-		LikeCommentEndpoint:        likecommentEndpoint,
-		UnlikeCommentEndpoint:      unlikecommentEndpoint,
-		ListBlacklistEndpoint:      listblacklistEndpoint,
-		CreateBlacklistEndpoint:    createblacklistEndpoint,
-		DeleteBlacklistEndpoint:    deleteblacklistEndpoint,
-		ShareTweetUrlEndpoint:      sharetweeturlEndpoint,
-		UserTwitterAuthEndpoint:    usertwitterauthEndpoint,
-		UserTwitterAirdropEndpoint: usertwitterairdropEndpoint,
+		SignInEndpoint:               signinEndpoint,
+		FindUserEndpoint:             finduserEndpoint,
+		UpdateUserProfileEndpoint:    updateuserprofileEndpoint,
+		UpdateUserAvatarEndpoint:     updateuseravatarEndpoint,
+		UpdateUserNameEndpoint:       updateusernameEndpoint,
+		CreateStatusEndpoint:         createstatusEndpoint,
+		UpdateStatusEndpoint:         updatestatusEndpoint,
+		DeleteStatusEndpoint:         deletestatusEndpoint,
+		LikeStatusEndpoint:           likestatusEndpoint,
+		UnLikeStatusEndpoint:         unlikestatusEndpoint,
+		ListLikeStatusEndpoint:       listlikestatusEndpoint,
+		GetStatusEndpoint:            getstatusEndpoint,
+		ListStatusEndpoint:           liststatusEndpoint,
+		NewListStatusEndpoint:        newliststatusEndpoint,
+		ListRecommendedEndpoint:      listrecommendedEndpoint,
+		ListUserTimelineEndpoint:     listusertimelineEndpoint,
+		LatestFollowingEndpoint:      latestfollowingEndpoint,
+		ListRelationshipEndpoint:     listrelationshipEndpoint,
+		FollowEndpoint:               followEndpoint,
+		UnFollowEndpoint:             unfollowEndpoint,
+		ListMessageEndpoint:          listmessageEndpoint,
+		ReadMessageEndpoint:          readmessageEndpoint,
+		GetMessageSummaryEndpoint:    getmessagesummaryEndpoint,
+		ListCommentEndpoint:          listcommentEndpoint,
+		GetCommentEndpoint:           getcommentEndpoint,
+		NewRecommendStatusEndpoint:   newrecommendstatusEndpoint,
+		CreateCommentEndpoint:        createcommentEndpoint,
+		DeleteCommentEndpoint:        deletecommentEndpoint,
+		LikeCommentEndpoint:          likecommentEndpoint,
+		UnlikeCommentEndpoint:        unlikecommentEndpoint,
+		ListBlacklistEndpoint:        listblacklistEndpoint,
+		CreateBlacklistEndpoint:      createblacklistEndpoint,
+		DeleteBlacklistEndpoint:      deleteblacklistEndpoint,
+		ShareTweetUrlEndpoint:        sharetweeturlEndpoint,
+		TwitterAuthEndpoint:          twitterauthEndpoint,
+		AirdropTwitterEndpoint:       airdroptwitterEndpoint,
+		CreateAirdropTwitterEndpoint: createairdroptwitterEndpoint,
 	}
 
 	// Wrap selected Endpoints with middlewares. See handlers/middlewares.go

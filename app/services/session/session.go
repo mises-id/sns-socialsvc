@@ -39,6 +39,7 @@ func SignIn(ctx context.Context, auth string) (string, bool, error) {
 		"exp":      time.Now().Add(env.Envs.TokenDuration).Unix(),
 	})
 	token, err := at.SignedString([]byte(secret))
+	fmt.Printf("auth:%s,is_created:%t\n", auth, created)
 	return token, created, err
 }
 

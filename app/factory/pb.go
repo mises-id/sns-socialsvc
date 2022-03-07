@@ -30,6 +30,7 @@ func NewUserInfo(user *models.User) *pb.UserInfo {
 		FansCount:       user.FansCount,
 		LikedCount:      user.LikedCount,
 		NewFansCount:    user.NewFansCount,
+		IsLogined:       user.IsLogined,
 	}
 	return &userinfo
 }

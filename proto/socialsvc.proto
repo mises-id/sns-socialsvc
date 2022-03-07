@@ -477,25 +477,36 @@ service Social {
       }
     };
   }
-  rpc UserTwitterAuth (UserTwitterAuthRequest) returns (UserTwitterAuthResponse) {
+  rpc TwitterAuth (TwitterAuthRequest) returns (TwitterAuthResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
-      get: "/user/twitter/auth"
+      get: "/twitter/auth"
 
       additional_bindings {
         // Trailing slashes are different routes
-        get: "/user/twitter/auth/"
+        get: "/twitter/auth/"
       }
     };
   }
-  rpc UserTwitterAirdrop (UserTwitterAirdropRequest) returns (UserTwitterAirdropResponse) {
+  rpc AirdropTwitter (AirdropTwitterRequest) returns (AirdropTwitterResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
-      get: "/user/twitter/airdrop"
+      get: "/airdrop/twitter"
 
       additional_bindings {
         // Trailing slashes are different routes
-        get: "/user/twitter/airdrop/"
+        get: "/airdrop/twitter/"
+      }
+    };
+  }
+  rpc CreateAirdropTwitter (CreateAirdropTwitterRequest) returns (CreateAirdropTwitterResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/airdrop/create"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/airdrop/create/"
       }
     };
   }
@@ -535,6 +546,7 @@ message UserInfo {
   UserAvatar avatar_url = 15;
   bool is_airdropped = 16;
   bool airdrop_status = 17;
+  bool is_logined = 18;
 }
 
 message FindUserRequest {
@@ -965,15 +977,21 @@ message ShareTweetUrlResponse {
   uint64 code = 1;
   string url = 2;
 }
-message UserTwitterAuthRequest {
+message TwitterAuthRequest {
   
 }
-message UserTwitterAuthResponse {
+message TwitterAuthResponse {
   
 }
-message UserTwitterAirdropRequest {
+message AirdropTwitterRequest {
   string misesid = 1;
 }
-message UserTwitterAirdropResponse {
+message AirdropTwitterResponse {
+  
+}
+message CreateAirdropTwitterRequest {
+  
+}
+message CreateAirdropTwitterResponse {
   
 }

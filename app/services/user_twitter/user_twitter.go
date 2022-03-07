@@ -15,11 +15,13 @@ import (
 	"github.com/michimani/gotwi/tweets/types"
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/config/env"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 )
 
 var (
 	twiClient         *gotwi.GotwiClient
 	tweeTtag          string
+	misesidPrefix     = "did:mises:"
 	validRegisterDate string
 )
 
@@ -38,7 +40,12 @@ func init() {
 	validRegisterDate = env.Envs.VALID_TWITTER_REGISTER_DATE
 }
 
-func UserTwitterAuth() {
+func TwitterAuth(ctx context.Context) {
+	planJobLog()
+	if !models.GetAirdropStatus(ctx) {
+		fmt.Println("airdrop status end")
+		return
+	}
 	/* proxy := func(_ *http.Request) (*url.URL, error) {
 		return url.Parse("http://127.0.0.1:1087")
 	}
@@ -71,7 +78,9 @@ func getTwitter(ctx context.Context, in *TweetsIn) {
 	res, err := getTwitterList(ctx, in)
 	if err != nil {
 		fmt.Println("err:", err.Error())
+		return
 	}
+	fmt.Println("api get twitter num: ", len(res.Data))
 	twitterAuth(ctx, res)
 	if res.Meta.NextToken != nil {
 		in.NextToken = *res.Meta.NextToken
@@ -85,6 +94,7 @@ func twitterAuth(ctx context.Context, tweets *types.SearchTweetsRecentResponse) 
 		AuthorID  string
 		TweetID   string
 		TweetText string
+		CreatedAt time.Time
 	}
 	misesids := make([]string, 0)
 	twitterUserIds := make([]string, 0)
@@ -107,8 +117,14 @@ func twitterAuth(ctx context.Context, tweets *types.SearchTweetsRecentResponse) 
 	}
 	//check tweet text
 	for _, v := range tweets.Data {
+		if v.Entities == nil || len(v.Entities.URLs) == 0 {
+			continue
+		}
+		urls := v.Entities.URLs
+		url := gotwi.StringValue(urls[0].ExpandedURL)
 		text := gotwi.StringValue(v.Text)
-		misesid, err := getMisesIdByTweetText(text)
+		fmt.Println("url: ", url)
+		misesid, err := getMisesIdByTweetText(url)
 		if err != nil {
 			continue
 		}
@@ -119,6 +135,7 @@ func twitterAuth(ctx context.Context, tweets *types.SearchTweetsRecentResponse) 
 			AuthorID:  twitterUserId,
 			TweetID:   tweetId,
 			TweetText: text,
+			CreatedAt: *v.CreatedAt,
 		}
 	}
 	//find users by misesids
@@ -143,15 +160,20 @@ func twitterAuth(ctx context.Context, tweets *types.SearchTweetsRecentResponse) 
 			continue
 		}
 		userTwitter := &models.UserTwitterAuth{
-			UID:           user.UID,
-			Misesid:       user.Misesid,
-			AuthTweetID:   mises_tweet.TweetID,
+			UID:     user.UID,
+			Misesid: user.Misesid,
+			TweetInfo: &models.TweetInfo{
+				TweetID:   mises_tweet.TweetID,
+				Text:      mises_tweet.TweetText,
+				CreatedAt: mises_tweet.CreatedAt,
+			},
 			TwitterUserId: twitter_user_id,
 			TwitterUser:   tweetAuthors[twitter_user_id],
 			CreatedAt:     time.Now(),
 		}
 		userTwitters = append(userTwitters, userTwitter)
 	}
+	fmt.Println("success user twitter num: ", len(userTwitters))
 	if len(userTwitters) == 0 {
 		return
 	}
@@ -185,7 +207,14 @@ func getMisesIdByTweetText(text string) (string, error) {
 	if len(arr) < 2 {
 		return "", errors.New("invalid misesid")
 	}
-	return arr[1], nil
+	return addMisesidProfix(arr[1]), nil
+}
+
+func addMisesidProfix(misesid string) string {
+	if !strings.HasPrefix(misesid, misesidPrefix) {
+		return misesidPrefix + misesid
+	}
+	return misesid
 }
 
 func getTwitterList(ctx context.Context, in *TweetsIn) (*types.SearchTweetsRecentResponse, error) {
@@ -203,6 +232,7 @@ func getTwitterList(ctx context.Context, in *TweetsIn) (*types.SearchTweetsRecen
 		},
 		TweetFields: fields.TweetFieldList{
 			fields.TweetFieldCreatedAt,
+			fields.TweetFieldEntities,
 		},
 		MaxResults: 20,
 	}
@@ -227,10 +257,16 @@ func GetShareTweetUrl(ctx context.Context, uid uint64) (string, error) {
 	var tweetUrl string
 	misesid := user.Misesid
 	twitterUrl := "https://twitter.com/intent/tweet?text="
-	text := `Welcome to Mises @Mises001 ` + tweeTtag + ` 
-
-https://home.mises.site/home/me?misesid=` + misesid
+	text := "Welcome to Mises \n\n https://home.mises.site/home/me?misesid=" + misesid + " \n\n" + tweeTtag
 	tweetUrl = twitterUrl + url.QueryEscape(text)
 
 	return tweetUrl, nil
+}
+func planJobLog() {
+	path := "./log/get_twitter.log"
+	content := time.Now().String() + "\n"
+	err := utils.WirteLogDay(path, content)
+	if err != nil {
+		fmt.Println("plan log error: ", err.Error())
+	}
 }

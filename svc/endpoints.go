@@ -33,42 +33,43 @@ import (
 // single type that implements the Service interface. For example, you might
 // construct individual endpoints using transport/http.NewClient, combine them into an Endpoints, and return it to the caller as a Service.
 type Endpoints struct {
-	SignInEndpoint             endpoint.Endpoint
-	FindUserEndpoint           endpoint.Endpoint
-	UpdateUserProfileEndpoint  endpoint.Endpoint
-	UpdateUserAvatarEndpoint   endpoint.Endpoint
-	UpdateUserNameEndpoint     endpoint.Endpoint
-	CreateStatusEndpoint       endpoint.Endpoint
-	UpdateStatusEndpoint       endpoint.Endpoint
-	DeleteStatusEndpoint       endpoint.Endpoint
-	LikeStatusEndpoint         endpoint.Endpoint
-	UnLikeStatusEndpoint       endpoint.Endpoint
-	ListLikeStatusEndpoint     endpoint.Endpoint
-	GetStatusEndpoint          endpoint.Endpoint
-	ListStatusEndpoint         endpoint.Endpoint
-	NewListStatusEndpoint      endpoint.Endpoint
-	ListRecommendedEndpoint    endpoint.Endpoint
-	ListUserTimelineEndpoint   endpoint.Endpoint
-	LatestFollowingEndpoint    endpoint.Endpoint
-	ListRelationshipEndpoint   endpoint.Endpoint
-	FollowEndpoint             endpoint.Endpoint
-	UnFollowEndpoint           endpoint.Endpoint
-	ListMessageEndpoint        endpoint.Endpoint
-	ReadMessageEndpoint        endpoint.Endpoint
-	GetMessageSummaryEndpoint  endpoint.Endpoint
-	ListCommentEndpoint        endpoint.Endpoint
-	GetCommentEndpoint         endpoint.Endpoint
-	NewRecommendStatusEndpoint endpoint.Endpoint
-	CreateCommentEndpoint      endpoint.Endpoint
-	DeleteCommentEndpoint      endpoint.Endpoint
-	LikeCommentEndpoint        endpoint.Endpoint
-	UnlikeCommentEndpoint      endpoint.Endpoint
-	ListBlacklistEndpoint      endpoint.Endpoint
-	CreateBlacklistEndpoint    endpoint.Endpoint
-	DeleteBlacklistEndpoint    endpoint.Endpoint
-	ShareTweetUrlEndpoint      endpoint.Endpoint
-	UserTwitterAuthEndpoint    endpoint.Endpoint
-	UserTwitterAirdropEndpoint endpoint.Endpoint
+	SignInEndpoint               endpoint.Endpoint
+	FindUserEndpoint             endpoint.Endpoint
+	UpdateUserProfileEndpoint    endpoint.Endpoint
+	UpdateUserAvatarEndpoint     endpoint.Endpoint
+	UpdateUserNameEndpoint       endpoint.Endpoint
+	CreateStatusEndpoint         endpoint.Endpoint
+	UpdateStatusEndpoint         endpoint.Endpoint
+	DeleteStatusEndpoint         endpoint.Endpoint
+	LikeStatusEndpoint           endpoint.Endpoint
+	UnLikeStatusEndpoint         endpoint.Endpoint
+	ListLikeStatusEndpoint       endpoint.Endpoint
+	GetStatusEndpoint            endpoint.Endpoint
+	ListStatusEndpoint           endpoint.Endpoint
+	NewListStatusEndpoint        endpoint.Endpoint
+	ListRecommendedEndpoint      endpoint.Endpoint
+	ListUserTimelineEndpoint     endpoint.Endpoint
+	LatestFollowingEndpoint      endpoint.Endpoint
+	ListRelationshipEndpoint     endpoint.Endpoint
+	FollowEndpoint               endpoint.Endpoint
+	UnFollowEndpoint             endpoint.Endpoint
+	ListMessageEndpoint          endpoint.Endpoint
+	ReadMessageEndpoint          endpoint.Endpoint
+	GetMessageSummaryEndpoint    endpoint.Endpoint
+	ListCommentEndpoint          endpoint.Endpoint
+	GetCommentEndpoint           endpoint.Endpoint
+	NewRecommendStatusEndpoint   endpoint.Endpoint
+	CreateCommentEndpoint        endpoint.Endpoint
+	DeleteCommentEndpoint        endpoint.Endpoint
+	LikeCommentEndpoint          endpoint.Endpoint
+	UnlikeCommentEndpoint        endpoint.Endpoint
+	ListBlacklistEndpoint        endpoint.Endpoint
+	CreateBlacklistEndpoint      endpoint.Endpoint
+	DeleteBlacklistEndpoint      endpoint.Endpoint
+	ShareTweetUrlEndpoint        endpoint.Endpoint
+	TwitterAuthEndpoint          endpoint.Endpoint
+	AirdropTwitterEndpoint       endpoint.Endpoint
+	CreateAirdropTwitterEndpoint endpoint.Endpoint
 }
 
 // Endpoints
@@ -345,20 +346,28 @@ func (e Endpoints) ShareTweetUrl(ctx context.Context, in *pb.ShareTweetUrlReques
 	return response.(*pb.ShareTweetUrlResponse), nil
 }
 
-func (e Endpoints) UserTwitterAuth(ctx context.Context, in *pb.UserTwitterAuthRequest) (*pb.UserTwitterAuthResponse, error) {
-	response, err := e.UserTwitterAuthEndpoint(ctx, in)
+func (e Endpoints) TwitterAuth(ctx context.Context, in *pb.TwitterAuthRequest) (*pb.TwitterAuthResponse, error) {
+	response, err := e.TwitterAuthEndpoint(ctx, in)
 	if err != nil {
 		return nil, err
 	}
-	return response.(*pb.UserTwitterAuthResponse), nil
+	return response.(*pb.TwitterAuthResponse), nil
 }
 
-func (e Endpoints) UserTwitterAirdrop(ctx context.Context, in *pb.UserTwitterAirdropRequest) (*pb.UserTwitterAirdropResponse, error) {
-	response, err := e.UserTwitterAirdropEndpoint(ctx, in)
+func (e Endpoints) AirdropTwitter(ctx context.Context, in *pb.AirdropTwitterRequest) (*pb.AirdropTwitterResponse, error) {
+	response, err := e.AirdropTwitterEndpoint(ctx, in)
 	if err != nil {
 		return nil, err
 	}
-	return response.(*pb.UserTwitterAirdropResponse), nil
+	return response.(*pb.AirdropTwitterResponse), nil
+}
+
+func (e Endpoints) CreateAirdropTwitter(ctx context.Context, in *pb.CreateAirdropTwitterRequest) (*pb.CreateAirdropTwitterResponse, error) {
+	response, err := e.CreateAirdropTwitterEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.CreateAirdropTwitterResponse), nil
 }
 
 // Make Endpoints
@@ -737,10 +746,10 @@ func MakeShareTweetUrlEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
-func MakeUserTwitterAuthEndpoint(s pb.SocialServer) endpoint.Endpoint {
+func MakeTwitterAuthEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(*pb.UserTwitterAuthRequest)
-		v, err := s.UserTwitterAuth(ctx, req)
+		req := request.(*pb.TwitterAuthRequest)
+		v, err := s.TwitterAuth(ctx, req)
 		if err != nil {
 			return nil, err
 		}
@@ -748,10 +757,21 @@ func MakeUserTwitterAuthEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
-func MakeUserTwitterAirdropEndpoint(s pb.SocialServer) endpoint.Endpoint {
+func MakeAirdropTwitterEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
-		req := request.(*pb.UserTwitterAirdropRequest)
-		v, err := s.UserTwitterAirdrop(ctx, req)
+		req := request.(*pb.AirdropTwitterRequest)
+		v, err := s.AirdropTwitter(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeCreateAirdropTwitterEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.CreateAirdropTwitterRequest)
+		v, err := s.CreateAirdropTwitter(ctx, req)
 		if err != nil {
 			return nil, err
 		}
@@ -766,42 +786,43 @@ func MakeUserTwitterAirdropEndpoint(s pb.SocialServer) endpoint.Endpoint {
 // WrapAllExcept(middleware, "Status", "Ping")
 func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...string) {
 	included := map[string]struct{}{
-		"SignIn":             {},
-		"FindUser":           {},
-		"UpdateUserProfile":  {},
-		"UpdateUserAvatar":   {},
-		"UpdateUserName":     {},
-		"CreateStatus":       {},
-		"UpdateStatus":       {},
-		"DeleteStatus":       {},
-		"LikeStatus":         {},
-		"UnLikeStatus":       {},
-		"ListLikeStatus":     {},
-		"GetStatus":          {},
-		"ListStatus":         {},
-		"NewListStatus":      {},
-		"ListRecommended":    {},
-		"ListUserTimeline":   {},
-		"LatestFollowing":    {},
-		"ListRelationship":   {},
-		"Follow":             {},
-		"UnFollow":           {},
-		"ListMessage":        {},
-		"ReadMessage":        {},
-		"GetMessageSummary":  {},
-		"ListComment":        {},
-		"GetComment":         {},
-		"NewRecommendStatus": {},
-		"CreateComment":      {},
-		"DeleteComment":      {},
-		"LikeComment":        {},
-		"UnlikeComment":      {},
-		"ListBlacklist":      {},
-		"CreateBlacklist":    {},
-		"DeleteBlacklist":    {},
-		"ShareTweetUrl":      {},
-		"UserTwitterAuth":    {},
-		"UserTwitterAirdrop": {},
+		"SignIn":               {},
+		"FindUser":             {},
+		"UpdateUserProfile":    {},
+		"UpdateUserAvatar":     {},
+		"UpdateUserName":       {},
+		"CreateStatus":         {},
+		"UpdateStatus":         {},
+		"DeleteStatus":         {},
+		"LikeStatus":           {},
+		"UnLikeStatus":         {},
+		"ListLikeStatus":       {},
+		"GetStatus":            {},
+		"ListStatus":           {},
+		"NewListStatus":        {},
+		"ListRecommended":      {},
+		"ListUserTimeline":     {},
+		"LatestFollowing":      {},
+		"ListRelationship":     {},
+		"Follow":               {},
+		"UnFollow":             {},
+		"ListMessage":          {},
+		"ReadMessage":          {},
+		"GetMessageSummary":    {},
+		"ListComment":          {},
+		"GetComment":           {},
+		"NewRecommendStatus":   {},
+		"CreateComment":        {},
+		"DeleteComment":        {},
+		"LikeComment":          {},
+		"UnlikeComment":        {},
+		"ListBlacklist":        {},
+		"CreateBlacklist":      {},
+		"DeleteBlacklist":      {},
+		"ShareTweetUrl":        {},
+		"TwitterAuth":          {},
+		"AirdropTwitter":       {},
+		"CreateAirdropTwitter": {},
 	}
 
 	for _, ex := range excluded {
@@ -914,11 +935,14 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "ShareTweetUrl" {
 			e.ShareTweetUrlEndpoint = middleware(e.ShareTweetUrlEndpoint)
 		}
-		if inc == "UserTwitterAuth" {
-			e.UserTwitterAuthEndpoint = middleware(e.UserTwitterAuthEndpoint)
+		if inc == "TwitterAuth" {
+			e.TwitterAuthEndpoint = middleware(e.TwitterAuthEndpoint)
 		}
-		if inc == "UserTwitterAirdrop" {
-			e.UserTwitterAirdropEndpoint = middleware(e.UserTwitterAirdropEndpoint)
+		if inc == "AirdropTwitter" {
+			e.AirdropTwitterEndpoint = middleware(e.AirdropTwitterEndpoint)
+		}
+		if inc == "CreateAirdropTwitter" {
+			e.CreateAirdropTwitterEndpoint = middleware(e.CreateAirdropTwitterEndpoint)
 		}
 	}
 }
@@ -934,42 +958,43 @@ type LabeledMiddleware func(string, endpoint.Endpoint) endpoint.Endpoint
 // functionality.
 func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoint) endpoint.Endpoint, excluded ...string) {
 	included := map[string]struct{}{
-		"SignIn":             {},
-		"FindUser":           {},
-		"UpdateUserProfile":  {},
-		"UpdateUserAvatar":   {},
-		"UpdateUserName":     {},
-		"CreateStatus":       {},
-		"UpdateStatus":       {},
-		"DeleteStatus":       {},
-		"LikeStatus":         {},
-		"UnLikeStatus":       {},
-		"ListLikeStatus":     {},
-		"GetStatus":          {},
-		"ListStatus":         {},
-		"NewListStatus":      {},
-		"ListRecommended":    {},
-		"ListUserTimeline":   {},
-		"LatestFollowing":    {},
-		"ListRelationship":   {},
-		"Follow":             {},
-		"UnFollow":           {},
-		"ListMessage":        {},
-		"ReadMessage":        {},
-		"GetMessageSummary":  {},
-		"ListComment":        {},
-		"GetComment":         {},
-		"NewRecommendStatus": {},
-		"CreateComment":      {},
-		"DeleteComment":      {},
-		"LikeComment":        {},
-		"UnlikeComment":      {},
-		"ListBlacklist":      {},
-		"CreateBlacklist":    {},
-		"DeleteBlacklist":    {},
-		"ShareTweetUrl":      {},
-		"UserTwitterAuth":    {},
-		"UserTwitterAirdrop": {},
+		"SignIn":               {},
+		"FindUser":             {},
+		"UpdateUserProfile":    {},
+		"UpdateUserAvatar":     {},
+		"UpdateUserName":       {},
+		"CreateStatus":         {},
+		"UpdateStatus":         {},
+		"DeleteStatus":         {},
+		"LikeStatus":           {},
+		"UnLikeStatus":         {},
+		"ListLikeStatus":       {},
+		"GetStatus":            {},
+		"ListStatus":           {},
+		"NewListStatus":        {},
+		"ListRecommended":      {},
+		"ListUserTimeline":     {},
+		"LatestFollowing":      {},
+		"ListRelationship":     {},
+		"Follow":               {},
+		"UnFollow":             {},
+		"ListMessage":          {},
+		"ReadMessage":          {},
+		"GetMessageSummary":    {},
+		"ListComment":          {},
+		"GetComment":           {},
+		"NewRecommendStatus":   {},
+		"CreateComment":        {},
+		"DeleteComment":        {},
+		"LikeComment":          {},
+		"UnlikeComment":        {},
+		"ListBlacklist":        {},
+		"CreateBlacklist":      {},
+		"DeleteBlacklist":      {},
+		"ShareTweetUrl":        {},
+		"TwitterAuth":          {},
+		"AirdropTwitter":       {},
+		"CreateAirdropTwitter": {},
 	}
 
 	for _, ex := range excluded {
@@ -1082,11 +1107,14 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		if inc == "ShareTweetUrl" {
 			e.ShareTweetUrlEndpoint = middleware("ShareTweetUrl", e.ShareTweetUrlEndpoint)
 		}
-		if inc == "UserTwitterAuth" {
-			e.UserTwitterAuthEndpoint = middleware("UserTwitterAuth", e.UserTwitterAuthEndpoint)
+		if inc == "TwitterAuth" {
+			e.TwitterAuthEndpoint = middleware("TwitterAuth", e.TwitterAuthEndpoint)
 		}
-		if inc == "UserTwitterAirdrop" {
-			e.UserTwitterAirdropEndpoint = middleware("UserTwitterAirdrop", e.UserTwitterAirdropEndpoint)
+		if inc == "AirdropTwitter" {
+			e.AirdropTwitterEndpoint = middleware("AirdropTwitter", e.AirdropTwitterEndpoint)
+		}
+		if inc == "CreateAirdropTwitter" {
+			e.CreateAirdropTwitterEndpoint = middleware("CreateAirdropTwitter", e.CreateAirdropTwitterEndpoint)
 		}
 	}
 }
