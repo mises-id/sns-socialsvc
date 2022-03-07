@@ -64,6 +64,7 @@ func CreateAirdropMany(ctx context.Context, data []*Airdrop) error {
 func (m *Airdrop) UpdateTxID(ctx context.Context, tx_id string) error {
 	update := bson.M{}
 	update["tx_id"] = tx_id
+	update["status"] = enum.AirdropPending
 	_, err := db.DB().Collection("airdrops").UpdateOne(ctx, &bson.M{
 		"_id": m.ID,
 	}, bson.D{{
