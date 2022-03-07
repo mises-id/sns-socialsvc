@@ -143,4 +143,4 @@ replace github.com/tendermint/tendermint => github.com/mises-id/tendermint v0.34
 
 replace github.com/cosmos/cosmos-sdk => github.com/mises-id/cosmos-sdk v0.44.6-0.20211209094558-a7c9c77cfc17
 
-replace github.com/michimani/gotwi => ../../gotwi
+
