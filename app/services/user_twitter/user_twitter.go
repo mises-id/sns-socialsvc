@@ -39,12 +39,12 @@ func init() {
 }
 
 func UserTwitterAuth() {
-	proxy := func(_ *http.Request) (*url.URL, error) {
+	/* proxy := func(_ *http.Request) (*url.URL, error) {
 		return url.Parse("http://127.0.0.1:1087")
 	}
 	transport := &http.Transport{Proxy: proxy}
-	client := &http.Client{Transport: transport}
-	//client := &http.Client{}
+	client := &http.Client{Transport: transport} */
+	client := &http.Client{}
 	in := &gotwi.NewGotwiClientInput{
 		HTTPClient:           client,
 		AuthenticationMethod: gotwi.AuthenMethodOAuth2BearerToken,
@@ -56,13 +56,13 @@ func UserTwitterAuth() {
 		return
 	}
 	twiClient = c
-	dateNow := time.Now().UTC().AddDate(0, 0, -1)
+	dateNow := time.Now().UTC().AddDate(0, 0, -3)
 	startTime := time.Date(dateNow.Year(), dateNow.Month(), dateNow.Day(), 0, 0, 0, 0, dateNow.Location())
-	endTime := time.Date(dateNow.Year(), dateNow.Month(), dateNow.Day(), 23, 59, 59, 0, dateNow.Location())
+	//endTime := time.Date(dateNow.Year(), dateNow.Month(), dateNow.Day(), 23, 59, 59, 0, dateNow.Location())
 	tweetIn := &TweetsIn{
 		Query:     tweeTtag,
 		StartTime: &startTime,
-		EndTime:   &endTime,
+		//EndTime:   &endTime,
 	}
 	getTwitter(context.TODO(), tweetIn)
 }

@@ -2,11 +2,17 @@ package models
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+)
+
+var (
+	userTwitterAuthMaxIdKey = "user_twiter_auth_max_id"
+	airdropStatusKey        = "airdrop_status"
 )
 
 type (
@@ -66,4 +72,17 @@ func findConfigByKey(ctx context.Context, key string) (*Config, error) {
 		return nil, err
 	}
 	return res, nil
+}
+
+func GetAirdropStatus(ctx context.Context) bool {
+	var value interface{}
+	value = false
+	config, err := FindOrCreateConfig(ctx, airdropStatusKey, value)
+	if err != nil {
+		fmt.Println("find user: get airdrop_status error: ", err.Error())
+		return false
+	}
+	c := config.Value
+	fmt.Println("airdrop_status:", c.(bool))
+	return c.(bool)
 }

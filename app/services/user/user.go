@@ -24,6 +24,7 @@ func FindUser(ctx context.Context, uid uint64) (*models.User, error) {
 		return nil, err
 	}
 	models.UserMergeUserExt(ctx, user)
+	user.AirdropStatus = models.GetAirdropStatus(ctx)
 	user.NewFansCount, err = models.NewFansCount(ctx, uid)
 	if err != nil {
 		return nil, err
