@@ -257,7 +257,7 @@ func GetShareTweetUrl(ctx context.Context, uid uint64) (string, error) {
 	var tweetUrl string
 	misesid := user.Misesid
 	twitterUrl := "https://twitter.com/intent/tweet?text="
-	text := "jion us and get 3% airdrop! \n\n https://home.mises.site/home/me?misesid=" + misesid + " \n\n" + tweeTtag
+	text := "join us and get 3% airdrop! \n\n https://home.mises.site/home/me?misesid=" + misesid + " \n\n" + tweeTtag
 	tweetUrl = twitterUrl + url.QueryEscape(text)
 
 	return tweetUrl, nil
