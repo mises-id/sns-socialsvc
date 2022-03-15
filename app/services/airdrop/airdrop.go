@@ -147,18 +147,18 @@ func successAfter(ctx context.Context, misesid string) error {
 func failedAfter(ctx context.Context, misesid string) error {
 	//airdrop update
 	params := &search.AirdropSearch{
-		Misesid: misesid,
-		Type:    enum.AirdropTwitter,
-		Status:  enum.AirdropPending,
+		Misesid:  misesid,
+		Type:     enum.AirdropTwitter,
+		Statuses: []enum.AirdropStatus{enum.AirdropDefault, enum.AirdropPending},
 	}
 	airdrop, err := models.FindAirdrop(ctx, params)
 	if err != nil {
 		fmt.Println("find airdrop error: ", err.Error())
 		return err
 	}
-	if airdrop.Status != enum.AirdropPending {
+	if airdrop.Status != enum.AirdropPending && airdrop.Status != enum.AirdropDefault {
 		fmt.Printf("misesid:%s,  status error", misesid)
-		return errors.New("misesid finished")
+		return errors.New("airdrop status error")
 	}
 	if err = airdrop.UpdateStatus(ctx, enum.AirdropFailed); err != nil {
 		fmt.Println("airdrop failed update error: ", err.Error())
@@ -212,6 +212,7 @@ func createdTwitterAirdrop(ctx context.Context) ([]*models.Airdrop, error) {
 		airdrop := &models.Airdrop{
 			UID:       v.UID,
 			Misesid:   v.Misesid,
+			Status:    enum.AirdropDefault,
 			Type:      enum.AirdropTwitter,
 			Coin:      getTwitterAirdropCoin(ctx, v),
 			TxID:      "",

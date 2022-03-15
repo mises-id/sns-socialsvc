@@ -46,12 +46,12 @@ func TwitterAuth(ctx context.Context) {
 		fmt.Println("airdrop status end")
 		return
 	}
-	/* proxy := func(_ *http.Request) (*url.URL, error) {
+	proxy := func(_ *http.Request) (*url.URL, error) {
 		return url.Parse("http://127.0.0.1:1087")
 	}
 	transport := &http.Transport{Proxy: proxy}
-	client := &http.Client{Transport: transport} */
-	client := &http.Client{}
+	client := &http.Client{Transport: transport}
+	//client := &http.Client{}
 	in := &gotwi.NewGotwiClientInput{
 		HTTPClient:           client,
 		AuthenticationMethod: gotwi.AuthenMethodOAuth2BearerToken,
@@ -257,7 +257,7 @@ func GetShareTweetUrl(ctx context.Context, uid uint64) (string, error) {
 	var tweetUrl string
 	misesid := user.Misesid
 	twitterUrl := "https://twitter.com/intent/tweet?text="
-	text := "Welcome to Mises \n\n https://home.mises.site/home/me?misesid=" + misesid + " \n\n" + tweeTtag
+	text := "jion us and get 3% airdrop! \n\n https://home.mises.site/home/me?misesid=" + misesid + " \n\n" + tweeTtag
 	tweetUrl = twitterUrl + url.QueryEscape(text)
 
 	return tweetUrl, nil
