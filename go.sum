@@ -646,8 +646,6 @@ github.com/mattn/go-runewidth v0.0.3/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzp
 github.com/mattn/go-runewidth v0.0.4/go.mod h1:LwmH8dsx7+W8Uxz3IHJYH5QSwggIsqBzpuz5H//U1FU=
 github.com/matttproud/golang_protobuf_extensions v1.0.1 h1:4hp9jkHxhMHkqkrB3Ix0jegS5sx/RkqARlsWZ6pIwiU=
 github.com/matttproud/golang_protobuf_extensions v1.0.1/go.mod h1:D8He9yQNgCq6Z5Ld7szi9bcBfOoFv/3dc6xSMkL2PC0=
-github.com/michimani/gotwi v0.10.0 h1:CdIJcgYkF30EX+z3LQ0tyH7GgrkNhRyHBK/SkHUEYxg=
-github.com/michimani/gotwi v0.10.0/go.mod h1:i58CQv4Jwo3WbALJGvQJoxOeN+ujPipPOSvf3FGLxLM=
 github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/miekg/dns v1.1.26/go.mod h1:bPDLeHnStXmXAq1m/Ch/hvfNHr14JKNPMBo3VZKjuso=
 github.com/miekg/dns v1.1.41/go.mod h1:p6aan82bvRIyn+zDIv9xYNUpwa73JcSh9BKwknJysuI=
@@ -659,6 +657,8 @@ github.com/minio/highwayhash v1.0.2 h1:Aak5U0nElisjDCfPSG79Tgzkn2gl66NxOMspRrKnA
 github.com/minio/highwayhash v1.0.2/go.mod h1:BQskDq+xkJ12lmlUUi7U0M5Swg3EWR+dLTk+kldvVxY=
 github.com/mises-id/cosmos-sdk v0.44.6-0.20211209094558-a7c9c77cfc17 h1:/bn4HGEzOhPcehSsRZ927EsXMGahlQEYt86GgpcKYoc=
 github.com/mises-id/cosmos-sdk v0.44.6-0.20211209094558-a7c9c77cfc17/go.mod h1:maUA6m2TBxOJZkbwl0eRtEBgTX37kcaiOWU5t1HEGaY=
+github.com/mises-id/gotwi v0.0.0-20220308010653-907d3f6f05d3 h1:zU9GblEPotKSam7k3ISD9FNtpjJA5YSiYjzdRqSEd9o=
+github.com/mises-id/gotwi v0.0.0-20220308010653-907d3f6f05d3/go.mod h1:i58CQv4Jwo3WbALJGvQJoxOeN+ujPipPOSvf3FGLxLM=
 github.com/mises-id/mises-tm v0.0.0-20220303064252-ef3c1ed6ee27 h1:i7i9Dr+EBf/MtroFdgl1yt8xNYPPRWg+njtcZnktaB0=
 github.com/mises-id/mises-tm v0.0.0-20220303064252-ef3c1ed6ee27/go.mod h1:maeY2/FsDxFGNKCyt3XnP1fi5ygJNMUGIr3v0PQ6z0w=
 github.com/mises-id/sdk v0.0.0-20220307024405-bfcd3b412b77 h1:wSpxw/RoRvEPrQVlDDmjKWjAWtXg2DRfa/wvSLhylvc=

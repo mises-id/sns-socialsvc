@@ -37,7 +37,7 @@ func New() IClient {
 		}
 	}
 	mo := sdk.MSdkOption{
-		ChainID:    "test",
+		ChainID:    env.Envs.MisesChainID,
 		Debug:      true,
 		PassPhrase: "mises.site",
 	}

@@ -15,6 +15,7 @@ type (
 		Misesids []string
 		Type     enum.AirdropType
 		Status   enum.AirdropStatus
+		Statuses []enum.AirdropStatus
 		TxID     string
 		NotTxID  bool
 		//sort
@@ -42,6 +43,9 @@ func (params *AirdropSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	}
 	if params.Misesids != nil && len(params.Misesids) > 0 {
 		chain = chain.Where(bson.M{"misesid": bson.M{"$in": params.Misesids}})
+	}
+	if params.Statuses != nil && len(params.Statuses) > 0 {
+		chain = chain.Where(bson.M{"status": bson.M{"$in": params.Statuses}})
 	}
 	if params.Type != "" {
 		chain = chain.Where(bson.M{"type": params.Type})
