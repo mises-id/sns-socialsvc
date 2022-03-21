@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/mises-id/sdk/types"
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/config/env"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
@@ -16,6 +17,12 @@ import (
 var (
 	secret      = env.Envs.JWTSecret
 	misesClient mises.Client
+)
+
+type (
+	RegisterCallback struct {
+		retryNum int
+	}
 )
 
 func SignIn(ctx context.Context, auth string) (string, bool, error) {
@@ -30,7 +37,7 @@ func SignIn(ctx context.Context, auth string) (string, bool, error) {
 		return "", created, err
 	}
 	if created && len(pubkey) > 0 {
-		_ = misesClient.Register(misesid, pubkey)
+		misesChainRegister(misesid, pubkey, 0)
 	}
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"uid":      user.UID,
@@ -58,6 +65,36 @@ func Auth(ctx context.Context, authToken string) (*models.User, error) {
 		Misesid:  mapClaims["misesid"].(string),
 		Username: mapClaims["username"].(string),
 	}, nil
+}
+
+func misesChainRegister(misesid, pubkey string, num int) {
+	fmt.Printf("mises[%s] user register chain \n", misesid)
+	misesClient.SetListener(&RegisterCallback{num})
+	err1 := misesClient.Register(misesid, pubkey)
+	if err1 != nil {
+		fmt.Printf("mises[%s] user register chain error:%s \n", misesid, err1.Error())
+	}
+}
+
+func (cb *RegisterCallback) OnTxGenerated(cmd types.MisesAppCmd) {
+	misesid := cmd.MisesUID()
+	fmt.Printf("Mises[%s] User Register OnTxGenerated\n", misesid)
+
+}
+func (cb *RegisterCallback) OnSucceed(cmd types.MisesAppCmd) {
+	misesid := cmd.MisesUID()
+	fmt.Printf("Mises[%s] User Register OnSucceed\n", misesid)
+
+}
+func (cb *RegisterCallback) OnFailed(cmd types.MisesAppCmd) {
+	misesid := cmd.MisesUID()
+	fmt.Printf("Mises[%s] User Register OnFailed\n", misesid)
+	pubkey := cmd.PubKey()
+	if cb.retryNum < 5 && misesid != "" && pubkey != "" {
+		cb.retryNum++
+		fmt.Printf("Mises[%s] User Register Retry\n", misesid)
+		misesChainRegister(misesid, pubkey, cb.retryNum)
+	}
 }
 
 func SetupMisesClient() {

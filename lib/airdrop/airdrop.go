@@ -27,7 +27,7 @@ func (c Client) RunSync(uid string, pubkey string, coin int64) error {
 	return c.app.RunSync(c.app.NewFaucetCmd(uid, pubkey, coin))
 }
 func (c Client) RunAsync(uid string, pubkey string, coin int64) error {
-	return c.app.RunAsync(c.app.NewFaucetCmd(uid, pubkey, coin))
+	return c.app.RunAsync(c.app.NewFaucetCmd(uid, pubkey, coin), false)
 }
 
 func New() IClient {
