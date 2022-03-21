@@ -27,20 +27,15 @@ type FaucetCallback struct {
 
 func AirdropTwitter(ctx context.Context) {
 	planJobLog("./log/airdrop.log")
-	fmt.Println("airdrop start")
 	airdropClient.SetListener(&FaucetCallback{})
 	airdropTx(ctx)
-	fmt.Println("airdrop finished")
 }
 func CretaeAirdropTwitter(ctx context.Context) {
 	planJobLog("./log/create_airdrop.log")
-	fmt.Println("create airdrop start")
 	if !models.GetAirdropStatus(ctx) {
-		fmt.Println("airdrop status end")
 		return
 	}
 	airdropCreate(ctx)
-	fmt.Println("create airdrop finished")
 }
 
 func airdropCreate(ctx context.Context) {

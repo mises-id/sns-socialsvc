@@ -20,11 +20,16 @@ type User struct {
 type Client interface {
 	Auth(auth string) (string, string, error)
 	Register(misesUID string, pubKey string) error
+	SetListener(listener types.MisesAppCmdListener)
 }
 
 type ClientImpl struct {
 	client types.MSdk
 	app    types.MApp
+}
+
+func (c *ClientImpl) SetListener(listener types.MisesAppCmdListener) {
+	c.app.SetListener(listener)
 }
 
 func (c *ClientImpl) Register(misesUID string, pubKey string) error {
@@ -34,7 +39,7 @@ func (c *ClientImpl) Register(misesUID string, pubKey string) error {
 			misesUID,
 			pubKey,
 			1000000,
-		),
+		), false,
 	)
 }
 func (c *ClientImpl) Auth(auth string) (string, string, error) {

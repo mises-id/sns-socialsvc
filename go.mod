@@ -13,10 +13,11 @@ require (
 	github.com/jinzhu/inflection v1.0.0
 	github.com/joho/godotenv v1.4.0
 	github.com/michimani/gotwi v0.10.0
-	github.com/mises-id/sdk v0.0.0-20220318011232-cf079a7f5be5
+	github.com/mises-id/sdk v0.0.0-20220321085134-a00105ee0e55
 	github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220207063000-8a91039b2f09
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
+	github.com/tendermint/tendermint v0.34.16
 	go.mongodb.org/mongo-driver v1.8.1
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
@@ -114,7 +115,6 @@ require (
 	github.com/tendermint/btcd v0.1.1 // indirect
 	github.com/tendermint/crypto v0.0.0-20191022145703-50d29ede1e15 // indirect
 	github.com/tendermint/go-amino v0.16.0 // indirect
-	github.com/tendermint/tendermint v0.34.16 // indirect
 	github.com/tendermint/tm-db v0.6.6 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.0.2 // indirect
