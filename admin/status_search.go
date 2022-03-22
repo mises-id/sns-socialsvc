@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
@@ -71,27 +70,21 @@ func (params *AdminStatusParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 		chain = chain.Where(bson.M{"tags": bson.M{"$nin": params.NInTags}})
 	}
 	if params.StartTime != nil && params.EndTime == nil {
-		fmt.Println("st:", params.StartTime)
 		chain = chain.Where(bson.M{"created_at": bson.M{"$gte": params.StartTime}})
 	}
 	if params.StartTime == nil && params.EndTime != nil {
-		fmt.Println("et:", params.EndTime)
 		chain = chain.Where(bson.M{"created_at": bson.M{"$lte": params.EndTime}})
 	}
 
 	if params.StartTime != nil && params.EndTime != nil {
-		fmt.Println("et:", params.EndTime)
 		and = append(and, bson.M{"created_at": bson.M{"$gte": params.StartTime}}, bson.M{"created_at": bson.M{"$lte": params.EndTime}})
 	}
 
 	if params.ScoreMax > 0 && params.ScoreMin > 0 {
-		fmt.Println("score max:", params.ScoreMax)
-		fmt.Println("score min:", params.ScoreMin)
 		chain = chain.Where(bson.M{"score": bson.M{"$gt": params.ScoreMax}})
 		//and = append(and, bson.M{"$or": bson.A{bson.M{"score": bson.M{"$gt": params.ScoreMax}}, bson.M{"score": bson.M{"$lt": params.ScoreMin}}}})
 	}
 	if params.ScoreMax > 0 && params.ScoreMin <= 0 {
-		fmt.Println("score max:", params.ScoreMax)
 		chain = chain.Where(bson.M{"score": bson.M{"$lt": params.ScoreMax}})
 	}
 	if params.OnlyShow {
@@ -101,7 +94,6 @@ func (params *AdminStatusParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 		chain = chain.Where(bson.M{"$or": or})
 	}
 	if len(and) > 0 {
-		fmt.Println("and: ", and)
 		chain = chain.Where(bson.M{"$and": and})
 	}
 	//sort

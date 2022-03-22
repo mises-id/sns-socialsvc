@@ -421,6 +421,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var UserToChainZeroEndpoint endpoint.Endpoint
+	{
+		UserToChainZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/user/to_chain/"),
+			EncodeHTTPUserToChainZeroRequest,
+			DecodeHTTPUserToChainResponse,
+			options...,
+		).Endpoint()
+	}
 
 	return svc.Endpoints{
 		SignInEndpoint:               SignInZeroEndpoint,
@@ -460,6 +470,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		TwitterAuthEndpoint:          TwitterAuthZeroEndpoint,
 		AirdropTwitterEndpoint:       AirdropTwitterZeroEndpoint,
 		CreateAirdropTwitterEndpoint: CreateAirdropTwitterZeroEndpoint,
+		UserToChainEndpoint:          UserToChainZeroEndpoint,
 	}, nil
 }
 
@@ -1478,6 +1489,33 @@ func DecodeHTTPCreateAirdropTwitterResponse(_ context.Context, r *http.Response)
 	}
 
 	var resp pb.CreateAirdropTwitterResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPUserToChainResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded UserToChainResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPUserToChainResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.UserToChainResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -4833,6 +4871,75 @@ func EncodeHTTPCreateAirdropTwitterOneRequest(_ context.Context, r *http.Request
 		"",
 		"airdrop",
 		"create",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPUserToChainZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a usertochain request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUserToChainZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UserToChainRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"to_chain",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPUserToChainOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a usertochain request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUserToChainOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UserToChainRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"to_chain",
 	}, "/")
 	u, err := url.Parse(path)
 	if err != nil {

@@ -20,7 +20,8 @@ func RandShuffle(slice []interface{}) {
 
 }
 
-func WirteLogDay(path, content string) error {
+func WirteLogDay(path string) error {
+	content := time.Now().String() + "\n"
 	arr := strings.Split(path, "/")
 	filePath := strings.Join(arr[:len(arr)-1], "/")
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {

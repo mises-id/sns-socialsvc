@@ -26,12 +26,13 @@ type FaucetCallback struct {
 }
 
 func AirdropTwitter(ctx context.Context) {
-	planJobLog("./log/airdrop.log")
+	utils.WirteLogDay("./log/airdrop.log")
 	airdropClient.SetListener(&FaucetCallback{})
 	airdropTx(ctx)
 }
 func CretaeAirdropTwitter(ctx context.Context) {
-	planJobLog("./log/create_airdrop.log")
+
+	utils.WirteLogDay("./log/create_airdrop.log")
 	if !models.GetAirdropStatus(ctx) {
 		return
 	}
@@ -76,11 +77,9 @@ func airdropRun(ctx context.Context, airdrops []*models.Airdrop) error {
 }
 
 func (cb *FaucetCallback) OnTxGenerated(cmd types.MisesAppCmd) {
-	fmt.Printf("OnTxGenerated\n")
 	misesid := cmd.MisesUID()
+	fmt.Printf("Mises[%s] Airdrop OnTxGenerated\n", misesid)
 	txid := cmd.TxID()
-	fmt.Println("misesid: ", misesid)
-	fmt.Println("tx_id: ", txid)
 	err := txGeneratedAfter(context.Background(), misesid, txid)
 	if err != nil {
 		fmt.Println("tx generated after  error: ", err.Error())
@@ -88,11 +87,8 @@ func (cb *FaucetCallback) OnTxGenerated(cmd types.MisesAppCmd) {
 
 }
 func (cb *FaucetCallback) OnSucceed(cmd types.MisesAppCmd) {
-	fmt.Printf("OnSucceed\n")
 	misesid := cmd.MisesUID()
-	txid := cmd.TxID()
-	fmt.Println("misesid: ", misesid)
-	fmt.Println("tx_id: ", txid)
+	fmt.Printf("Mises[%s] Airdrop OnSucceed\n", misesid)
 	err := successAfter(context.Background(), misesid)
 	if err != nil {
 		fmt.Println("tx success after  error: ", err.Error())
@@ -100,11 +96,8 @@ func (cb *FaucetCallback) OnSucceed(cmd types.MisesAppCmd) {
 
 }
 func (cb *FaucetCallback) OnFailed(cmd types.MisesAppCmd) {
-	fmt.Printf("OnFailed\n")
 	misesid := cmd.MisesUID()
-	txid := cmd.TxID()
-	fmt.Println("misesid: ", misesid)
-	fmt.Println("tx_id: ", txid)
+	fmt.Printf("Mises[%s] Airdrop OnFailed\n", misesid)
 	err := failedAfter(context.Background(), misesid)
 	if err != nil {
 		fmt.Println("tx failed after  error: ", err.Error())
@@ -185,7 +178,6 @@ func txGeneratedAfter(ctx context.Context, misesid string, tx_id string) error {
 		return err
 	}
 	if airdrop.TxID != "" || airdrop.Status != enum.AirdropDefault {
-		fmt.Printf("misesid:%s has tx_id,old tx_id:%s,new_tx_id:%s", misesid, airdrop.TxID, tx_id)
 		return errors.New("tx_id exists")
 	}
 	//update
@@ -283,12 +275,4 @@ func getAirdropList(ctx context.Context) ([]*models.Airdrop, error) {
 
 func SetAirdropClient() {
 	airdropClient = airdrop.New()
-}
-func planJobLog(path string) {
-
-	content := time.Now().String() + "\n"
-	err := utils.WirteLogDay(path, content)
-	if err != nil {
-		fmt.Println("plan log error: ", err.Error())
-	}
 }

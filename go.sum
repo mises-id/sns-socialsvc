@@ -665,8 +665,8 @@ github.com/mises-id/gotwi v0.0.0-20220308010653-907d3f6f05d3 h1:zU9GblEPotKSam7k
 github.com/mises-id/gotwi v0.0.0-20220308010653-907d3f6f05d3/go.mod h1:i58CQv4Jwo3WbALJGvQJoxOeN+ujPipPOSvf3FGLxLM=
 github.com/mises-id/mises-tm v0.0.0-20220303064252-ef3c1ed6ee27 h1:i7i9Dr+EBf/MtroFdgl1yt8xNYPPRWg+njtcZnktaB0=
 github.com/mises-id/mises-tm v0.0.0-20220303064252-ef3c1ed6ee27/go.mod h1:maeY2/FsDxFGNKCyt3XnP1fi5ygJNMUGIr3v0PQ6z0w=
-github.com/mises-id/sdk v0.0.0-20220321085134-a00105ee0e55 h1:v7bel7Ys+5wHkNRuSSddvOOQ2eT42Np0CBAMZyBkTrI=
-github.com/mises-id/sdk v0.0.0-20220321085134-a00105ee0e55/go.mod h1:8iV7b97ny2CY+bZ7l1z1WDlci9D6H+SZL3fluvca40c=
+github.com/mises-id/sdk v0.0.0-20220322065225-b72ffbcd816e h1:qT6DhhTPISmg8AEpFh3r8yprQMEMNlzGx9fNftl1Qys=
+github.com/mises-id/sdk v0.0.0-20220322065225-b72ffbcd816e/go.mod h1:8iV7b97ny2CY+bZ7l1z1WDlci9D6H+SZL3fluvca40c=
 github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220207063000-8a91039b2f09 h1:dctvNTIZCf4JyOGSpY+zAoD/8s31C2VU1eS4z9LGexw=
 github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220207063000-8a91039b2f09/go.mod h1:j0mQ7sMhlLdY5LmOBN23fXJF+lCI2EQXpgJLxWoVY/Q=
 github.com/mises-id/tendermint v0.34.15-0.20220317102522-80f09a270501 h1:qoyJdnivrWpyVb/NLBFGYtvhRodxYNb460+8ry+s5+I=

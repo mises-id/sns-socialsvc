@@ -510,6 +510,17 @@ service Social {
       }
     };
   }
+  rpc UserToChain (UserToChainRequest) returns (UserToChainResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/user/to_chain"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/user/to_chain/"
+      }
+    };
+  }
 }
 
 message SignInRequest {
@@ -993,5 +1004,11 @@ message CreateAirdropTwitterRequest {
   
 }
 message CreateAirdropTwitterResponse {
+  
+}
+message UserToChainRequest {
+  
+}
+message UserToChainResponse {
   
 }

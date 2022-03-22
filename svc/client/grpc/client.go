@@ -517,6 +517,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var usertochainEndpoint endpoint.Endpoint
+	{
+		usertochainEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"UserToChain",
+			EncodeGRPCUserToChainRequest,
+			DecodeGRPCUserToChainResponse,
+			pb.UserToChainResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	return svc.Endpoints{
 		SignInEndpoint:               signinEndpoint,
 		FindUserEndpoint:             finduserEndpoint,
@@ -555,6 +568,7 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		TwitterAuthEndpoint:          twitterauthEndpoint,
 		AirdropTwitterEndpoint:       airdroptwitterEndpoint,
 		CreateAirdropTwitterEndpoint: createairdroptwitterEndpoint,
+		UserToChainEndpoint:          usertochainEndpoint,
 	}, nil
 }
 
@@ -819,6 +833,13 @@ func DecodeGRPCCreateAirdropTwitterResponse(_ context.Context, grpcReply interfa
 	return reply, nil
 }
 
+// DecodeGRPCUserToChainResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC usertochain reply to a user-domain usertochain response. Primarily useful in a client.
+func DecodeGRPCUserToChainResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.UserToChainResponse)
+	return reply, nil
+}
+
 // GRPC Client Encode
 
 // EncodeGRPCSignInRequest is a transport/grpc.EncodeRequestFunc that converts a
@@ -1077,6 +1098,13 @@ func EncodeGRPCAirdropTwitterRequest(_ context.Context, request interface{}) (in
 // user-domain createairdroptwitter request to a gRPC createairdroptwitter request. Primarily useful in a client.
 func EncodeGRPCCreateAirdropTwitterRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.CreateAirdropTwitterRequest)
+	return req, nil
+}
+
+// EncodeGRPCUserToChainRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain usertochain request to a gRPC usertochain request. Primarily useful in a client.
+func EncodeGRPCUserToChainRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.UserToChainRequest)
 	return req, nil
 }
 

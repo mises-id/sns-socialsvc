@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/mises-id/sdk/types"
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/config/env"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
@@ -21,12 +20,10 @@ var (
 
 type (
 	RegisterCallback struct {
-		retryNum int
 	}
 )
 
 func SignIn(ctx context.Context, auth string) (string, bool, error) {
-	fmt.Println("misesClient: ", misesClient)
 	misesid, pubkey, err := misesClient.Auth(auth)
 	if err != nil {
 		logrus.Errorf("mises verify error: %v", err)
@@ -36,8 +33,8 @@ func SignIn(ctx context.Context, auth string) (string, bool, error) {
 	if err != nil {
 		return "", created, err
 	}
-	if created && len(pubkey) > 0 {
-		misesChainRegister(misesid, pubkey, 0)
+	if !user.OnChain && len(pubkey) > 0 {
+		chainUserRegister(ctx, misesid, pubkey)
 	}
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"uid":      user.UID,
@@ -67,33 +64,14 @@ func Auth(ctx context.Context, authToken string) (*models.User, error) {
 	}, nil
 }
 
-func misesChainRegister(misesid, pubkey string, num int) {
-	fmt.Printf("mises[%s] user register chain \n", misesid)
-	misesClient.SetListener(&RegisterCallback{num})
-	err1 := misesClient.Register(misesid, pubkey)
-	if err1 != nil {
-		fmt.Printf("mises[%s] user register chain error:%s \n", misesid, err1.Error())
+func chainUserRegister(ctx context.Context, misesid, pubkey string) {
+	chainUser := &models.ChainUser{
+		Misesid: misesid,
+		Pubkey:  pubkey,
 	}
-}
-
-func (cb *RegisterCallback) OnTxGenerated(cmd types.MisesAppCmd) {
-	misesid := cmd.MisesUID()
-	fmt.Printf("Mises[%s] User Register OnTxGenerated\n", misesid)
-
-}
-func (cb *RegisterCallback) OnSucceed(cmd types.MisesAppCmd) {
-	misesid := cmd.MisesUID()
-	fmt.Printf("Mises[%s] User Register OnSucceed\n", misesid)
-
-}
-func (cb *RegisterCallback) OnFailed(cmd types.MisesAppCmd) {
-	misesid := cmd.MisesUID()
-	fmt.Printf("Mises[%s] User Register OnFailed\n", misesid)
-	pubkey := cmd.PubKey()
-	if cb.retryNum < 5 && misesid != "" && pubkey != "" {
-		cb.retryNum++
-		fmt.Printf("Mises[%s] User Register Retry\n", misesid)
-		misesChainRegister(misesid, pubkey, cb.retryNum)
+	err := models.CreateChainUser(ctx, chainUser)
+	if err != nil {
+		fmt.Printf("mises[%s],pubkey[%s] user register chain error:%s \n", misesid, pubkey, err.Error())
 	}
 }
 

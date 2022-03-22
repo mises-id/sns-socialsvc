@@ -251,6 +251,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCCreateAirdropTwitterResponse,
 			serverOptions...,
 		),
+		usertochain: grpctransport.NewServer(
+			endpoints.UserToChainEndpoint,
+			DecodeGRPCUserToChainRequest,
+			EncodeGRPCUserToChainResponse,
+			serverOptions...,
+		),
 	}
 }
 
@@ -293,6 +299,7 @@ type grpcServer struct {
 	twitterauth          grpctransport.Handler
 	airdroptwitter       grpctransport.Handler
 	createairdroptwitter grpctransport.Handler
+	usertochain          grpctransport.Handler
 }
 
 // Methods for grpcServer to implement SocialServer interface
@@ -593,6 +600,14 @@ func (s *grpcServer) CreateAirdropTwitter(ctx context.Context, req *pb.CreateAir
 	return rep.(*pb.CreateAirdropTwitterResponse), nil
 }
 
+func (s *grpcServer) UserToChain(ctx context.Context, req *pb.UserToChainRequest) (*pb.UserToChainResponse, error) {
+	_, rep, err := s.usertochain.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.UserToChainResponse), nil
+}
+
 // Server Decode
 
 // DecodeGRPCSignInRequest is a transport/grpc.DecodeRequestFunc that converts a
@@ -854,6 +869,13 @@ func DecodeGRPCCreateAirdropTwitterRequest(_ context.Context, grpcReq interface{
 	return req, nil
 }
 
+// DecodeGRPCUserToChainRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC usertochain request to a user-domain usertochain request. Primarily useful in a server.
+func DecodeGRPCUserToChainRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.UserToChainRequest)
+	return req, nil
+}
+
 // Server Encode
 
 // EncodeGRPCSignInResponse is a transport/grpc.EncodeResponseFunc that converts a
@@ -1112,6 +1134,13 @@ func EncodeGRPCAirdropTwitterResponse(_ context.Context, response interface{}) (
 // user-domain createairdroptwitter response to a gRPC createairdroptwitter reply. Primarily useful in a server.
 func EncodeGRPCCreateAirdropTwitterResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.CreateAirdropTwitterResponse)
+	return resp, nil
+}
+
+// EncodeGRPCUserToChainResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain usertochain response to a gRPC usertochain reply. Primarily useful in a server.
+func EncodeGRPCUserToChainResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.UserToChainResponse)
 	return resp, nil
 }
 

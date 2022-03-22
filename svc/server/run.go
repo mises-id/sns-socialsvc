@@ -90,6 +90,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		twitterauthEndpoint          = svc.MakeTwitterAuthEndpoint(service)
 		airdroptwitterEndpoint       = svc.MakeAirdropTwitterEndpoint(service)
 		createairdroptwitterEndpoint = svc.MakeCreateAirdropTwitterEndpoint(service)
+		usertochainEndpoint          = svc.MakeUserToChainEndpoint(service)
 	)
 
 	endpoints := svc.Endpoints{
@@ -130,6 +131,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		TwitterAuthEndpoint:          twitterauthEndpoint,
 		AirdropTwitterEndpoint:       airdroptwitterEndpoint,
 		CreateAirdropTwitterEndpoint: createairdroptwitterEndpoint,
+		UserToChainEndpoint:          usertochainEndpoint,
 	}
 
 	// Wrap selected Endpoints with middlewares. See handlers/middlewares.go
