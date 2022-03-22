@@ -98,9 +98,9 @@ func failed(ctx context.Context, misesid string) error {
 
 func txGenerated(ctx context.Context, misesid string, tx_id string) error {
 	//update
-	params := &search.TxtestSearch{
+	params := &search.ChainUserSearch{
 		Misesid: misesid,
-		Status:  enum.AirdropStatus(enum.ChainUserDefault),
+		Status:  enum.ChainUserDefault,
 	}
 	chainUser, err := models.FindChainUser(ctx, params)
 	if err != nil {
