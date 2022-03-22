@@ -538,6 +538,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		responseEncoder,
 		serverOptions...,
 	))
+
+	m.Methods("GET").Path("/user/to_chain/").Handler(httptransport.NewServer(
+		endpoints.UserToChainEndpoint,
+		DecodeHTTPUserToChainZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/user/to_chain").Handler(httptransport.NewServer(
+		endpoints.UserToChainEndpoint,
+		DecodeHTTPUserToChainOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
 	return m
 }
 
@@ -4093,6 +4106,78 @@ func DecodeHTTPCreateAirdropTwitterZeroRequest(_ context.Context, r *http.Reques
 func DecodeHTTPCreateAirdropTwitterOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	defer r.Body.Close()
 	var req pb.CreateAirdropTwitterRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPUserToChainZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded usertochain request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUserToChainZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UserToChainRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPUserToChainOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded usertochain request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUserToChainOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UserToChainRequest
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot read body of http request")

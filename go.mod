@@ -13,7 +13,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0
 	github.com/joho/godotenv v1.4.0
 	github.com/michimani/gotwi v0.10.0
-	github.com/mises-id/sdk v0.0.0-20220321085134-a00105ee0e55
+	github.com/mises-id/sdk v0.0.0-20220322065225-b72ffbcd816e
 	github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220207063000-8a91039b2f09
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1

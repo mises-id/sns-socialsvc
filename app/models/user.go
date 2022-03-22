@@ -33,6 +33,7 @@ type User struct {
 	LikedCount     uint32            `bson:"liked_count,omitempty"`
 	CreatedAt      time.Time         `bson:"created_at,omitempty"`
 	UpdatedAt      time.Time         `bson:"updated_at,omitempty"`
+	OnChain        bool              `bson:"on_chain,omitempty"`
 	AvatarUrl      string            `bson:"-"`
 	IsFollowed     bool              `bson:"-"`
 	IsAirdropped   bool              `bson:"-"`
@@ -174,6 +175,16 @@ func UpdateUserAvatar(ctx context.Context, user *User) error {
 		Value: bson.M{
 			"avatar_path": user.AvatarPath,
 			"updated_at":  time.Now(),
+		}}})
+	return err
+}
+func UpdateUserOnChainByMisesid(ctx context.Context, misesid string) error {
+	_, err := db.DB().Collection("users").UpdateOne(ctx, &bson.M{
+		"misesid": misesid,
+	}, bson.D{{
+		Key: "$set",
+		Value: bson.M{
+			"on_chain": true,
 		}}})
 	return err
 }

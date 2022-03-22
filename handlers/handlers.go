@@ -699,3 +699,9 @@ func (s socialService) CreateAirdropTwitter(ctx context.Context, in *pb.CreateAi
 	airdropSVC.CretaeAirdropTwitter(ctx)
 	return &resp, nil
 }
+
+func (s socialService) UserToChain(ctx context.Context, in *pb.UserToChainRequest) (*pb.UserToChainResponse, error) {
+	var resp pb.UserToChainResponse
+	sessionSVC.UserToChain(ctx)
+	return &resp, nil
+}

@@ -83,6 +83,5 @@ func GetAirdropStatus(ctx context.Context) bool {
 		return false
 	}
 	c := config.Value
-	fmt.Println("airdrop_status:", c.(bool))
 	return c.(bool)
 }

@@ -70,6 +70,7 @@ type Endpoints struct {
 	TwitterAuthEndpoint          endpoint.Endpoint
 	AirdropTwitterEndpoint       endpoint.Endpoint
 	CreateAirdropTwitterEndpoint endpoint.Endpoint
+	UserToChainEndpoint          endpoint.Endpoint
 }
 
 // Endpoints
@@ -368,6 +369,14 @@ func (e Endpoints) CreateAirdropTwitter(ctx context.Context, in *pb.CreateAirdro
 		return nil, err
 	}
 	return response.(*pb.CreateAirdropTwitterResponse), nil
+}
+
+func (e Endpoints) UserToChain(ctx context.Context, in *pb.UserToChainRequest) (*pb.UserToChainResponse, error) {
+	response, err := e.UserToChainEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.UserToChainResponse), nil
 }
 
 // Make Endpoints
@@ -779,6 +788,17 @@ func MakeCreateAirdropTwitterEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeUserToChainEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.UserToChainRequest)
+		v, err := s.UserToChain(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 // WrapAllExcept wraps each Endpoint field of struct Endpoints with a
 // go-kit/kit/endpoint.Middleware.
 // Use this for applying a set of middlewares to every endpoint in the service.
@@ -823,6 +843,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"TwitterAuth":          {},
 		"AirdropTwitter":       {},
 		"CreateAirdropTwitter": {},
+		"UserToChain":          {},
 	}
 
 	for _, ex := range excluded {
@@ -944,6 +965,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "CreateAirdropTwitter" {
 			e.CreateAirdropTwitterEndpoint = middleware(e.CreateAirdropTwitterEndpoint)
 		}
+		if inc == "UserToChain" {
+			e.UserToChainEndpoint = middleware(e.UserToChainEndpoint)
+		}
 	}
 }
 
@@ -995,6 +1019,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"TwitterAuth":          {},
 		"AirdropTwitter":       {},
 		"CreateAirdropTwitter": {},
+		"UserToChain":          {},
 	}
 
 	for _, ex := range excluded {
@@ -1115,6 +1140,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "CreateAirdropTwitter" {
 			e.CreateAirdropTwitterEndpoint = middleware("CreateAirdropTwitter", e.CreateAirdropTwitterEndpoint)
+		}
+		if inc == "UserToChain" {
+			e.UserToChainEndpoint = middleware("UserToChain", e.UserToChainEndpoint)
 		}
 	}
 }

@@ -41,7 +41,7 @@ func init() {
 }
 
 func TwitterAuth(ctx context.Context) {
-	planJobLog()
+	utils.WirteLogDay("./log/get_twitter.log")
 	if !models.GetAirdropStatus(ctx) {
 		fmt.Println("airdrop status end")
 		return
@@ -80,7 +80,6 @@ func getTwitter(ctx context.Context, in *TweetsIn) {
 		fmt.Println("err:", err.Error())
 		return
 	}
-	fmt.Println("api get twitter num: ", len(res.Data))
 	twitterAuth(ctx, res)
 	if res.Meta.NextToken != nil {
 		in.NextToken = *res.Meta.NextToken
@@ -123,7 +122,6 @@ func twitterAuth(ctx context.Context, tweets *types.SearchTweetsRecentResponse) 
 		urls := v.Entities.URLs
 		url := gotwi.StringValue(urls[0].ExpandedURL)
 		text := gotwi.StringValue(v.Text)
-		fmt.Println("url: ", url)
 		misesid, err := getMisesIdByTweetText(url)
 		if err != nil {
 			continue
@@ -173,7 +171,6 @@ func twitterAuth(ctx context.Context, tweets *types.SearchTweetsRecentResponse) 
 		}
 		userTwitters = append(userTwitters, userTwitter)
 	}
-	fmt.Println("success user twitter num: ", len(userTwitters))
 	if len(userTwitters) == 0 {
 		return
 	}
@@ -202,7 +199,7 @@ func checkMisesidOrTwitterUserIdIsExists(misesid string, twitter_user *models.Tw
 }
 
 func getMisesIdByTweetText(text string) (string, error) {
-	sep := "?misesid="
+	sep := "?MisesID="
 	arr := strings.Split(text, sep)
 	if len(arr) < 2 {
 		return "", errors.New("invalid misesid")
@@ -213,6 +210,12 @@ func getMisesIdByTweetText(text string) (string, error) {
 func addMisesidProfix(misesid string) string {
 	if !strings.HasPrefix(misesid, misesidPrefix) {
 		return misesidPrefix + misesid
+	}
+	return misesid
+}
+func removeMisesidProfix(misesid string) string {
+	if strings.HasPrefix(misesid, misesidPrefix) {
+		return strings.TrimPrefix(misesid, misesidPrefix)
 	}
 	return misesid
 }
@@ -255,18 +258,10 @@ func GetShareTweetUrl(ctx context.Context, uid uint64) (string, error) {
 		return "", err
 	}
 	var tweetUrl string
-	misesid := user.Misesid
+	misesid := removeMisesidProfix(user.Misesid)
 	twitterUrl := "https://twitter.com/intent/tweet?text="
-	text := "join us and get 3% airdrop! \n\nhttps://www.mises.site/introduction?misesid=" + misesid + " \n\n" + tweeTtag
+	text := "join us and get 3% airdrop! \n\nhttps://www.mises.site/introduction?MisesID=" + misesid + " \n\n" + tweeTtag
 	tweetUrl = twitterUrl + url.QueryEscape(text)
 
 	return tweetUrl, nil
-}
-func planJobLog() {
-	path := "./log/get_twitter.log"
-	content := time.Now().String() + "\n"
-	err := utils.WirteLogDay(path, content)
-	if err != nil {
-		fmt.Println("plan log error: ", err.Error())
-	}
 }
