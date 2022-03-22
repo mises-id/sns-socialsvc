@@ -78,7 +78,7 @@ func airdropRun(ctx context.Context, airdrops []*models.Airdrop) error {
 
 func (cb *FaucetCallback) OnTxGenerated(cmd types.MisesAppCmd) {
 	misesid := cmd.MisesUID()
-	fmt.Printf("Mises[%s] Airdrop OnTxGenerated\n", misesid)
+	fmt.Printf("Mises[%s] Airdrop OnTxGenerated %s\n", misesid, cmd.TxID())
 	txid := cmd.TxID()
 	err := txGeneratedAfter(context.Background(), misesid, txid)
 	if err != nil {
@@ -95,10 +95,13 @@ func (cb *FaucetCallback) OnSucceed(cmd types.MisesAppCmd) {
 	}
 
 }
-func (cb *FaucetCallback) OnFailed(cmd types.MisesAppCmd) {
+func (cb *FaucetCallback) OnFailed(cmd types.MisesAppCmd, err error) {
 	misesid := cmd.MisesUID()
-	fmt.Printf("Mises[%s] Airdrop OnFailed\n", misesid)
-	err := failedAfter(context.Background(), misesid)
+	if err != nil {
+		fmt.Printf("Mises[%s] Airdrop OnFailed: %s\n", misesid, err.Error())
+	}
+
+	err = failedAfter(context.Background(), misesid)
 	if err != nil {
 		fmt.Println("tx failed after  error: ", err.Error())
 	}
