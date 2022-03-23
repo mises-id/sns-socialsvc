@@ -96,9 +96,8 @@ func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) 
 	if err != nil {
 		return nil, err
 	}
-	now_common_num := len(common_pool_status)
+	//now_common_num := len(common_pool_status)
 	//now_total_num := now_following2_num + now_recommend_num + now_comment_num
-	fmt.Printf("following2_num:%d,recommend_num:%d,common_num:%d", now_following2_num, now_recommend_num, now_common_num)
 	data := append(following2_status_list, append(recommend_pool_status_list, common_pool_status...)...)
 	randShuffle(data)
 	newRecommendOutput.Data = data
@@ -136,7 +135,6 @@ func findListFollowing2Status(ctx context.Context, uid uint64, num int64) ([]*mo
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("follow2 user ids:", uids)
 	// follow2 empty
 	if len(uids) == 0 {
 		return []*models.Status{}, nil
@@ -205,7 +203,6 @@ func findListRecommendStatus(ctx context.Context, uid uint64, num int64) ([]*mod
 		//TODO filter black user
 		blackUids, err := getUserBlackListUids(ctx, uid)
 		if err == nil && len(blackUids) > 0 {
-			fmt.Println("recommend blacklist uids:", blackUids)
 			params.NInUIDs = append(params.NInUIDs, blackUids...)
 		}
 		//filter login user
@@ -254,7 +251,6 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 	//TODO filter problem user
 	problemUserUids, err := getProblemUserUids(ctx)
 	if err == nil && len(problemUserUids) > 0 {
-		fmt.Println("common problem user ids:", problemUserUids)
 		params.NInUIDs = append(params.NInUIDs, problemUserUids...)
 	}
 	//login user
@@ -275,7 +271,6 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 		//TODO filter black user
 		blackUids, err := getUserBlackListUids(ctx, uid)
 		if err == nil && len(blackUids) > 0 {
-			fmt.Println("common blacklist uids:", blackUids)
 			params.NInUIDs = append(params.NInUIDs, blackUids...)
 		}
 
@@ -385,7 +380,6 @@ func getUserCommonCursor(ctx context.Context, uid uint64) *models.CommonPoolCurs
 		fmt.Println("find or create user ext error: ", err.Error())
 		return nil
 	}
-	fmt.Println("user ext: ", user_ext, "user id: ", uid)
 	return user_ext.CommonPoolCursor
 
 }
