@@ -22,8 +22,8 @@ func runUserToChain(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	misesClient.SetListener(&RegisterCallback{})
 	for _, v := range lists {
-		misesClient.SetListener(&RegisterCallback{})
 		err1 := misesClient.Register(v.Misesid, v.Pubkey)
 		if err1 != nil {
 			fmt.Printf("mises[%s] user register chain error:%s \n", v.Misesid, err1.Error())
