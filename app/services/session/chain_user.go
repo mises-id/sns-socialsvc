@@ -50,7 +50,7 @@ func getChainUser(ctx context.Context) ([]*models.ChainUser, error) {
 
 func (cb *RegisterCallback) OnTxGenerated(cmd types.MisesAppCmd) {
 	misesid := cmd.MisesUID()
-	fmt.Printf("Mises[%s] User Register OnTxGenerated\n", misesid)
+	fmt.Printf("Mises[%s] User Register OnTxGenerated %s\n", misesid, cmd.TxID())
 	txGenerated(context.Background(), misesid, cmd.TxID())
 
 }
@@ -62,9 +62,10 @@ func (cb *RegisterCallback) OnSucceed(cmd types.MisesAppCmd) {
 }
 func (cb *RegisterCallback) OnFailed(cmd types.MisesAppCmd, err error) {
 	misesid := cmd.MisesUID()
-	fmt.Printf("Mises[%s] User Register OnFailed\n", misesid)
 	if err != nil {
-		fmt.Printf("Mises[%s] User Register Error:%s\n", misesid, err.Error())
+		fmt.Printf("Mises[%s] User Register OnFailed: %s\n", misesid, err.Error())
+	} else {
+		fmt.Printf("Mises[%s] User Register OnFailed\n", misesid)
 	}
 	failed(context.Background(), misesid)
 

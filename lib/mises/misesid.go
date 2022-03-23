@@ -38,7 +38,7 @@ func (c *ClientImpl) Register(misesUID string, pubKey string) error {
 		c.app.NewRegisterUserCmd(
 			misesUID,
 			pubKey,
-			1000000,
+			10000,
 		), false,
 	)
 }
