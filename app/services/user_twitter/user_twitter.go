@@ -63,9 +63,12 @@ func TwitterAuth(ctx context.Context) {
 		return
 	}
 	twiClient = c
-	dateNow := time.Now().UTC().AddDate(0, 0, -3)
-	startTime := time.Date(dateNow.Year(), dateNow.Month(), dateNow.Day(), 0, 0, 0, 0, dateNow.Location())
+	//dateNow := time.Now().UTC().AddDate(0, 0, -3)
+	//startTime := time.Date(dateNow.Year(), dateNow.Month(), dateNow.Day(), 0, 0, 0, 0, dateNow.Location())
 	//endTime := time.Date(dateNow.Year(), dateNow.Month(), dateNow.Day(), 23, 59, 59, 0, dateNow.Location())
+	sh, _ := time.ParseDuration("-6h")
+	startTime := time.Now().UTC().Add(sh)
+	fmt.Println("search tweet start time: ", startTime.String())
 	tweetIn := &TweetsIn{
 		Query:     tweeTtag,
 		StartTime: &startTime,

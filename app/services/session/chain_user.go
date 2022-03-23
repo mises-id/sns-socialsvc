@@ -67,7 +67,6 @@ func (cb *RegisterCallback) OnFailed(cmd types.MisesAppCmd, err error) {
 	} else {
 		fmt.Printf("Mises[%s] User Register OnFailed\n", misesid)
 	}
-
 	failed(context.Background(), misesid)
 
 }

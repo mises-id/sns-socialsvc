@@ -95,12 +95,12 @@ func (cb *FaucetCallback) OnSucceed(cmd types.MisesAppCmd) {
 	}
 
 }
+
 func (cb *FaucetCallback) OnFailed(cmd types.MisesAppCmd, err error) {
 	misesid := cmd.MisesUID()
 	if err != nil {
 		fmt.Printf("Mises[%s] Airdrop OnFailed: %s\n", misesid, err.Error())
 	}
-
 	err = failedAfter(context.Background(), misesid)
 	if err != nil {
 		fmt.Println("tx failed after  error: ", err.Error())
@@ -228,7 +228,7 @@ func getTwitterAirdropCoin(ctx context.Context, userTwitter *models.UserTwitterA
 	var max, rate float64
 	max = 100
 	rate = 1000000
-	coin := 1 + 0.01*float64(userTwitter.TwitterUser.TweetCount) + 0.005*float64(userTwitter.TwitterUser.FollowersCount)
+	coin := 1 + 0.01*float64(userTwitter.TwitterUser.TweetCount) + 0.0005*float64(userTwitter.TwitterUser.FollowersCount)
 	if coin > max {
 		coin = max
 	}
