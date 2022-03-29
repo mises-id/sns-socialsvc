@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 
 	"time"
 
@@ -17,7 +18,7 @@ import (
 )
 
 var (
-	getListNum              = 2
+	getListNum              = 10
 	userTwitterAuthMaxIdKey = "user_twiter_auth_max_id"
 	airdropClient           airdrop.IClient
 	airdropStop             chan int
@@ -250,24 +251,28 @@ func CretaeAirdropTwitter(ctx context.Context) {
 }
 
 func airdropCreate(ctx context.Context) {
-	list, err := createdTwitterAirdrop(ctx)
+	c, err := countAirdropUserTwitterAuth(ctx)
 	if err != nil {
 		return
 	}
-	if len(list) == getListNum {
-		airdropCreate(ctx)
+	if c == 0 {
+		return
+	}
+	times := int(math.Ceil(float64(c / int64(getListNum))))
+	for i := 0; i < times; i++ {
+		createdTwitterAirdrop(ctx)
 	}
 }
 
-func createdTwitterAirdrop(ctx context.Context) ([]*models.Airdrop, error) {
+func createdTwitterAirdrop(ctx context.Context) error {
 	//get user twitter auth
 	userTwitterAuthList, err := getAirdropUserTwitterAuth(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	num := len(userTwitterAuthList)
 	if num == 0 {
-		return []*models.Airdrop{}, nil
+		return nil
 	}
 	airdrops := make([]*models.Airdrop, 0)
 	for _, v := range userTwitterAuthList {
@@ -285,15 +290,15 @@ func createdTwitterAirdrop(ctx context.Context) ([]*models.Airdrop, error) {
 	err1 := models.CreateAirdropMany(ctx, airdrops)
 	if err1 != nil {
 		fmt.Println("create airdrop error: ", err1.Error())
-		return nil, err
+		return err
 	}
 	maxId := userTwitterAuthList[num-1].ID
 	//update
 	if err := updateMaxId(ctx, maxId); err != nil {
 		fmt.Println("update maxid error: ", err.Error())
-		return nil, err
+		return err
 	}
-	return airdrops, nil
+	return nil
 }
 
 func getTwitterAirdropCoin(ctx context.Context, userTwitter *models.UserTwitterAuth) int64 {
@@ -339,6 +344,21 @@ func getAirdropUserTwitterAuth(ctx context.Context) ([]*models.UserTwitterAuth, 
 		return nil, err
 	}
 	return list, nil
+}
+func countAirdropUserTwitterAuth(ctx context.Context) (int64, error) {
+
+	params := &search.UserTwitterAuthSearch{
+		GID:      getMaxId(ctx),
+		SortType: enum.SortAsc,
+		SortKey:  "_id",
+		ListNum:  int64(getListNum),
+	}
+	c, err := models.CountUserTwitterAuth(ctx, params)
+	if err != nil {
+		fmt.Println("list user twitter auth error: ", err.Error())
+		return c, err
+	}
+	return c, nil
 }
 
 func SetAirdropClient() {

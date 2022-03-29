@@ -72,6 +72,17 @@ func ListUserTwitterAuth(ctx context.Context, params IAdminParams) ([]*UserTwitt
 
 	return res, nil
 }
+func CountUserTwitterAuth(ctx context.Context, params IAdminParams) (int64, error) {
+
+	var res int64
+	chain := params.BuildAdminSearch(db.ODM(ctx))
+	err := chain.Model(&UserTwitterAuth{}).Count(&res).Error
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}
 func ListUserTwitterAuthByMisesidsOrTwitterUserIds(ctx context.Context, misesids []string, twitter_user_ids []string) ([]*UserTwitterAuth, error) {
 
 	if len(misesids) == 0 && len(twitter_user_ids) == 0 {
