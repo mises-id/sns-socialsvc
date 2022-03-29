@@ -195,6 +195,18 @@ service Social {
       }
     };
   }
+  //query batch status
+  rpc NewListStatus (NewListStatusRequest) returns (NewListStatusResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/status/new_list"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/status/new_list/"
+      }
+    };
+  }
 
   //query recommended status
   rpc ListRecommended (ListStatusRequest) returns (ListStatusResponse) {
@@ -333,6 +345,17 @@ service Social {
       }
     };
   }
+  rpc GetComment (GetCommentRequest) returns (GetCommentResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/comment"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/comment/"
+      }
+    };
+  }
   rpc NewRecommendStatus (NewRecommendStatusRequest) returns (NewRecommendStatusResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
@@ -443,6 +466,61 @@ service Social {
       }
     };
   }
+  rpc ShareTweetUrl (ShareTweetUrlRequest) returns (ShareTweetUrlResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/share/twitter"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/share/twitter/"
+      }
+    };
+  }
+  rpc TwitterAuth (TwitterAuthRequest) returns (TwitterAuthResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/twitter/auth"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/twitter/auth/"
+      }
+    };
+  }
+  rpc AirdropTwitter (AirdropTwitterRequest) returns (AirdropTwitterResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/airdrop/twitter"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/airdrop/twitter/"
+      }
+    };
+  }
+  rpc CreateAirdropTwitter (CreateAirdropTwitterRequest) returns (CreateAirdropTwitterResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/airdrop/create"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/airdrop/create/"
+      }
+    };
+  }
+  rpc UserToChain (UserToChainRequest) returns (UserToChainResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/user/to_chain"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/user/to_chain/"
+      }
+    };
+  }
 }
 
 message SignInRequest {
@@ -452,6 +530,13 @@ message SignInRequest {
 message SignInResponse {
   uint64 code = 1;
   string jwt = 2;
+  bool is_created = 3;
+}
+
+message UserAvatar {
+  string small = 1;
+	string		medium = 2;
+  string	large = 3;
 }
 
 message UserInfo {
@@ -469,6 +554,10 @@ message UserInfo {
   uint32 fans_count = 12;
   uint32 liked_count = 13;
   uint32 new_fans_count = 14;
+  UserAvatar avatar_url = 15;
+  bool is_airdropped = 16;
+  bool airdrop_status = 17;
+  bool is_logined = 18;
 }
 
 message FindUserRequest {
@@ -516,6 +605,7 @@ message LinkMetaInfo {
 
 message ImageMetaInfo {
   repeated string images  = 1;
+  repeated string thumb_images  = 2;
 }
 
 message StatusInfo {
@@ -535,6 +625,8 @@ message StatusInfo {
   ImageMetaInfo image_meta = 14;
   bool is_public = 15;
   uint64 hide_time = 16;
+  bool parent_status_is_deleted = 17;
+  bool parent_status_is_blacked = 18;
 }
 
 message GetStatusRequest {
@@ -551,6 +643,7 @@ message GetStatusResponse {
 message PageQuick {
   uint64 limit = 1;
   string next_id = 2;
+  uint64 total = 3;
 }
 
 message ListStatusRequest {
@@ -565,6 +658,19 @@ message ListStatusResponse {
   uint64 code = 1;
   repeated StatusInfo statuses = 2;
   PageQuick paginator = 3;
+}
+message NewListStatusRequest {
+  uint64 current_uid = 1;
+  uint64 target_uid = 2;
+  repeated string ids = 3;
+  uint64 list_num = 4;
+  repeated string from_types = 5;
+}
+
+message NewListStatusResponse {
+  uint64 code = 1;
+  repeated StatusInfo statuses = 2;
+ 
 }
 
 message NewRecommendNext {
@@ -681,6 +787,16 @@ message Comment {
   bool is_liked = 14;
 }
 
+message GetCommentRequest {
+  uint64 current_uid = 1;
+  string comment_id = 2;
+}
+
+message GetCommentResponse {
+  uint64 code = 1;
+  Comment comment = 2;
+}
+
 message ListCommentRequest {
   uint64 current_uid = 1;
   string status_id = 2;
@@ -757,6 +873,8 @@ message Message {
   UserInfo from_user = 5;
 	uint64 created_at = 6;
   StatusInfo status = 7;
+  bool status_is_deleted = 8;
+  bool comment_is_deleted = 9;
   NewCommentMeta new_comment_meta = 21;
   NewLikeStatusMeta new_like_status_meta = 22;
   NewFansMeta new_fans_meta = 23;
@@ -862,4 +980,35 @@ message LikeCommentRequest {
 message UnlikeCommentRequest {
   uint64 current_uid = 1;
   string comment_id = 2;
+}
+message ShareTweetUrlRequest {
+  uint64 current_uid = 1;
+}
+message ShareTweetUrlResponse {
+  uint64 code = 1;
+  string url = 2;
+}
+message TwitterAuthRequest {
+  
+}
+message TwitterAuthResponse {
+  
+}
+message AirdropTwitterRequest {
+  string misesid = 1;
+}
+message AirdropTwitterResponse {
+  
+}
+message CreateAirdropTwitterRequest {
+  
+}
+message CreateAirdropTwitterResponse {
+  
+}
+message UserToChainRequest {
+  
+}
+message UserToChainResponse {
+  
 }

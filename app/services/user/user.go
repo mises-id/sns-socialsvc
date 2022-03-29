@@ -5,7 +5,6 @@ import (
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
-	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/storage"
 )
 
@@ -24,6 +23,8 @@ func FindUser(ctx context.Context, uid uint64) (*models.User, error) {
 	if err = models.PreloadUserData(ctx, user); err != nil {
 		return nil, err
 	}
+	models.UserMergeUserExt(ctx, user)
+	user.AirdropStatus = models.GetAirdropStatus(ctx)
 	user.NewFansCount, err = models.NewFansCount(ctx, uid)
 	if err != nil {
 		return nil, err
@@ -62,9 +63,6 @@ func UpdateUsername(ctx context.Context, uid uint64, username string) (*models.U
 	user, err := models.FindUser(ctx, uid)
 	if err != nil {
 		return nil, err
-	}
-	if user.Username != "" {
-		return nil, codes.ErrUsernameExisted
 	}
 	user.Username = username
 	if err = models.UpdateUsername(ctx, user); err != nil {

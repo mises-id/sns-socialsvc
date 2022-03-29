@@ -3,11 +3,14 @@ package status
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/admin"
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var (
@@ -29,13 +32,41 @@ type (
 		Data []*models.Status
 		Next *NewRecommendNext
 	}
+
+	NewListStatusInput struct {
+		CurrentUID uint64
+		IDs        []primitive.ObjectID
+		ListNum    int64
+		UID        uint64
+		FromTypes  []enum.FromType
+	}
 )
+
+//new list status
+func NewListStatus(ctx context.Context, in *NewListStatusInput) ([]*models.Status, error) {
+
+	params := &admin.AdminStatusParams{
+		IDs:       in.IDs,
+		FromTypes: in.FromTypes,
+	}
+	list_num := in.ListNum
+	if list_num == 0 || list_num > 200 {
+		list_num = 200
+	}
+	params.ListNum = list_num
+	status_list, err := models.NewListStatus(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	return status_list, nil
+}
 
 // new recommend status
 func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) (*NewRecommendOutput, error) {
 
 	var totalNum, following2Num, recommendPoolNum, commonPoolNum int64
 	//start
+	ctx = context.WithValue(ctx, utils.CurrentUIDKey{}, uid)
 	updateUserCursor = &models.UserExt{
 		UID: uid,
 	}
@@ -65,10 +96,10 @@ func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) 
 	if err != nil {
 		return nil, err
 	}
-	now_common_num := len(common_pool_status)
+	//now_common_num := len(common_pool_status)
 	//now_total_num := now_following2_num + now_recommend_num + now_comment_num
-	fmt.Printf("following2_num:%d,recommend_num:%d,common_num:%d", now_following2_num, now_recommend_num, now_common_num)
 	data := append(following2_status_list, append(recommend_pool_status_list, common_pool_status...)...)
+	randShuffle(data)
 	newRecommendOutput.Data = data
 	if newRecommendOutput.Next.LastRecommendTime == 0 {
 		newRecommendOutput.Next.LastRecommendTime = in.LastRecommendTime
@@ -83,6 +114,16 @@ func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) 
 	return newRecommendOutput, err
 }
 
+func randShuffle(slice []*models.Status) {
+	if len(slice) < 1 {
+		return
+	}
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(slice), func(i, j int) {
+		slice[i], slice[j] = slice[j], slice[i]
+	})
+}
+
 //find following2 pool status
 func findListFollowing2Status(ctx context.Context, uid uint64, num int64) ([]*models.Status, error) {
 
@@ -94,7 +135,6 @@ func findListFollowing2Status(ctx context.Context, uid uint64, num int64) ([]*mo
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("follow2 user ids:", uids)
 	// follow2 empty
 	if len(uids) == 0 {
 		return []*models.Status{}, nil
@@ -123,7 +163,7 @@ func findListFollowing2Status(ctx context.Context, uid uint64, num int64) ([]*mo
 	}
 	//filter login user
 	params.NInUIDs = append(params.NInUIDs, uid)
-	status_list, err := models.AdminListStatus(ctx, params)
+	status_list, err := models.NewListStatus(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +203,6 @@ func findListRecommendStatus(ctx context.Context, uid uint64, num int64) ([]*mod
 		//TODO filter black user
 		blackUids, err := getUserBlackListUids(ctx, uid)
 		if err == nil && len(blackUids) > 0 {
-			fmt.Println("recommend blacklist uids:", blackUids)
 			params.NInUIDs = append(params.NInUIDs, blackUids...)
 		}
 		//filter login user
@@ -177,7 +216,7 @@ func findListRecommendStatus(ctx context.Context, uid uint64, num int64) ([]*mod
 		}
 		params.ScoreMax = smax
 	}
-	status_list, err := models.AdminListStatus(ctx, params)
+	status_list, err := models.NewListStatus(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -212,7 +251,6 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 	//TODO filter problem user
 	problemUserUids, err := getProblemUserUids(ctx)
 	if err == nil && len(problemUserUids) > 0 {
-		fmt.Println("common problem user ids:", problemUserUids)
 		params.NInUIDs = append(params.NInUIDs, problemUserUids...)
 	}
 	//login user
@@ -233,7 +271,6 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 		//TODO filter black user
 		blackUids, err := getUserBlackListUids(ctx, uid)
 		if err == nil && len(blackUids) > 0 {
-			fmt.Println("common blacklist uids:", blackUids)
 			params.NInUIDs = append(params.NInUIDs, blackUids...)
 		}
 
@@ -246,7 +283,7 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 		}
 		params.ScoreMax = smax
 	}
-	status_list, err := models.AdminListStatus(ctx, params)
+	status_list, err := models.NewListStatus(ctx, params)
 	if err != nil {
 		return nil, err
 	}
@@ -343,7 +380,6 @@ func getUserCommonCursor(ctx context.Context, uid uint64) *models.CommonPoolCurs
 		fmt.Println("find or create user ext error: ", err.Error())
 		return nil
 	}
-	fmt.Println("user ext: ", user_ext, "user id: ", uid)
 	return user_ext.CommonPoolCursor
 
 }

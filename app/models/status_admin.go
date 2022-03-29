@@ -46,6 +46,15 @@ func AdminListStatus(ctx context.Context, params IAdminParams) ([]*Status, error
 	}
 	return statuses, preloadStatusUser(ctx, statuses...)
 }
+func NewListStatus(ctx context.Context, params IAdminParams) ([]*Status, error) {
+	statuses := make([]*Status, 0)
+	chain := params.BuildAdminSearch(db.ODM(ctx))
+	err := chain.Find(&statuses).Error
+	if err != nil {
+		return nil, err
+	}
+	return statuses, PreloadStatusData(ctx, true, statuses...)
+}
 
 func AdminPageStatus(ctx context.Context, params IAdminPageParams) ([]*Status, pagination.Pagination, error) {
 	statuses := make([]*Status, 0)

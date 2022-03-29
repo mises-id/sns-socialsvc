@@ -160,6 +160,18 @@ func (c *Comment) IncCommentCounter(ctx context.Context, counterKey string, valu
 	if len(values) > 0 {
 		value = values[0]
 	}
+	if value < 0 {
+		switch counterKey {
+		case "likes_count":
+			if int(c.LikesCount)+value < 0 {
+				value = -int(c.LikesCount)
+			}
+		case "comments_count":
+			if int(c.CommentsCount)+value < 0 {
+				value = -int(c.CommentsCount)
+			}
+		}
+	}
 	result := db.DB().Collection("comments").FindOneAndUpdate(ctx, bson.M{"_id": c.ID},
 		bson.D{{
 			Key: "$inc",
@@ -188,9 +200,36 @@ func (c *Comment) AddChildComment(ctx context.Context, commentID primitive.Objec
 	}
 	return result.Decode(c)
 }
+func (c *Comment) RemoveChildComment(ctx context.Context, commentID primitive.ObjectID) error {
+	result := db.DB().Collection("comments").FindOneAndUpdate(ctx, bson.M{"_id": c.ID},
+		bson.D{{
+			Key: "$pull",
+			Value: bson.D{{
+				Key:   "comment_ids",
+				Value: commentID,
+			}}},
+		})
+	if err := result.Err(); err != nil {
+		return err
+	}
+	return result.Decode(c)
+}
 
 func (c *Comment) Delete(ctx context.Context) error {
 	return db.ODM(ctx).Delete(c, c.ID).Error
+}
+
+func DeleteMany(ctx context.Context, ids []primitive.ObjectID) error {
+	if len(ids) == 0 {
+		return nil
+	}
+	_, err := db.DB().Collection("comments").DeleteMany(ctx, bson.M{"_id": bson.M{"$in": ids}})
+	return err
+}
+
+func DeleteManyByGroupId(ctx context.Context, group_id primitive.ObjectID) error {
+	_, err := db.DB().Collection("comments").DeleteMany(ctx, bson.M{"group_id": group_id})
+	return err
 }
 
 func FindComment(ctx context.Context, id primitive.ObjectID) (*Comment, error) {
@@ -230,7 +269,7 @@ func ListComment(ctx context.Context, params *ListCommentParams) ([]*Comment, pa
 		chain = chain.Where(bson.M{"uid": bson.M{"$nin": blockedUIDs}})
 	}
 	chain = chain.Sort(bson.M{"_id": 1})
-	paginator := pagination.NewQuickPaginator(params.PageParams.Limit, params.PageParams.NextID, chain)
+	paginator := pagination.NewQuickPaginator(params.PageParams.Limit, params.PageParams.NextID, chain, pagination.SortAsc())
 	page, err := paginator.Paginate(&comments)
 	if err != nil {
 		return nil, nil, err
@@ -297,7 +336,12 @@ func preloadCommentChildren(ctx context.Context, comments ...*Comment) error {
 		if comment.CommentIDs == nil {
 			continue
 		}
-		ids = append(ids, comment.CommentIDs...)
+		if len(comment.CommentIDs) > 3 {
+			ids = append(ids, comment.CommentIDs[:3]...)
+		} else {
+			ids = append(ids, comment.CommentIDs...)
+		}
+
 	}
 	children, err := FindCommentByIDs(ctx, ids...)
 	if err != nil {

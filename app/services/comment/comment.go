@@ -19,6 +19,15 @@ type CreateCommentParams struct {
 	*models.CreateCommentParams
 }
 
+func GetComment(ctx context.Context, currentUID uint64, id primitive.ObjectID) (*models.Comment, error) {
+
+	comment, err := models.FindComment(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return comment, nil
+}
+
 func ListComment(ctx context.Context, params *ListCommentParams) ([]*models.Comment, pagination.Pagination, error) {
 	return models.ListComment(ctx, &params.ListCommentParams)
 }
@@ -34,13 +43,26 @@ func DeleteComment(ctx context.Context, currentUID uint64, id primitive.ObjectID
 	if err = comment.Delete(ctx); err != nil {
 		return err
 	}
+	//delete comment
+	deleteCommentNum := 1
+	//1.comment is comment1, delete this comment and this group comment
+	if comment.ParentID.IsZero() && comment.GroupID.IsZero() {
+		//delete group comment
+		err := models.DeleteManyByGroupId(ctx, comment.ID)
+		if err != nil {
+			return err
+		}
+		deleteCommentNum += int(comment.CommentsCount)
+
+	}
 	status, err := models.FindStatus(ctx, comment.StatusID)
 	if err != nil {
 		return err
 	}
-	if err = status.IncStatusCounter(ctx, "comments_count", -1); err != nil {
+	if err = status.IncStatusCounter(ctx, "comments_count", -deleteCommentNum); err != nil {
 		return err
 	}
+	//2.comment is comment2, delete this comment and handler group comment count
 	if !comment.GroupID.IsZero() && comment.GroupID != comment.ID {
 		groupComment, err := models.FindComment(ctx, comment.GroupID)
 		if err != nil {
@@ -48,6 +70,20 @@ func DeleteComment(ctx context.Context, currentUID uint64, id primitive.ObjectID
 		}
 		if err = groupComment.IncCommentCounter(ctx, "comments_count", -1); err != nil {
 			return err
+		}
+		//delete comment id in group comment comment_ids and add other child comment
+		var isUpdateCommentIds bool
+		for _, cid := range groupComment.CommentIDs {
+			if cid == id {
+				isUpdateCommentIds = true
+				break
+			}
+		}
+		if isUpdateCommentIds {
+			err := groupComment.RemoveChildComment(ctx, id)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -59,6 +95,10 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*models.Co
 	status, err := models.FindStatus(ctx, params.StatusID)
 	if err != nil {
 		return nil, err
+	}
+	//access rights
+	if status != nil && !status.IsPublic && status.UID != params.UID {
+		return nil, codes.ErrForbidden
 	}
 	statusBlocked, err := models.IsBlocked(ctx, status.UID, params.UID)
 	if err != nil {
@@ -158,11 +198,12 @@ func incrCommentCounter(ctx context.Context, status *models.Status, comment *mod
 }
 
 func addChildrenComment(ctx context.Context, groupComment, comment *models.Comment) error {
+
 	if groupComment == nil {
 		return nil
 	}
-	if groupComment.CommentIDs != nil && len(groupComment.CommentIDs) >= 3 {
+	/* if groupComment.CommentIDs != nil && len(groupComment.CommentIDs) >= 3 {
 		return nil
-	}
+	} */
 	return groupComment.AddChildComment(ctx, comment.ID)
 }

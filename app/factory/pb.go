@@ -23,11 +23,14 @@ func NewUserInfo(user *models.User) *pb.UserInfo {
 		Address:         user.Address,
 		Avatar:          user.AvatarUrl,
 		IsFollowed:      user.IsFollowed,
+		IsAirdropped:    user.IsAirdropped,
+		AirdropStatus:   user.AirdropStatus,
 		IsBlocked:       user.IsBlocked,
 		FollowingsCount: user.FollowingCount,
 		FansCount:       user.FansCount,
 		LikedCount:      user.LikedCount,
 		NewFansCount:    user.NewFansCount,
+		IsLogined:       user.IsLogined,
 	}
 	return &userinfo
 }
@@ -51,7 +54,8 @@ func NewImageMetaInfo(meta *meta.ImageMeta) *pb.ImageMetaInfo {
 		return nil
 	}
 	info := &pb.ImageMetaInfo{
-		Images: meta.ImageURLs,
+		Images:      meta.ImageURLs,
+		ThumbImages: meta.ThumbImageURLs,
 	}
 	return info
 }
@@ -61,20 +65,22 @@ func NewStatusInfo(status *models.Status) *pb.StatusInfo {
 		return nil
 	}
 	statusinfo := pb.StatusInfo{
-		Id:           docID(status.ID),
-		User:         NewUserInfo(status.User),
-		Content:      status.Content,
-		FromType:     status.FromType.String(),
-		StatusType:   status.StatusType.String(),
-		Parent:       NewStatusInfo(status.ParentStatus),
-		Origin:       NewStatusInfo(status.OriginStatus),
-		CommentCount: status.CommentsCount,
-		LikeCount:    status.LikesCount,
-		ForwardCount: status.ForwardsCount,
-		IsLiked:      status.IsLiked,
-		CreatedAt:    uint64(status.CreatedAt.Unix()),
-		IsPublic:     status.HideTime == nil,
-		HideTime:     status.GetHideTime(),
+		Id:                    docID(status.ID),
+		User:                  NewUserInfo(status.User),
+		Content:               status.Content,
+		FromType:              status.FromType.String(),
+		StatusType:            status.StatusType.String(),
+		Parent:                NewStatusInfo(status.ParentStatus),
+		Origin:                NewStatusInfo(status.OriginStatus),
+		CommentCount:          status.CommentsCount,
+		LikeCount:             status.LikesCount,
+		ForwardCount:          status.ForwardsCount,
+		IsLiked:               status.IsLiked,
+		ParentStatusIsDeleted: status.ParentStatusIsDeleted,
+		ParentStatusIsBlacked: status.ParentStatusIsBlacked,
+		CreatedAt:             uint64(status.CreatedAt.Unix()),
+		IsPublic:              status.IsPublic,
+		HideTime:              status.GetHideTime(),
 	}
 	switch status.StatusType {
 	case enum.LinkStatus:
@@ -97,13 +103,21 @@ func NewRelationInfoSlice(relationType enum.RelationType, follows []*models.Foll
 	result := make([]*pb.RelationInfo, len(follows))
 	for i, follow := range follows {
 		user := follow.ToUser
-		currentRelationType := enum.Following
+		currentRelationType := enum.Fan
 		if relationType == enum.Fan {
 			user = follow.FromUser
-			currentRelationType = enum.Fan
+			//currentRelationType = enum.Fan
 		}
-		if follow.IsFriend {
+		/* if follow.IsFriend {
 			currentRelationType = enum.Friend
+		} */
+		if user != nil {
+			if user.IsFollowed {
+				currentRelationType = enum.Following
+			}
+			if user.IsFriend {
+				currentRelationType = enum.Friend
+			}
 		}
 		result[i] = &pb.RelationInfo{
 			User:         NewUserInfo(user),
@@ -182,13 +196,15 @@ func NewMessage(message *models.Message) *pb.Message {
 		return nil
 	}
 	result := &pb.Message{
-		Id:          docID(message.ID),
-		Uid:         message.UID,
-		MessageType: message.MessageType.String(),
-		FromUser:    NewUserInfo(message.FromUser),
-		State:       message.State(),
-		Status:      NewStatusInfo(message.Status),
-		CreatedAt:   uint64(message.CreatedAt.Unix()),
+		Id:               docID(message.ID),
+		Uid:              message.UID,
+		MessageType:      message.MessageType.String(),
+		FromUser:         NewUserInfo(message.FromUser),
+		State:            message.State(),
+		Status:           NewStatusInfo(message.Status),
+		CreatedAt:        uint64(message.CreatedAt.Unix()),
+		StatusIsDeleted:  message.StatusIsDeleted,
+		CommentIsDeleted: message.CommentIsDeleted,
 	}
 	switch message.MessageType {
 	case enum.NewComment:

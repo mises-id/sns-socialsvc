@@ -20,6 +20,7 @@ type User struct {
 type Client interface {
 	Auth(auth string) (string, string, error)
 	Register(misesUID string, pubKey string) error
+	SetListener(listener types.MisesAppCmdListener)
 }
 
 type ClientImpl struct {
@@ -27,14 +28,18 @@ type ClientImpl struct {
 	app    types.MApp
 }
 
+func (c *ClientImpl) SetListener(listener types.MisesAppCmdListener) {
+	c.app.SetListener(listener)
+}
+
 func (c *ClientImpl) Register(misesUID string, pubKey string) error {
 
-	return c.app.RegisterUserAsync(
-		types.Registration{
-			MisesUID:         misesUID,
-			PubKey:           pubKey,
-			FeeGrantedPerDay: 1000000,
-		},
+	return c.app.RunAsync(
+		c.app.NewRegisterUserCmd(
+			misesUID,
+			pubKey,
+			10000,
+		), false,
 	)
 }
 func (c *ClientImpl) Auth(auth string) (string, string, error) {
@@ -48,8 +53,8 @@ func (c *ClientImpl) Auth(auth string) (string, string, error) {
 
 	return c.client.VerifyLogin(auth)
 }
-
 func New() Client {
+
 	if env.Envs.DebugMisesPrefix != "" {
 		return &ClientImpl{
 			client: nil,
@@ -60,7 +65,7 @@ func New() Client {
 		ChainID: env.Envs.MisesChainID,
 	}
 	appinfo := types.NewMisesAppInfoReadonly(
-		"Mises Discover'",
+		"Mises Discover",
 		"https://www.mises.site",
 		"https://home.mises.site",
 		[]string{"mises.site"},

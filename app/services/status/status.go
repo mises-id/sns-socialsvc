@@ -43,6 +43,18 @@ func GetStatus(ctx context.Context, currentUID uint64, id primitive.ObjectID) (*
 	if err != nil {
 		return nil, err
 	}
+	//access rights
+	if status != nil && !status.IsPublic && status.UID != currentUID {
+		return nil, codes.ErrForbidden
+	}
+	return status, nil
+}
+func GetStatusData(ctx context.Context, currentUID uint64, id primitive.ObjectID) (*models.Status, error) {
+	ctxWithUID := context.WithValue(ctx, utils.CurrentUIDKey{}, currentUID)
+	status, err := models.FindStatusData(ctxWithUID, id)
+	if err != nil {
+		return nil, err
+	}
 	return status, nil
 }
 
@@ -62,6 +74,10 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*models.Status
 		ParentStatusID: params.ParentID,
 		PageParams:     params.PageQuickParams,
 		FromTypes:      params.FromTypes,
+		OnlyShow:       true,
+	}
+	if params.UID == params.CurrentUID {
+		listParams.CurrentUID = params.CurrentUID
 	}
 	statues, page, err := models.ListStatus(ctxWithUID, listParams)
 	if err != nil {
@@ -76,16 +92,10 @@ func UserTimeline(ctx context.Context, uid uint64, pageParams *pagination.PageQu
 	if err != nil {
 		return nil, nil, err
 	}
-	if len(friendIDs) == 0 {
-		return []*models.Status{}, &pagination.QuickPagination{
-			Limit: pageParams.Limit,
-		}, nil
-	} else {
-		friendIDs = append(friendIDs, uid)
-	}
-
+	friendIDs = append(friendIDs, uid)
 	statues, page, err := models.ListStatus(ctxWithUID, &models.ListStatusParams{
 		UIDs:           friendIDs,
+		CurrentUID:     uid,
 		ParentStatusID: primitive.NilObjectID,
 		PageParams:     pageParams,
 		OnlyShow:       true,
@@ -155,6 +165,7 @@ func CreateStatus(ctx context.Context, uid uint64, params *CreateStatusParams) (
 }
 
 func LikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) (*models.Like, error) {
+	ctx = context.WithValue(ctx, utils.CurrentUIDKey{}, uid)
 	status, err := models.FindStatus(ctx, statusID)
 	if err != nil {
 		return nil, err
@@ -176,6 +187,9 @@ func LikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) (*
 func UnlikeStatus(ctx context.Context, uid uint64, statusID primitive.ObjectID) error {
 	like, err := models.FindLike(ctx, uid, statusID, enum.LikeStatus)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil
+		}
 		return err
 	}
 	status, err := models.FindStatus(ctx, statusID)

@@ -9,6 +9,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
+	airdropSVC "github.com/mises-id/sns-socialsvc/app/services/airdrop"
 	blacklistSVC "github.com/mises-id/sns-socialsvc/app/services/blacklist"
 	commentSVC "github.com/mises-id/sns-socialsvc/app/services/comment"
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
@@ -16,6 +17,7 @@ import (
 	sessionSVC "github.com/mises-id/sns-socialsvc/app/services/session"
 	statusSVC "github.com/mises-id/sns-socialsvc/app/services/status"
 	userSVC "github.com/mises-id/sns-socialsvc/app/services/user"
+	twitterSVC "github.com/mises-id/sns-socialsvc/app/services/user_twitter"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"github.com/mises-id/sns-socialsvc/lib/utils"
@@ -43,11 +45,12 @@ type socialService struct{}
 
 func (s socialService) SignIn(ctx context.Context, in *pb.SignInRequest) (*pb.SignInResponse, error) {
 	var resp pb.SignInResponse
-	jwt, err := sessionSVC.SignIn(ctx, in.Auth)
+	jwt, created, err := sessionSVC.SignIn(ctx, in.Auth)
 	if err != nil {
 		return nil, err
 	}
 	resp.Jwt = jwt
+	resp.IsCreated = created
 	return &resp, nil
 }
 
@@ -110,7 +113,7 @@ func (s socialService) GetStatus(ctx context.Context, in *pb.GetStatusRequest) (
 	var resp pb.GetStatusResponse
 	statusID, err := primitive.ObjectIDFromHex(in.Statusid)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 
 	status, err := statusSVC.GetStatus(ctx, in.CurrentUid, statusID)
@@ -128,7 +131,7 @@ func (s socialService) ListStatus(ctx context.Context, in *pb.ListStatusRequest)
 	for _, from := range in.FromTypes {
 		fromType, err := enum.FromTypeFromString(from)
 		if err != nil {
-			return nil, err
+			return nil, codes.ErrInvalidArgument
 		}
 		fromTypes = append(fromTypes, fromType)
 	}
@@ -166,19 +169,19 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 	fmt.Println(in)
 	fromType, err := enum.FromTypeFromString(in.FromType)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	param.FromType = fromType
 	if len(in.ParentId) > 0 {
 		parentID, err := primitive.ObjectIDFromHex(in.ParentId)
 		if err != nil {
-			return nil, err
+			return nil, codes.ErrInvalidArgument
 		}
 		param.ParentID = parentID
 	}
 	statusType, err := enum.StatusTypeFromString(in.StatusType)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	var data meta.MetaData
 	switch statusType {
@@ -208,7 +211,7 @@ func (s socialService) UpdateStatus(ctx context.Context, in *pb.UpdateStatusRequ
 	var resp pb.UpdateStatusResponse
 	statusID, err := primitive.ObjectIDFromHex(in.StatusId)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	param := &statusSVC.UpdateStatusParams{
 		ID:           statusID,
@@ -228,7 +231,7 @@ func (s socialService) DeleteStatus(ctx context.Context, in *pb.DeleteStatusRequ
 	var resp pb.SimpleResponse
 	statusID, err := primitive.ObjectIDFromHex(in.Statusid)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	if err := statusSVC.DeleteStatus(ctx, in.CurrentUid, statusID); err != nil {
 		return nil, err
@@ -241,7 +244,7 @@ func (s socialService) UnLikeStatus(ctx context.Context, in *pb.UnLikeStatusRequ
 	var resp pb.SimpleResponse
 	statusID, err := primitive.ObjectIDFromHex(in.Statusid)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	if err := statusSVC.UnlikeStatus(ctx, in.CurrentUid, statusID); err != nil {
 		return nil, err
@@ -254,7 +257,7 @@ func (s socialService) LikeStatus(ctx context.Context, in *pb.LikeStatusRequest)
 	var resp pb.SimpleResponse
 	statusID, err := primitive.ObjectIDFromHex(in.Statusid)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	if _, err := statusSVC.LikeStatus(ctx, in.CurrentUid, statusID); err != nil {
 		return nil, err
@@ -287,7 +290,7 @@ func (s socialService) ListRelationship(ctx context.Context, in *pb.ListRelation
 	var resp pb.ListRelationshipResponse
 	relationType, err := enum.RelationTypeFromString(in.RelationType)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	relations, page, err := friendshipSVC.ListFriendship(contextWithCurrentUID(ctx, in), in.Uid, relationType, &pagination.QuickPagination{
 		Limit:  int64(in.Paginator.Limit),
@@ -407,13 +410,13 @@ func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentReques
 	var resp pb.ListCommentResponse
 	statusID, err := primitive.ObjectIDFromHex(in.GetStatusId())
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	var groupID primitive.ObjectID
 	if in.GetTopicId() != "" {
 		groupID, err = primitive.ObjectIDFromHex(in.GetTopicId())
 		if err != nil {
-			return nil, err
+			return nil, codes.ErrInvalidArgument
 		}
 	}
 	comments, page, err := commentSVC.ListComment(contextWithCurrentUID(ctx, in), &commentSVC.ListCommentParams{
@@ -429,12 +432,18 @@ func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentReques
 	if err != nil {
 		return nil, err
 	}
+	var total uint64
+	status, err := statusSVC.GetStatusData(ctx, in.CurrentUid, statusID)
+	if err == nil {
+		total = status.CommentsCount
+	}
 	resp.Code = 0
 	resp.Comments = factory.NewCommentSlice(comments)
 	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
 	resp.Paginator = &pb.PageQuick{
 		Limit:  uint64(quickpage.Limit),
 		NextId: quickpage.NextID,
+		Total:  total,
 	}
 	return &resp, nil
 }
@@ -455,13 +464,13 @@ func (s socialService) CreateComment(ctx context.Context, in *pb.CreateCommentRe
 	var resp pb.CreateCommentResponse
 	statusID, err := primitive.ObjectIDFromHex(in.GetStatusId())
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	var parentID primitive.ObjectID
 	if in.GetParentId() != "" {
 		parentID, err = primitive.ObjectIDFromHex(in.GetParentId())
 		if err != nil {
-			return nil, err
+			return nil, codes.ErrInvalidArgument
 		}
 	}
 	comment, err := commentSVC.CreateComment(ctx, &commentSVC.CreateCommentParams{
@@ -606,11 +615,93 @@ func (s socialService) DeleteComment(ctx context.Context, in *pb.DeleteCommentRe
 	var resp pb.SimpleResponse
 	commentID, err := primitive.ObjectIDFromHex(in.Id)
 	if err != nil {
-		return nil, err
+		return nil, codes.ErrInvalidArgument
 	}
 	if err := commentSVC.DeleteComment(ctx, in.CurrentUid, commentID); err != nil {
 		return nil, err
 	}
 	resp.Code = 0
+	return &resp, nil
+}
+
+func (s socialService) GetComment(ctx context.Context, in *pb.GetCommentRequest) (*pb.GetCommentResponse, error) {
+	var resp pb.GetCommentResponse
+	commentID, err := primitive.ObjectIDFromHex(in.CommentId)
+	if err != nil {
+		return nil, codes.ErrInvalidArgument
+	}
+	comment, err := commentSVC.GetComment(ctx, in.CurrentUid, commentID)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Comment = factory.NewComment(comment)
+	return &resp, nil
+}
+
+func (s socialService) NewListStatus(ctx context.Context, in *pb.NewListStatusRequest) (*pb.NewListStatusResponse, error) {
+	var resp pb.NewListStatusResponse
+	fromTypes := []enum.FromType{}
+	for _, from := range in.FromTypes {
+		fromType, err := enum.FromTypeFromString(from)
+		if err != nil {
+			return nil, codes.ErrInvalidArgument
+		}
+		fromTypes = append(fromTypes, fromType)
+	}
+	ids := []primitive.ObjectID{}
+	for _, id := range in.Ids {
+		Id, err := primitive.ObjectIDFromHex(id)
+		if err == nil {
+			ids = append(ids, Id)
+		}
+	}
+	svcin := &statusSVC.NewListStatusInput{
+		CurrentUID: in.CurrentUid,
+		ListNum:    int64(in.ListNum),
+		FromTypes:  fromTypes,
+		IDs:        ids,
+	}
+	svcout, err := statusSVC.NewListStatus(ctx, svcin)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Statuses = factory.NewStatusInfoSlice(svcout)
+	return &resp, nil
+}
+
+func (s socialService) ShareTweetUrl(ctx context.Context, in *pb.ShareTweetUrlRequest) (*pb.ShareTweetUrlResponse, error) {
+	var resp pb.ShareTweetUrlResponse
+	url, err := twitterSVC.GetShareTweetUrl(ctx, in.CurrentUid)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Url = url
+	return &resp, nil
+}
+
+func (s socialService) TwitterAuth(ctx context.Context, in *pb.TwitterAuthRequest) (*pb.TwitterAuthResponse, error) {
+	var resp pb.TwitterAuthResponse
+	twitterSVC.TwitterAuth(ctx)
+	return &resp, nil
+}
+
+func (s socialService) AirdropTwitter(ctx context.Context, in *pb.AirdropTwitterRequest) (*pb.AirdropTwitterResponse, error) {
+	var resp pb.AirdropTwitterResponse
+	airdropSVC.AirdropTwitter(ctx)
+	return &resp, nil
+}
+
+func (s socialService) CreateAirdropTwitter(ctx context.Context, in *pb.CreateAirdropTwitterRequest) (*pb.CreateAirdropTwitterResponse, error) {
+	var resp pb.CreateAirdropTwitterResponse
+	airdropSVC.CretaeAirdropTwitter(ctx)
+	return &resp, nil
+}
+
+func (s socialService) UserToChain(ctx context.Context, in *pb.UserToChainRequest) (*pb.UserToChainResponse, error) {
+	var resp pb.UserToChainResponse
+	sessionSVC.UserToChain(ctx)
 	return &resp, nil
 }

@@ -18,19 +18,23 @@ var (
 	misesClient mises.Client
 )
 
-func SignIn(ctx context.Context, auth string) (string, error) {
-	fmt.Println("misesClient: ", misesClient)
+type (
+	RegisterCallback struct {
+	}
+)
+
+func SignIn(ctx context.Context, auth string) (string, bool, error) {
 	misesid, pubkey, err := misesClient.Auth(auth)
 	if err != nil {
 		logrus.Errorf("mises verify error: %v", err)
-		return "", codes.ErrAuthorizeFailed
+		return "", false, codes.ErrAuthorizeFailed
 	}
 	user, created, err := models.FindOrCreateUserByMisesid(ctx, misesid)
 	if err != nil {
-		return "", err
+		return "", created, err
 	}
-	if created && len(pubkey) > 0 {
-		_ = misesClient.Register(misesid, pubkey)
+	if !user.OnChain && len(pubkey) > 0 {
+		chainUserRegister(ctx, misesid, pubkey)
 	}
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"uid":      user.UID,
@@ -38,7 +42,8 @@ func SignIn(ctx context.Context, auth string) (string, error) {
 		"username": user.Username,
 		"exp":      time.Now().Add(env.Envs.TokenDuration).Unix(),
 	})
-	return at.SignedString([]byte(secret))
+	token, err := at.SignedString([]byte(secret))
+	return token, created, err
 }
 
 func Auth(ctx context.Context, authToken string) (*models.User, error) {
@@ -57,6 +62,17 @@ func Auth(ctx context.Context, authToken string) (*models.User, error) {
 		Misesid:  mapClaims["misesid"].(string),
 		Username: mapClaims["username"].(string),
 	}, nil
+}
+
+func chainUserRegister(ctx context.Context, misesid, pubkey string) {
+	chainUser := &models.ChainUser{
+		Misesid: misesid,
+		Pubkey:  pubkey,
+	}
+	err := models.CreateChainUser(ctx, chainUser)
+	if err != nil {
+		fmt.Printf("mises[%s],pubkey[%s] user register chain error:%s \n", misesid, pubkey, err.Error())
+	}
 }
 
 func SetupMisesClient() {

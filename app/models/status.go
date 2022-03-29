@@ -18,26 +18,29 @@ import (
 
 type Status struct {
 	meta.MetaData
-	ID            primitive.ObjectID `bson:"_id,omitempty"`
-	ParentID      primitive.ObjectID `bson:"parent_id,omitempty"`
-	OriginID      primitive.ObjectID `bson:"origin_id,omitempty"`
-	UID           uint64             `bson:"uid,omitempty"`
-	FromType      enum.FromType      `bson:"from_type"`
-	StatusType    enum.StatusType    `bson:"status_type"`
-	Content       string             `bson:"content,omitempty" validate:"min=0,max=4000"`
-	CommentsCount uint64             `bson:"comments_count,omitempty"`
-	LikesCount    uint64             `bson:"likes_count,omitempty"`
-	ForwardsCount uint64             `bson:"forwards_count,omitempty"`
-	HideTime      *time.Time         `bson:"hide_time"`
-	Score         int64              `bson:"score"`
-	Tags          []enum.TagType     `bson:"tags"`
-	DeletedAt     *time.Time         `bson:"deleted_at,omitempty"`
-	CreatedAt     time.Time          `bson:"created_at,omitempty"`
-	UpdatedAt     time.Time          `bson:"updated_at,omitempty"`
-	User          *User              `bson:"-"`
-	IsLiked       bool               `bson:"-"`
-	ParentStatus  *Status            `bson:"-"`
-	OriginStatus  *Status            `bson:"-"`
+	ID                    primitive.ObjectID `bson:"_id,omitempty"`
+	ParentID              primitive.ObjectID `bson:"parent_id,omitempty"`
+	OriginID              primitive.ObjectID `bson:"origin_id,omitempty"`
+	UID                   uint64             `bson:"uid,omitempty"`
+	FromType              enum.FromType      `bson:"from_type"`
+	StatusType            enum.StatusType    `bson:"status_type"`
+	Content               string             `bson:"content,omitempty" validate:"min=0,max=4000"`
+	CommentsCount         uint64             `bson:"comments_count,omitempty"`
+	LikesCount            uint64             `bson:"likes_count,omitempty"`
+	ForwardsCount         uint64             `bson:"forwards_count,omitempty"`
+	HideTime              *time.Time         `bson:"hide_time"`
+	Score                 int64              `bson:"score"`
+	Tags                  []enum.TagType     `bson:"tags"`
+	DeletedAt             *time.Time         `bson:"deleted_at,omitempty"`
+	CreatedAt             time.Time          `bson:"created_at,omitempty"`
+	UpdatedAt             time.Time          `bson:"updated_at,omitempty"`
+	User                  *User              `bson:"-"`
+	IsLiked               bool               `bson:"-"`
+	IsPublic              bool               `bson:"-"`
+	ParentStatusIsDeleted bool               `bson:"-"`
+	ParentStatusIsBlacked bool               `bson:"-"`
+	ParentStatus          *Status            `bson:"-"`
+	OriginStatus          *Status            `bson:"-"`
 }
 
 func (s *Status) validate(ctx context.Context) error {
@@ -95,27 +98,35 @@ func (s *Status) AfterCreate(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		message := &CreateMessageParams{
-			UID:         s.ParentStatus.UID,
-			FromUID:     s.UID,
-			StatusID:    s.ID,
-			MessageType: enum.NewForward,
-			MetaData: &message.MetaData{
-				ForwardMeta: &message.ForwardMeta{
-					UID:            s.UID,
-					StatusID:       s.ID,
-					ForwardContent: s.Content,
-					ContentSummary: s.ParentStatus.ContentSummary(),
-					ImagePath:      s.ParentStatus.FirstImage(),
+		//forward public status  notify parent status user
+		if s.HideTime == nil {
+			message := &CreateMessageParams{
+				UID:         s.ParentStatus.UID,
+				FromUID:     s.UID,
+				StatusID:    s.ID,
+				MessageType: enum.NewForward,
+				MetaData: &message.MetaData{
+					ForwardMeta: &message.ForwardMeta{
+						UID:            s.UID,
+						StatusID:       s.ID,
+						ForwardContent: s.Content,
+						ContentSummary: s.ParentStatus.ContentSummary(),
+						ImagePath:      s.ParentStatus.FirstImage(),
+					},
 				},
-			},
-		}
-		_, err = CreateMessage(ctx, message)
-		if err != nil {
-			return err
+			}
+			_, err = CreateMessage(ctx, message)
+			if err != nil {
+				return err
+			}
 		}
 	}
-	return s.notifyFans(ctx)
+	//public status notify fans
+	if s.HideTime == nil {
+		return s.notifyFans(ctx)
+	}
+	return nil
+
 }
 
 func (s *Status) GetHideTime() uint64 {
@@ -169,6 +180,18 @@ func (s *Status) IncStatusCounter(ctx context.Context, counterKey string, values
 	if len(values) > 0 {
 		value = values[0]
 	}
+	if value < 0 {
+		switch counterKey {
+		case "likes_count":
+			if int(s.LikesCount)+value < 0 {
+				value = -int(s.LikesCount)
+			}
+		case "comments_count":
+			if int(s.CommentsCount)+value < 0 {
+				value = -int(s.CommentsCount)
+			}
+		}
+	}
 	return db.DB().Collection("statuses").FindOneAndUpdate(ctx, bson.M{"_id": s.ID},
 		bson.D{{
 			Key: "$inc",
@@ -186,6 +209,15 @@ func FindStatus(ctx context.Context, id primitive.ObjectID) (*Status, error) {
 		return nil, err
 	}
 	return status, PreloadStatusData(ctx, true, status)
+}
+
+func FindStatusData(ctx context.Context, id primitive.ObjectID) (*Status, error) {
+	status := &Status{}
+	err := db.ODM(ctx).First(status, bson.M{"_id": id}).Error
+	if err != nil {
+		return nil, err
+	}
+	return status, nil
 }
 
 func PreloadStatusData(ctx context.Context, loadRelated bool, statuses ...*Status) error {
@@ -255,7 +287,7 @@ func CreateStatus(ctx context.Context, params *CreateStatusParams) (*Status, err
 		return nil, err
 	}
 	if params.IsPrivate {
-		t := status.CreatedAt.Add(time.Duration(params.ShowDuration - 10))
+		t := status.CreatedAt.Add(time.Duration(params.ShowDuration-10) * time.Second)
 		status.HideTime = &t
 	}
 	if err = db.ODM(ctx).Create(status).Error; err != nil {
@@ -283,6 +315,7 @@ func DeleteStatus(ctx context.Context, id primitive.ObjectID) error {
 
 type ListStatusParams struct {
 	UIDs           []uint64
+	CurrentUID     uint64
 	ParentStatusID primitive.ObjectID
 	FromTypes      []enum.FromType
 	OnlyShow       bool
@@ -295,8 +328,10 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*Status, pagin
 	}
 	statuses := make([]*Status, 0)
 	chain := db.ODM(ctx)
+	and := bson.A{}
 	if params.UIDs != nil && len(params.UIDs) > 0 {
-		chain = chain.Where(bson.M{"uid": bson.M{"$in": params.UIDs}})
+		//chain = chain.Where(bson.M{"uid": bson.M{"$in": params.UIDs}})
+		and = append(and, bson.M{"uid": bson.M{"$in": params.UIDs}})
 	}
 	if !params.ParentStatusID.IsZero() {
 		chain = chain.Where(bson.M{"parent_id": params.ParentStatusID})
@@ -305,14 +340,22 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*Status, pagin
 		chain = chain.Where(bson.M{"from_type": bson.M{"$in": params.FromTypes}})
 	}
 	if params.OnlyShow {
-		chain = chain.Where(bson.M{"$or": bson.A{bson.M{"hide_time": nil}, bson.M{"hide_time": bson.M{"$gt": time.Now()}}}})
+		orFilter := bson.A{bson.M{"hide_time": nil}, bson.M{"hide_time": bson.M{"$gt": time.Now().UTC()}}}
+		if params.CurrentUID > 0 {
+			orFilter = append(orFilter, bson.M{"uid": params.CurrentUID})
+		}
+		chain = chain.Where(bson.M{"$or": orFilter})
 	}
 	blockedUIDs, err := ListBlockedUIDs(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 	if len(blockedUIDs) > 0 {
-		chain = chain.Where(bson.M{"uid": bson.M{"$nin": blockedUIDs}})
+		//chain = chain.Where(bson.M{"uid": bson.M{"$nin": blockedUIDs}})
+		and = append(and, bson.M{"uid": bson.M{"$nin": blockedUIDs}})
+	}
+	if len(and) > 0 {
+		chain = chain.Where(bson.M{"$and": and})
 	}
 	paginator := pagination.NewQuickPaginator(params.PageParams.Limit, params.PageParams.NextID, chain)
 	page, err := paginator.Paginate(&statuses)
@@ -359,12 +402,27 @@ func preloadStatusUser(ctx context.Context, statuses ...*Status) error {
 		userMap[user.UID] = user
 	}
 	for _, status := range statuses {
+		var IsPublic bool
+		if status.HideTime == nil || status.HideTime.Unix() > time.Now().UTC().Unix() {
+			IsPublic = true
+		}
+		status.IsPublic = IsPublic
 		status.User = userMap[status.UID]
 	}
 	return nil
 }
 
 func preloadRelatedStatus(ctx context.Context, statuses ...*Status) error {
+
+	//parent status black
+	currentUID, ok := ctx.Value(utils.CurrentUIDKey{}).(uint64)
+	blackUids := []uint64{}
+	if ok && currentUID > 0 {
+		uids, err := AdminListBlackListUserIDs(ctx, currentUID)
+		if err == nil {
+			blackUids = uids
+		}
+	}
 	statusIds := make([]primitive.ObjectID, 0)
 	for _, status := range statuses {
 		if !status.ParentID.IsZero() {
@@ -388,8 +446,18 @@ func preloadRelatedStatus(ctx context.Context, statuses ...*Status) error {
 		statusMap[status.ID] = status
 	}
 	for _, status := range statuses {
+		if !status.ParentID.IsZero() && statusMap[status.ParentID] == nil {
+			status.ParentStatusIsDeleted = true
+		}
 		status.ParentStatus = statusMap[status.ParentID]
 		status.OriginStatus = statusMap[status.OriginID]
+		if len(blackUids) > 0 && !status.ParentStatusIsDeleted && status.ParentStatus != nil {
+			for _, v := range blackUids {
+				if status.ParentStatus.UID == v {
+					status.ParentStatusIsBlacked = true
+				}
+			}
+		}
 	}
 	return nil
 }
@@ -437,10 +505,17 @@ func preloadImage(ctx context.Context, statuses ...*Status) error {
 	if err != nil {
 		return err
 	}
+	//thumb image
+	opts := &storage.ImageOptions{
+		Quality: 20,
+	}
+	thumbImages, err := storage.ImageClient.GetFileUrlOptions(ctx, opts, paths...)
 	for _, meta := range metas {
 		meta.ImageURLs = []string{}
+		meta.ThumbImageURLs = []string{}
 		for _, path := range meta.Images {
 			meta.ImageURLs = append(meta.ImageURLs, images[path])
+			meta.ThumbImageURLs = append(meta.ThumbImageURLs, thumbImages[path])
 		}
 	}
 	return nil

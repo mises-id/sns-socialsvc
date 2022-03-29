@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	usernameReg = "^\\w{2,20}$"
+	usernameReg = "^[A-Za-z\\d]\\w{1,19}$"
 	emailReg    = "^\\w+@[a-z0-9]+(\\.[a-z]+){1,3}$"
 )
 
@@ -33,13 +33,26 @@ type User struct {
 	LikedCount     uint32            `bson:"liked_count,omitempty"`
 	CreatedAt      time.Time         `bson:"created_at,omitempty"`
 	UpdatedAt      time.Time         `bson:"updated_at,omitempty"`
+	OnChain        bool              `bson:"on_chain,omitempty"`
 	AvatarUrl      string            `bson:"-"`
 	IsFollowed     bool              `bson:"-"`
+	IsAirdropped   bool              `bson:"-"`
+	IsLogined      bool              `bson:"-"`
+	AirdropStatus  bool              `bson:"-"`
+	IsFriend       bool              `bson:"-"`
 	Tags           []enum.TagType    `bson:"tags"`
 	IsBlocked      bool              `bson:"-"`
 	NewFansCount   uint32            `bson:"-"`
 	RelationType   enum.RelationType `bson:"-"`
 	BlockState     enum.BlockState   `bson:"-"`
+	Avatar         *Avatar           `bson:"-"`
+}
+
+type Avatar struct {
+	Orgin  string
+	Large  string
+	Medium string
+	Small  string
 }
 
 func (u *User) Validate(ctx context.Context) error {
@@ -165,6 +178,16 @@ func UpdateUserAvatar(ctx context.Context, user *User) error {
 		}}})
 	return err
 }
+func UpdateUserOnChainByMisesid(ctx context.Context, misesid string) error {
+	_, err := db.DB().Collection("users").UpdateOne(ctx, &bson.M{
+		"misesid": misesid,
+	}, bson.D{{
+		Key: "$set",
+		Value: bson.M{
+			"on_chain": true,
+		}}})
+	return err
+}
 
 func createMisesUser(ctx context.Context, misesid string) (*User, error) {
 	user := &User{
@@ -185,6 +208,14 @@ func FindUserByIDs(ctx context.Context, ids ...uint64) ([]*User, error) {
 		return nil, err
 	}
 	return users, PreloadUserData(ctx, users...)
+}
+func FindUserByMisesids(ctx context.Context, misesids ...string) ([]*User, error) {
+	users := make([]*User, 0)
+	err := db.ODM(ctx).Where(bson.M{"misesid": bson.M{"$in": misesids}}).Find(&users).Error
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func GetUserMap(ctx context.Context, ids ...uint64) (map[uint64]*User, error) {
@@ -252,6 +283,7 @@ func preloadCurrentUserRelationship(ctx context.Context, users ...*User) error {
 	}
 	for _, user := range users {
 		user.IsFollowed = followMap[user.UID] != nil
+		user.IsFriend = followMap[user.UID] != nil && followMap[user.UID].IsFriend
 		user.IsBlocked = blacklistMap[user.UID] != nil
 	}
 	return nil
@@ -286,7 +318,7 @@ func (u *User) validateEmail(ctx context.Context) error {
 	}
 	match, _ := regexp.MatchString(emailReg, u.Email)
 	if !match {
-		return codes.ErrUnprocessableEntity
+		return codes.ErrUnprocessableEntity.New("invalid email")
 	}
 	return nil
 }

@@ -78,10 +78,14 @@ func convertError() endpoint.Middleware {
 					switch code.HTTPStatus {
 					case http.StatusUnauthorized:
 						grpccode = grpccodes.Unauthenticated
+					case http.StatusNotFound:
+						grpccode = grpccodes.NotFound
 					case http.StatusUnprocessableEntity:
 						grpccode = grpccodes.AlreadyExists
 					case http.StatusForbidden:
 						grpccode = grpccodes.PermissionDenied
+					case http.StatusBadRequest:
+						grpccode = grpccodes.InvalidArgument
 					}
 					err = grpcstatus.Errorf(grpccode, code.Msg)
 				}
