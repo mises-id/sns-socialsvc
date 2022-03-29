@@ -5,10 +5,12 @@ import (
 	"github.com/mises-id/sns-socialsvc/lib/db/odm"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type (
 	AirdropSearch struct {
+		ID       primitive.ObjectID
 		UID      uint64
 		UIDs     []uint64
 		Misesid  string

@@ -72,6 +72,16 @@ func (m *Airdrop) UpdateTxID(ctx context.Context, tx_id string) error {
 		Value: update}})
 	return err
 }
+func (m *Airdrop) UpdateStatusPending(ctx context.Context) error {
+	update := bson.M{}
+	update["status"] = enum.AirdropPending
+	_, err := db.DB().Collection("airdrops").UpdateOne(ctx, &bson.M{
+		"_id": m.ID,
+	}, bson.D{{
+		Key:   "$set",
+		Value: update}})
+	return err
+}
 
 func (m *Airdrop) UpdateStatus(ctx context.Context, status enum.AirdropStatus) error {
 	update := bson.M{}
