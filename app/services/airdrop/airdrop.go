@@ -20,7 +20,7 @@ var (
 	getListNum              = 20
 	userTwitterAuthMaxIdKey = "user_twiter_auth_max_id"
 	airdropClient           airdrop.IClient
-	airdropEnd              chan int
+	airdropStop             chan int
 )
 
 type FaucetCallback struct {
@@ -28,29 +28,31 @@ type FaucetCallback struct {
 }
 
 func AirdropTwitter(ctx context.Context) {
-	airdropEnd = make(chan int)
+	airdropStop = make(chan int)
 	utils.WirteLogDay("./log/airdrop.log")
 	airdropClient.SetListener(&FaucetCallback{ctx})
-	airdropTx(ctx)
+	go airdropTx(ctx)
 	select {
-	case <-airdropEnd:
-		fmt.Println("airdrop end")
+	case <-airdropStop:
+		fmt.Println("airdrop stop")
 	}
+	return
 }
 
-func airdropToEnd() {
-	airdropEnd <- 1
+func airdropToStop() {
+	airdropStop <- 1
+	return
 }
 
 func airdropTx(ctx context.Context) {
 	airdrop, err := getAirdrop(ctx)
 	if err != nil {
 		fmt.Println("err: ", err.Error())
-		airdropToEnd()
+		airdropToStop()
 		return
 	}
 	if err := airdropRun(ctx, airdrop); err != nil {
-		airdropToEnd()
+		airdropToStop()
 		return
 	}
 	return
