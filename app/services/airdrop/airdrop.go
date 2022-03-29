@@ -20,45 +20,60 @@ var (
 	getListNum              = 20
 	userTwitterAuthMaxIdKey = "user_twiter_auth_max_id"
 	airdropClient           airdrop.IClient
+	airdropEnd              chan int
 )
 
 type FaucetCallback struct {
+	ctx context.Context
 }
 
 func AirdropTwitter(ctx context.Context) {
+	airdropEnd = make(chan int)
 	utils.WirteLogDay("./log/airdrop.log")
-	airdropClient.SetListener(&FaucetCallback{})
+	airdropClient.SetListener(&FaucetCallback{ctx})
 	airdropTx(ctx)
-}
-func CretaeAirdropTwitter(ctx context.Context) {
-
-	utils.WirteLogDay("./log/create_airdrop.log")
-	if !models.GetAirdropStatus(ctx) {
-		return
+	select {
+	case <-airdropEnd:
+		fmt.Println("airdrop end")
 	}
-	airdropCreate(ctx)
 }
 
-func airdropCreate(ctx context.Context) {
-	list, err := createdTwitterAirdrop(ctx)
-	if err != nil {
-		return
-	}
-	if len(list) == getListNum {
-		airdropCreate(ctx)
-	}
+func airdropToEnd() {
+	airdropEnd <- 1
 }
 
 func airdropTx(ctx context.Context) {
 	airdrop, err := getAirdrop(ctx)
 	if err != nil {
 		fmt.Println("err: ", err.Error())
+		airdropToEnd()
 		return
 	}
 	if err := airdropRun(ctx, airdrop); err != nil {
+		airdropToEnd()
 		return
 	}
 	return
+}
+
+func getAirdropList(ctx context.Context) ([]*models.Airdrop, error) {
+	params := &search.AirdropSearch{
+		NotTxID: true,
+		Status:  enum.AirdropDefault,
+		ListNum: int64(getListNum),
+	}
+	return models.ListAirdrop(ctx, params)
+}
+
+//get one
+func getAirdrop(ctx context.Context) (*models.Airdrop, error) {
+	params := &search.AirdropSearch{
+		NotTxID:  true,
+		SortType: enum.SortAsc,
+		SortKey:  "_id",
+		Status:   enum.AirdropDefault,
+	}
+	return models.FindAirdrop(ctx, params)
 }
 
 func airdropRun(ctx context.Context, airdrop *models.Airdrop) error {
@@ -68,7 +83,7 @@ func airdropRun(ctx context.Context, airdrop *models.Airdrop) error {
 		fmt.Println("airdrop run error: ", err.Error())
 		return err
 	}
-	return nil
+	return pendingAfter(ctx, airdrop.ID)
 }
 
 func (cb *FaucetCallback) OnTxGenerated(cmd types.MisesAppCmd) {
@@ -88,7 +103,7 @@ func (cb *FaucetCallback) OnSucceed(cmd types.MisesAppCmd) {
 	if err != nil {
 		fmt.Println("tx success after  error: ", err.Error())
 	}
-
+	airdropTx(cb.ctx)
 }
 
 func (cb *FaucetCallback) OnFailed(cmd types.MisesAppCmd, err error) {
@@ -167,16 +182,17 @@ func pendingAfter(ctx context.Context, id primitive.ObjectID) error {
 	params := &search.AirdropSearch{
 		ID:     id,
 		Type:   enum.AirdropTwitter,
-		Status: enum.AirdropPending,
+		Status: enum.AirdropDefault,
 	}
 	airdrop, err := models.FindAirdrop(ctx, params)
 	if err != nil {
-		fmt.Println("find airdrop error: ", err.Error())
+		fmt.Println("pending after find airdrop error: ", err.Error())
 		return err
 	}
 	if airdrop.TxID != "" || airdrop.Status != enum.AirdropDefault {
-		return errors.New("tx_id exists")
+		return errors.New("pending status tx_id exists")
 	}
+	return airdrop.UpdateStatusPending(ctx)
 }
 
 func txGeneratedAfter(ctx context.Context, misesid string, tx_id string) error {
@@ -191,11 +207,30 @@ func txGeneratedAfter(ctx context.Context, misesid string, tx_id string) error {
 		fmt.Println("find airdrop error: ", err.Error())
 		return err
 	}
-	if airdrop.TxID != "" || airdrop.Status != enum.AirdropDefault {
+	if airdrop.TxID != "" || airdrop.Status != enum.AirdropPending {
 		return errors.New("tx_id exists")
 	}
 	//update
 	return airdrop.UpdateTxID(ctx, tx_id)
+}
+
+func CretaeAirdropTwitter(ctx context.Context) {
+
+	utils.WirteLogDay("./log/create_airdrop.log")
+	if !models.GetAirdropStatus(ctx) {
+		return
+	}
+	airdropCreate(ctx)
+}
+
+func airdropCreate(ctx context.Context) {
+	list, err := createdTwitterAirdrop(ctx)
+	if err != nil {
+		return
+	}
+	if len(list) == getListNum {
+		airdropCreate(ctx)
+	}
 }
 
 func createdTwitterAirdrop(ctx context.Context) ([]*models.Airdrop, error) {
@@ -278,23 +313,6 @@ func getAirdropUserTwitterAuth(ctx context.Context) ([]*models.UserTwitterAuth, 
 		return nil, err
 	}
 	return list, nil
-}
-
-func getAirdropList(ctx context.Context) ([]*models.Airdrop, error) {
-	params := &search.AirdropSearch{
-		NotTxID: true,
-		Status:  enum.AirdropDefault,
-		ListNum: int64(getListNum),
-	}
-	return models.ListAirdrop(ctx, params)
-}
-func getAirdrop(ctx context.Context) (*models.Airdrop, error) {
-	params := &search.AirdropSearch{
-		NotTxID: true,
-		Status:  enum.AirdropDefault,
-		ListNum: int64(getListNum),
-	}
-	return models.FindAirdrop(ctx, params)
 }
 
 func SetAirdropClient() {
