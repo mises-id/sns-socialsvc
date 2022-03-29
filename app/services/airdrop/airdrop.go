@@ -23,6 +23,7 @@ var (
 	airdropClient           airdrop.IClient
 	airdropStop             chan int
 	airdropDo               bool
+	totalAirdropNum         int
 )
 
 type FaucetCallback struct {
@@ -30,6 +31,7 @@ type FaucetCallback struct {
 }
 
 func AirdropTwitter(ctx context.Context) {
+	totalAirdropNum = 50
 	airdropStop = make(chan int)
 	airdropDo = true
 	utils.WirteLogDay("./log/airdrop.log")
@@ -100,12 +102,16 @@ func getAirdrop(ctx context.Context) (*models.Airdrop, error) {
 }
 
 func airdropRun(ctx context.Context, airdrop *models.Airdrop) error {
-	fmt.Printf("misesid:%s,coin:%d\n", airdrop.Misesid, airdrop.Coin)
+	if totalAirdropNum <= 0 {
+		return errors.New("too many airdrop num")
+	}
+	fmt.Printf("num:%d,misesid:%s,coin:%d\n", totalAirdropNum, airdrop.Misesid, airdrop.Coin)
 	err := airdropClient.RunAsync(airdrop.Misesid, "", airdrop.Coin)
 	if err != nil {
 		fmt.Println("airdrop run error: ", err.Error())
 		return err
 	}
+	totalAirdropNum--
 	return pendingAfter(ctx, airdrop.ID)
 }
 

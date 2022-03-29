@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/lib/db"
@@ -123,6 +124,8 @@ func (m *UserExt) Update(ctx context.Context) error {
 	if m.CommonPoolCursor != nil {
 		update["common_cursor"] = m.CommonPoolCursor
 	}
+	fmt.Println("uid: ", m.UID)
+	fmt.Println("user ext common: ", m.CommonPoolCursor)
 	_, err := db.DB().Collection("userexts").UpdateOne(ctx, &bson.M{
 		"uid": m.UID,
 	}, bson.D{{
