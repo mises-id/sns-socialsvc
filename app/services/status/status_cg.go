@@ -158,7 +158,6 @@ func findListFollowing2Status(ctx context.Context, uid uint64, num int64) ([]*mo
 	}
 	blackUids, err := getUserBlackListUids(ctx, uid)
 	if err == nil && len(blackUids) > 0 {
-		fmt.Println("follow2 blacklist uids:", blackUids)
 		params.NInUIDs = append(params.NInUIDs, blackUids...)
 	}
 	//filter login user
@@ -184,7 +183,7 @@ func findListRecommendStatus(ctx context.Context, uid uint64, num int64) ([]*mod
 	}
 	var err error
 	var pool_cursors *models.RecommendStatusPoolCursor
-	start_time := time.Now().AddDate(0, 0, -14)
+	start_time := time.Now().AddDate(0, 0, -30)
 	params := &admin.AdminStatusParams{
 		Tag:       enum.TagRecommendStatus,
 		ListNum:   num,
@@ -206,7 +205,7 @@ func findListRecommendStatus(ctx context.Context, uid uint64, num int64) ([]*mod
 			params.NInUIDs = append(params.NInUIDs, blackUids...)
 		}
 		//filter login user
-		params.NInUIDs = append(params.NInUIDs, uid)
+		//params.NInUIDs = append(params.NInUIDs, uid)
 	} else {
 		//not login
 		params.SortType = -1
@@ -257,7 +256,6 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 	if uid > 0 {
 		uids, err := findUserFollowing2Uids(ctx, uid)
 		if err == nil && len(uids) > 0 {
-			fmt.Println("common following2 uids:", uids)
 			params.NInUIDs = append(params.NInUIDs, uids...) //filter following2 user status
 		}
 		//filter login user
