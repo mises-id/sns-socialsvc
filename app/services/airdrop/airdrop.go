@@ -17,10 +17,11 @@ import (
 )
 
 var (
-	getListNum              = 20
+	getListNum              = 2
 	userTwitterAuthMaxIdKey = "user_twiter_auth_max_id"
 	airdropClient           airdrop.IClient
 	airdropStop             chan int
+	airdropDo               bool
 )
 
 type FaucetCallback struct {
@@ -29,6 +30,7 @@ type FaucetCallback struct {
 
 func AirdropTwitter(ctx context.Context) {
 	airdropStop = make(chan int)
+	airdropDo = true
 	utils.WirteLogDay("./log/airdrop.log")
 	airdropClient.SetListener(&FaucetCallback{ctx})
 	go airdropTx(ctx)
@@ -40,14 +42,32 @@ func AirdropTwitter(ctx context.Context) {
 }
 
 func airdropToStop() {
+	airdropDo = false
 	airdropStop <- 1
 	return
 }
 
 func airdropTx(ctx context.Context) {
-	airdrop, err := getAirdrop(ctx)
+	airdrops, err := getAirdropList(ctx)
 	if err != nil {
 		fmt.Println("err: ", err.Error())
+		airdropToStop()
+		return
+	}
+	for _, airdrop := range airdrops {
+		if err := airdropRun(ctx, airdrop); err != nil {
+			airdropToStop()
+			return
+		}
+	}
+	return
+}
+
+func airdropTxOne(ctx context.Context) {
+	fmt.Println("run airdrop tx one")
+	airdrop, err := getAirdrop(ctx)
+	if err != nil {
+		fmt.Println("airdrop one err: ", err.Error())
 		airdropToStop()
 		return
 	}
@@ -105,7 +125,9 @@ func (cb *FaucetCallback) OnSucceed(cmd types.MisesAppCmd) {
 	if err != nil {
 		fmt.Println("tx success after  error: ", err.Error())
 	}
-	airdropTx(cb.ctx)
+	if airdropDo {
+		airdropTxOne(cb.ctx)
+	}
 }
 
 func (cb *FaucetCallback) OnFailed(cmd types.MisesAppCmd, err error) {
@@ -117,7 +139,9 @@ func (cb *FaucetCallback) OnFailed(cmd types.MisesAppCmd, err error) {
 	if err != nil {
 		fmt.Println("tx failed after  error: ", err.Error())
 	}
-
+	if airdropDo {
+		airdropTxOne(cb.ctx)
+	}
 }
 
 func successAfter(ctx context.Context, misesid string) error {
