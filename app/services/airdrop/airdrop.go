@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	getListNum              = 50
+	getListNum              = 20
 	userTwitterAuthMaxIdKey = "user_twiter_auth_max_id"
 	airdropClient           airdrop.IClient
 	airdropStop             chan int
@@ -31,10 +31,7 @@ type FaucetCallback struct {
 }
 
 func AirdropTwitter(ctx context.Context) {
-	a, _ := getAirdrop(ctx)
-	fmt.Println(a)
-	return
-	totalAirdropNum = 50
+	totalAirdropNum = 200
 	airdropStop = make(chan int)
 	airdropDo = true
 	utils.WirteLogDay("./log/airdrop.log")
