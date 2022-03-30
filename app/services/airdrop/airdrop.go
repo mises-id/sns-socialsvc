@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	getListNum              = 10
+	getListNum              = 50
 	userTwitterAuthMaxIdKey = "user_twiter_auth_max_id"
 	airdropClient           airdrop.IClient
 	airdropStop             chan int
@@ -31,6 +31,9 @@ type FaucetCallback struct {
 }
 
 func AirdropTwitter(ctx context.Context) {
+	a, _ := getAirdrop(ctx)
+	fmt.Println(a)
+	return
 	totalAirdropNum = 50
 	airdropStop = make(chan int)
 	airdropDo = true
@@ -59,6 +62,7 @@ func airdropTx(ctx context.Context) {
 	}
 	for _, airdrop := range airdrops {
 		if err := airdropRun(ctx, airdrop); err != nil {
+			fmt.Println("airdrop run error: ", err.Error())
 			airdropToStop()
 			return
 		}
@@ -83,9 +87,11 @@ func airdropTxOne(ctx context.Context) {
 
 func getAirdropList(ctx context.Context) ([]*models.Airdrop, error) {
 	params := &search.AirdropSearch{
-		NotTxID: true,
-		Status:  enum.AirdropDefault,
-		ListNum: int64(getListNum),
+		NotTxID:  true,
+		SortType: enum.SortAsc,
+		SortKey:  "_id",
+		Status:   enum.AirdropDefault,
+		ListNum:  int64(getListNum),
 	}
 	return models.ListAirdrop(ctx, params)
 }
@@ -222,7 +228,7 @@ func pendingAfter(ctx context.Context, id primitive.ObjectID) error {
 		fmt.Println("pending after find airdrop error: ", err.Error())
 		return err
 	}
-	if airdrop.TxID != "" || airdrop.Status != enum.AirdropDefault {
+	if airdrop.TxID != "" && airdrop.Status != enum.AirdropDefault {
 		return errors.New("pending status tx_id exists")
 	}
 	return airdrop.UpdateStatusPending(ctx)
@@ -264,7 +270,7 @@ func airdropCreate(ctx context.Context) {
 	if c == 0 {
 		return
 	}
-	times := int(math.Ceil(float64(c / int64(getListNum))))
+	times := int(math.Ceil(float64(c) / float64(getListNum)))
 	for i := 0; i < times; i++ {
 		createdTwitterAirdrop(ctx)
 	}

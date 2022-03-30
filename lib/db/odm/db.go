@@ -163,6 +163,25 @@ func (db *DB) Last(out interface{}, conditions ...bson.M) *DB {
 	db.Error = result.Decode(out)
 	return db
 }
+func (db *DB) Get(out interface{}, conditions ...bson.M) *DB {
+	db.out = out
+	for _, condition := range conditions {
+		db = db.Where(condition)
+	}
+	var sort interface{}
+	if db.sort != nil {
+		sort = db.sort
+	} else {
+		sort = bson.M{"_id": -1}
+	}
+	result := db.db.Collection(db.reflectCollectionName()).FindOne(db.ctx, db.condition, &options.FindOneOptions{Sort: sort})
+	db.Error = result.Err()
+	if db.Error != nil {
+		return db
+	}
+	db.Error = result.Decode(out)
+	return db
+}
 
 func (db *DB) Find(out interface{}, conditions ...bson.M) *DB {
 	db.out = out

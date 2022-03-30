@@ -28,7 +28,7 @@ func FindAirdrop(ctx context.Context, params IAdminParams) (*Airdrop, error) {
 
 	res := &Airdrop{}
 	chain := params.BuildAdminSearch(db.ODM(ctx))
-	err := chain.Last(res).Error
+	err := chain.Get(res).Error
 	if err != nil {
 		return nil, err
 	}

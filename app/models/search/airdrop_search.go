@@ -1,6 +1,8 @@
 package search
 
 import (
+	"fmt"
+
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/lib/db/odm"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
@@ -49,6 +51,9 @@ func (params *AirdropSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.Statuses != nil && len(params.Statuses) > 0 {
 		chain = chain.Where(bson.M{"status": bson.M{"$in": params.Statuses}})
 	}
+	if params.ID != primitive.NilObjectID {
+		chain = chain.Where(bson.M{"_id": params.ID})
+	}
 	if params.Type != "" {
 		chain = chain.Where(bson.M{"type": params.Type})
 	}
@@ -63,6 +68,7 @@ func (params *AirdropSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	}
 	//sort
 	if params.SortKey != "" && params.SortType != 0 {
+		fmt.Println("sort: ", params.SortType)
 		chain = chain.Sort(bson.M{params.SortKey: params.SortType})
 	}
 	chain = chain.Sort(bson.M{"_id": -1})
