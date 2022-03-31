@@ -15,6 +15,8 @@ type (
 		ID        uint64
 		IDs       []uint64
 		FromTypes []enum.FromType
+		Username  string
+		MisesID   string
 		Tags      []enum.TagType
 		StartTime *time.Time `json:"start_time" query:"start_time"`
 		EndTime   *time.Time `json:"end_time" query:"end_time"`
@@ -38,6 +40,12 @@ func (params *AdminUserParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	}
 	if params.IDs != nil && len(params.IDs) > 0 {
 		chain = chain.Where(bson.M{"_id": bson.M{"$in": params.IDs}})
+	}
+	if params.Username != "" {
+		chain = chain.Where(bson.M{"username": params.Username})
+	}
+	if params.MisesID != "" {
+		chain = chain.Where(bson.M{"misesid": params.MisesID})
 	}
 	if params.Tag != enum.TagBlank {
 		params.Tags = []enum.TagType{params.Tag}
