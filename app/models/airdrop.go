@@ -28,7 +28,7 @@ func FindAirdrop(ctx context.Context, params IAdminParams) (*Airdrop, error) {
 
 	res := &Airdrop{}
 	chain := params.BuildAdminSearch(db.ODM(ctx))
-	err := chain.Last(res).Error
+	err := chain.Get(res).Error
 	if err != nil {
 		return nil, err
 	}
@@ -64,6 +64,16 @@ func CreateAirdropMany(ctx context.Context, data []*Airdrop) error {
 func (m *Airdrop) UpdateTxID(ctx context.Context, tx_id string) error {
 	update := bson.M{}
 	update["tx_id"] = tx_id
+	update["status"] = enum.AirdropPending
+	_, err := db.DB().Collection("airdrops").UpdateOne(ctx, &bson.M{
+		"_id": m.ID,
+	}, bson.D{{
+		Key:   "$set",
+		Value: update}})
+	return err
+}
+func (m *Airdrop) UpdateStatusPending(ctx context.Context) error {
+	update := bson.M{}
 	update["status"] = enum.AirdropPending
 	_, err := db.DB().Collection("airdrops").UpdateOne(ctx, &bson.M{
 		"_id": m.ID,

@@ -5,10 +5,12 @@ import (
 	"github.com/mises-id/sns-socialsvc/lib/db/odm"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type (
 	AirdropSearch struct {
+		ID       primitive.ObjectID
 		UID      uint64
 		UIDs     []uint64
 		Misesid  string
@@ -46,6 +48,9 @@ func (params *AirdropSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	}
 	if params.Statuses != nil && len(params.Statuses) > 0 {
 		chain = chain.Where(bson.M{"status": bson.M{"$in": params.Statuses}})
+	}
+	if params.ID != primitive.NilObjectID {
+		chain = chain.Where(bson.M{"_id": params.ID})
 	}
 	if params.Type != "" {
 		chain = chain.Where(bson.M{"type": params.Type})

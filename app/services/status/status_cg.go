@@ -2,6 +2,7 @@ package status
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -14,7 +15,7 @@ import (
 )
 
 var (
-	updateUserCursor   *models.UserExt
+	//updateUserCursor   *models.UserExt
 	newRecommendInput  *NewRecommendInput
 	newRecommendOutput *NewRecommendOutput
 )
@@ -67,9 +68,11 @@ func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) 
 	var totalNum, following2Num, recommendPoolNum, commonPoolNum int64
 	//start
 	ctx = context.WithValue(ctx, utils.CurrentUIDKey{}, uid)
-	updateUserCursor = &models.UserExt{
+	updateUserCursor := &models.UserExt{
 		UID: uid,
 	}
+	ctx = context.WithValue(ctx, models.UserExt{}, updateUserCursor)
+	fmt.Println("user id: ", uid)
 	newRecommendInput = in
 	newRecommendOutput = &NewRecommendOutput{
 		Next: &NewRecommendNext{LastRecommendTime: 0, LastCommonTime: 0},
@@ -96,8 +99,9 @@ func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) 
 	if err != nil {
 		return nil, err
 	}
-	//now_common_num := len(common_pool_status)
+	now_common_num := len(common_pool_status)
 	//now_total_num := now_following2_num + now_recommend_num + now_comment_num
+	fmt.Printf("recommend num:%d,following2 num:%d,common num: %d\n", now_recommend_num, now_following2_num, now_common_num)
 	data := append(following2_status_list, append(recommend_pool_status_list, common_pool_status...)...)
 	randShuffle(data)
 	newRecommendOutput.Data = data
@@ -109,9 +113,20 @@ func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) 
 	}
 	//end update cursor
 	if uid > 0 {
-		updateUserCursor.Update(ctx)
+		ctxUserExt, err := getUserExtByCtx(ctx)
+		if err == nil && ctxUserExt.UID > 0 {
+			ctxUserExt.Update(ctx)
+		}
 	}
 	return newRecommendOutput, err
+}
+
+func getUserExtByCtx(ctx context.Context) (*models.UserExt, error) {
+	ext, ok := ctx.Value(models.UserExt{}).(*models.UserExt)
+	if ok {
+		return ext, nil
+	}
+	return nil, errors.New("no user ext")
 }
 
 func randShuffle(slice []*models.Status) {
@@ -288,6 +303,7 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 	max, min := getStatusListScoreMaxMin(status_list)
 	//update  status cursor
 	if uid > 0 {
+		fmt.Printf("max:%d,min%d\n", max, min)
 		updateUserCommonCursor(ctx, uid, cursors, max, min)
 	} else {
 		newRecommendOutput.Next.LastCommonTime = min
@@ -402,8 +418,10 @@ func updateUserFollowing2Cursor(ctx context.Context, uid uint64, pool_cursors *m
 	if pool_cursors.Max < max {
 		pool_cursors.Max = max
 	}
-
-	updateUserCursor.Following2PoolCursor = pool_cursors
+	ctxUserExt, err := getUserExtByCtx(ctx)
+	if err == nil {
+		ctxUserExt.Following2PoolCursor = pool_cursors
+	}
 }
 
 //update user recommend cursor
@@ -426,8 +444,10 @@ func updateUserRecommendCursor(ctx context.Context, uid uint64, pool_cursors *mo
 	if pool_cursors.Max < max {
 		pool_cursors.Max = max
 	}
-
-	updateUserCursor.RecommendStatusPoolCursor = pool_cursors
+	ctxUserExt, err := getUserExtByCtx(ctx)
+	if err == nil {
+		ctxUserExt.RecommendStatusPoolCursor = pool_cursors
+	}
 }
 
 //update user common cursor
@@ -450,6 +470,8 @@ func updateUserCommonCursor(ctx context.Context, uid uint64, pool_cursors *model
 	if pool_cursors.Max < max {
 		pool_cursors.Max = max
 	}
-
-	updateUserCursor.CommonPoolCursor = pool_cursors
+	ctxUserExt, err := getUserExtByCtx(ctx)
+	if err == nil {
+		ctxUserExt.CommonPoolCursor = pool_cursors
+	}
 }
