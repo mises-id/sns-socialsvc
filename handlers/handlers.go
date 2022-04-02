@@ -351,7 +351,8 @@ func (s socialService) ListMessage(ctx context.Context, in *pb.ListMessageReques
 	var resp pb.ListMessageResponse
 	messages, page, err := messageSVC.ListMessage(ctx, &messageSVC.ListMessageParams{
 		ListMessageParams: models.ListMessageParams{
-			UID: in.GetCurrentUid(),
+			UID:   in.GetCurrentUid(),
+			State: in.State,
 			PageParams: &pagination.PageQuickParams{
 				Limit:  int64(in.Paginator.Limit),
 				NextID: in.Paginator.NextId,
@@ -386,8 +387,8 @@ func (s socialService) ReadMessage(ctx context.Context, in *pb.ReadMessageReques
 			}
 		}
 	}
-	if in.GetLatestID() != "" {
-		latestID, err = primitive.ObjectIDFromHex(in.GetLatestID())
+	if in.GetLatestId() != "" {
+		latestID, err = primitive.ObjectIDFromHex(in.GetLatestId())
 		if err != nil {
 			return nil, err
 		}
