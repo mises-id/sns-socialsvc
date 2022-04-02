@@ -331,7 +331,7 @@ func getProblemUserUids(ctx context.Context) ([]uint64, error) {
 	return models.AdminListProblemUserIDs(ctx)
 }
 
-//find problem user ids
+//find star user ids
 func getStarUserUids(ctx context.Context) ([]uint64, error) {
 
 	return models.AdminListStarUserIDs(ctx)
