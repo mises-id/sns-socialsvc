@@ -387,8 +387,8 @@ func (s socialService) ReadMessage(ctx context.Context, in *pb.ReadMessageReques
 			}
 		}
 	}
-	if in.GetLatestId() != "" {
-		latestID, err = primitive.ObjectIDFromHex(in.GetLatestId())
+	if in.GetLatestID() != "" {
+		latestID, err = primitive.ObjectIDFromHex(in.GetLatestID())
 		if err != nil {
 			return nil, err
 		}

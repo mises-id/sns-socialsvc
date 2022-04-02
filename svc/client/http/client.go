@@ -3539,7 +3539,7 @@ func EncodeHTTPReadMessageZeroRequest(_ context.Context, r *http.Request, reques
 
 	toRet.CurrentUid = req.CurrentUid
 
-	toRet.LatestId = req.LatestId
+	toRet.LatestID = req.LatestID
 
 	toRet.Ids = req.Ids
 
@@ -3589,7 +3589,7 @@ func EncodeHTTPReadMessageOneRequest(_ context.Context, r *http.Request, request
 
 	toRet.CurrentUid = req.CurrentUid
 
-	toRet.LatestId = req.LatestId
+	toRet.LatestID = req.LatestID
 
 	toRet.Ids = req.Ids
 
