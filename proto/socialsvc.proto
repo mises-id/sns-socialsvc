@@ -884,6 +884,7 @@ message Message {
 
 message ListMessageRequest {
   uint64 current_uid = 1;
+  string state = 2;
   PageQuick paginator = 3;
 }
 

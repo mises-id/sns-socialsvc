@@ -262,11 +262,19 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 		SortKey:   "created_at",
 		FromTypes: []enum.FromType{enum.FromForward, enum.FromPost},
 	}
+	//find star user
+	starUserUids, err := getStarUserUids(ctx)
+	if err == nil && len(starUserUids) > 0 {
+		fmt.Println("star user ids: ", starUserUids)
+		params.UIDs = append(params.UIDs, starUserUids...)
+	} else {
+		return []*models.Status{}, nil
+	}
 	//TODO filter problem user
-	problemUserUids, err := getProblemUserUids(ctx)
+	/* problemUserUids, err := getProblemUserUids(ctx)
 	if err == nil && len(problemUserUids) > 0 {
 		params.NInUIDs = append(params.NInUIDs, problemUserUids...)
-	}
+	} */
 	//login user
 	if uid > 0 {
 		uids, err := findUserFollowing2Uids(ctx, uid)
@@ -321,6 +329,12 @@ func getUserBlackListUids(ctx context.Context, uid uint64) ([]uint64, error) {
 func getProblemUserUids(ctx context.Context) ([]uint64, error) {
 
 	return models.AdminListProblemUserIDs(ctx)
+}
+
+//find problem user ids
+func getStarUserUids(ctx context.Context) ([]uint64, error) {
+
+	return models.AdminListStarUserIDs(ctx)
 }
 
 //get status list min max

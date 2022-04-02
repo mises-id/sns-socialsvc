@@ -81,6 +81,27 @@ func AdminListProblemUserIDs(ctx context.Context) ([]uint64, error) {
 	return ids, nil
 }
 
+//find star user uids
+func AdminListStarUserIDs(ctx context.Context) ([]uint64, error) {
+	cursor, err := db.DB().Collection("users").Find(ctx, &bson.M{
+		"tags": bson.M{"$in": []enum.TagType{enum.TagStarUser}},
+	}, &options.FindOptions{
+		Projection: bson.M{"id": 1},
+	})
+	if err != nil {
+		return nil, err
+	}
+	users := make([]*User, 0)
+	if err = cursor.All(ctx, &users); err != nil {
+		return nil, err
+	}
+	ids := make([]uint64, len(users))
+	for i, user := range users {
+		ids[i] = user.UID
+	}
+	return ids, nil
+}
+
 //update user tags
 func UpdateUserTag(ctx context.Context, user *User) error {
 	_, err := db.DB().Collection("users").UpdateOne(ctx, &bson.M{

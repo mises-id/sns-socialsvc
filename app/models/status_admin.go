@@ -97,3 +97,15 @@ func UpdateStatusTag(ctx context.Context, status *Status) error {
 		}}})
 	return err
 }
+
+func CountStatus(ctx context.Context, params IAdminParams) (int64, error) {
+
+	var res int64
+	chain := params.BuildAdminSearch(db.ODM(ctx))
+	err := chain.Model(&Status{}).Count(&res).Error
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}

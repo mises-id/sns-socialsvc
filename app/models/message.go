@@ -15,6 +15,7 @@ import (
 
 type ListMessageParams struct {
 	UID        uint64
+	State      string
 	PageParams *pagination.PageQuickParams
 }
 
@@ -88,7 +89,14 @@ func ListMessage(ctx context.Context, params *ListMessageParams) ([]*Message, pa
 		params.PageParams = pagination.DefaultQuickParams()
 	}
 	messages := make([]*Message, 0)
+
 	chain := db.ODM(ctx).Where(bson.M{"uid": params.UID})
+	switch params.State {
+	case "unread":
+		chain = chain.Where(bson.M{"read_time": nil})
+	case "read":
+		chain = chain.Where(bson.M{"read_time": bson.M{"$lt": time.Now().UTC()}})
+	}
 	paginator := pagination.NewQuickPaginator(params.PageParams.Limit, params.PageParams.NextID, chain)
 	page, err := paginator.Paginate(&messages)
 	if err != nil {

@@ -17,8 +17,10 @@ type (
 		IDs       []primitive.ObjectID
 		UIDs      []uint64
 		NInUIDs   []uint64
+		LastID    primitive.ObjectID
 		FromTypes []enum.FromType
 		Tags      []enum.TagType
+		AllTags   []enum.TagType
 		NInTags   []enum.TagType
 		StartTime *time.Time `json:"start_time" query:"start_time"`
 		EndTime   *time.Time `json:"end_time" query:"end_time"`
@@ -69,11 +71,17 @@ func (params *AdminStatusParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.NInTags != nil && len(params.NInTags) > 0 {
 		chain = chain.Where(bson.M{"tags": bson.M{"$nin": params.NInTags}})
 	}
+	if params.AllTags != nil && len(params.AllTags) > 0 {
+		chain = chain.Where(bson.M{"tags": bson.M{"$all": params.AllTags}})
+	}
 	if params.StartTime != nil && params.EndTime == nil {
 		chain = chain.Where(bson.M{"created_at": bson.M{"$gte": params.StartTime}})
 	}
 	if params.StartTime == nil && params.EndTime != nil {
 		chain = chain.Where(bson.M{"created_at": bson.M{"$lte": params.EndTime}})
+	}
+	if !params.LastID.IsZero() {
+		chain = chain.Where(bson.M{"_id": bson.M{"$lte": params.LastID}})
 	}
 
 	if params.StartTime != nil && params.EndTime != nil {
