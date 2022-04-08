@@ -11,8 +11,9 @@ import (
 )
 
 var (
-	userTwitterAuthMaxIdKey = "user_twiter_auth_max_id"
-	airdropStatusKey        = "airdrop_status"
+	userTwitterAuthMaxIdKey    = "user_twiter_auth_max_id"
+	channelTwitterAuthMaxIdKey = "channel_twiter_auth_max_id"
+	airdropStatusKey           = "airdrop_status"
 )
 
 type (

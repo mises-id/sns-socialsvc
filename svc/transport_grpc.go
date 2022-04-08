@@ -245,16 +245,40 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCAirdropTwitterResponse,
 			serverOptions...,
 		),
+		airdropchannel: grpctransport.NewServer(
+			endpoints.AirdropChannelEndpoint,
+			DecodeGRPCAirdropChannelRequest,
+			EncodeGRPCAirdropChannelResponse,
+			serverOptions...,
+		),
 		createairdroptwitter: grpctransport.NewServer(
 			endpoints.CreateAirdropTwitterEndpoint,
 			DecodeGRPCCreateAirdropTwitterRequest,
 			EncodeGRPCCreateAirdropTwitterResponse,
 			serverOptions...,
 		),
+		createchannelairdrop: grpctransport.NewServer(
+			endpoints.CreateChannelAirdropEndpoint,
+			DecodeGRPCCreateChannelAirdropRequest,
+			EncodeGRPCCreateChannelAirdropResponse,
+			serverOptions...,
+		),
 		usertochain: grpctransport.NewServer(
 			endpoints.UserToChainEndpoint,
 			DecodeGRPCUserToChainRequest,
 			EncodeGRPCUserToChainResponse,
+			serverOptions...,
+		),
+		channelinfo: grpctransport.NewServer(
+			endpoints.ChannelInfoEndpoint,
+			DecodeGRPCChannelInfoRequest,
+			EncodeGRPCChannelInfoResponse,
+			serverOptions...,
+		),
+		pagechanneluser: grpctransport.NewServer(
+			endpoints.PageChannelUserEndpoint,
+			DecodeGRPCPageChannelUserRequest,
+			EncodeGRPCPageChannelUserResponse,
 			serverOptions...,
 		),
 	}
@@ -298,8 +322,12 @@ type grpcServer struct {
 	sharetweeturl        grpctransport.Handler
 	twitterauth          grpctransport.Handler
 	airdroptwitter       grpctransport.Handler
+	airdropchannel       grpctransport.Handler
 	createairdroptwitter grpctransport.Handler
+	createchannelairdrop grpctransport.Handler
 	usertochain          grpctransport.Handler
+	channelinfo          grpctransport.Handler
+	pagechanneluser      grpctransport.Handler
 }
 
 // Methods for grpcServer to implement SocialServer interface
@@ -592,6 +620,14 @@ func (s *grpcServer) AirdropTwitter(ctx context.Context, req *pb.AirdropTwitterR
 	return rep.(*pb.AirdropTwitterResponse), nil
 }
 
+func (s *grpcServer) AirdropChannel(ctx context.Context, req *pb.AirdropChannelRequest) (*pb.AirdropChannelResponse, error) {
+	_, rep, err := s.airdropchannel.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.AirdropChannelResponse), nil
+}
+
 func (s *grpcServer) CreateAirdropTwitter(ctx context.Context, req *pb.CreateAirdropTwitterRequest) (*pb.CreateAirdropTwitterResponse, error) {
 	_, rep, err := s.createairdroptwitter.ServeGRPC(ctx, req)
 	if err != nil {
@@ -600,12 +636,36 @@ func (s *grpcServer) CreateAirdropTwitter(ctx context.Context, req *pb.CreateAir
 	return rep.(*pb.CreateAirdropTwitterResponse), nil
 }
 
+func (s *grpcServer) CreateChannelAirdrop(ctx context.Context, req *pb.CreateChannelAirdropRequest) (*pb.CreateChannelAirdropResponse, error) {
+	_, rep, err := s.createchannelairdrop.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.CreateChannelAirdropResponse), nil
+}
+
 func (s *grpcServer) UserToChain(ctx context.Context, req *pb.UserToChainRequest) (*pb.UserToChainResponse, error) {
 	_, rep, err := s.usertochain.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, err
 	}
 	return rep.(*pb.UserToChainResponse), nil
+}
+
+func (s *grpcServer) ChannelInfo(ctx context.Context, req *pb.ChannelInfoRequest) (*pb.ChannelInfoResponse, error) {
+	_, rep, err := s.channelinfo.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.ChannelInfoResponse), nil
+}
+
+func (s *grpcServer) PageChannelUser(ctx context.Context, req *pb.PageChannelUserRequest) (*pb.PageChannelUserResponse, error) {
+	_, rep, err := s.pagechanneluser.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.PageChannelUserResponse), nil
 }
 
 // Server Decode
@@ -862,6 +922,13 @@ func DecodeGRPCAirdropTwitterRequest(_ context.Context, grpcReq interface{}) (in
 	return req, nil
 }
 
+// DecodeGRPCAirdropChannelRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC airdropchannel request to a user-domain airdropchannel request. Primarily useful in a server.
+func DecodeGRPCAirdropChannelRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.AirdropChannelRequest)
+	return req, nil
+}
+
 // DecodeGRPCCreateAirdropTwitterRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC createairdroptwitter request to a user-domain createairdroptwitter request. Primarily useful in a server.
 func DecodeGRPCCreateAirdropTwitterRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -869,10 +936,31 @@ func DecodeGRPCCreateAirdropTwitterRequest(_ context.Context, grpcReq interface{
 	return req, nil
 }
 
+// DecodeGRPCCreateChannelAirdropRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC createchannelairdrop request to a user-domain createchannelairdrop request. Primarily useful in a server.
+func DecodeGRPCCreateChannelAirdropRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.CreateChannelAirdropRequest)
+	return req, nil
+}
+
 // DecodeGRPCUserToChainRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC usertochain request to a user-domain usertochain request. Primarily useful in a server.
 func DecodeGRPCUserToChainRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.UserToChainRequest)
+	return req, nil
+}
+
+// DecodeGRPCChannelInfoRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC channelinfo request to a user-domain channelinfo request. Primarily useful in a server.
+func DecodeGRPCChannelInfoRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ChannelInfoRequest)
+	return req, nil
+}
+
+// DecodeGRPCPageChannelUserRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC pagechanneluser request to a user-domain pagechanneluser request. Primarily useful in a server.
+func DecodeGRPCPageChannelUserRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.PageChannelUserRequest)
 	return req, nil
 }
 
@@ -1130,6 +1218,13 @@ func EncodeGRPCAirdropTwitterResponse(_ context.Context, response interface{}) (
 	return resp, nil
 }
 
+// EncodeGRPCAirdropChannelResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain airdropchannel response to a gRPC airdropchannel reply. Primarily useful in a server.
+func EncodeGRPCAirdropChannelResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.AirdropChannelResponse)
+	return resp, nil
+}
+
 // EncodeGRPCCreateAirdropTwitterResponse is a transport/grpc.EncodeResponseFunc that converts a
 // user-domain createairdroptwitter response to a gRPC createairdroptwitter reply. Primarily useful in a server.
 func EncodeGRPCCreateAirdropTwitterResponse(_ context.Context, response interface{}) (interface{}, error) {
@@ -1137,10 +1232,31 @@ func EncodeGRPCCreateAirdropTwitterResponse(_ context.Context, response interfac
 	return resp, nil
 }
 
+// EncodeGRPCCreateChannelAirdropResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain createchannelairdrop response to a gRPC createchannelairdrop reply. Primarily useful in a server.
+func EncodeGRPCCreateChannelAirdropResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.CreateChannelAirdropResponse)
+	return resp, nil
+}
+
 // EncodeGRPCUserToChainResponse is a transport/grpc.EncodeResponseFunc that converts a
 // user-domain usertochain response to a gRPC usertochain reply. Primarily useful in a server.
 func EncodeGRPCUserToChainResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.UserToChainResponse)
+	return resp, nil
+}
+
+// EncodeGRPCChannelInfoResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain channelinfo response to a gRPC channelinfo reply. Primarily useful in a server.
+func EncodeGRPCChannelInfoResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.ChannelInfoResponse)
+	return resp, nil
+}
+
+// EncodeGRPCPageChannelUserResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain pagechanneluser response to a gRPC pagechanneluser reply. Primarily useful in a server.
+func EncodeGRPCPageChannelUserResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.PageChannelUserResponse)
 	return resp, nil
 }
 

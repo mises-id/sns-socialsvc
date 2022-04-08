@@ -11,6 +11,8 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
 	airdropSVC "github.com/mises-id/sns-socialsvc/app/services/airdrop"
 	blacklistSVC "github.com/mises-id/sns-socialsvc/app/services/blacklist"
+	channelSVC "github.com/mises-id/sns-socialsvc/app/services/channel_list"
+	channelUserSVC "github.com/mises-id/sns-socialsvc/app/services/channel_user"
 	commentSVC "github.com/mises-id/sns-socialsvc/app/services/comment"
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
 	messageSVC "github.com/mises-id/sns-socialsvc/app/services/message"
@@ -45,7 +47,7 @@ type socialService struct{}
 
 func (s socialService) SignIn(ctx context.Context, in *pb.SignInRequest) (*pb.SignInResponse, error) {
 	var resp pb.SignInResponse
-	jwt, created, err := sessionSVC.SignIn(ctx, in.Auth)
+	jwt, created, err := sessionSVC.SignIn(ctx, in.Auth, in.Referrer)
 	if err != nil {
 		return nil, err
 	}
@@ -704,5 +706,57 @@ func (s socialService) CreateAirdropTwitter(ctx context.Context, in *pb.CreateAi
 func (s socialService) UserToChain(ctx context.Context, in *pb.UserToChainRequest) (*pb.UserToChainResponse, error) {
 	var resp pb.UserToChainResponse
 	sessionSVC.UserToChain(ctx)
+	return &resp, nil
+}
+
+func (s socialService) AirdropChannel(ctx context.Context, in *pb.AirdropChannelRequest) (*pb.AirdropChannelResponse, error) {
+	var resp pb.AirdropChannelResponse
+	channelUserSVC.AirdropChannel(ctx)
+	return &resp, nil
+}
+
+func (s socialService) CreateChannelAirdrop(ctx context.Context, in *pb.CreateChannelAirdropRequest) (*pb.CreateChannelAirdropResponse, error) {
+	var resp pb.CreateChannelAirdropResponse
+	err := channelUserSVC.CretaeChannelAirdrop(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func (s socialService) PageChannelUser(ctx context.Context, in *pb.PageChannelUserRequest) (*pb.PageChannelUserResponse, error) {
+	var resp pb.PageChannelUserResponse
+	channel_users, page, err := channelUserSVC.PageChannelUser(ctx, &channelUserSVC.PageChannelUserInput{
+		Misesid: in.Misesid,
+		PageParams: &pagination.PageQuickParams{
+			Limit:  int64(in.Paginator.Limit),
+			NextID: in.Paginator.NextId,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.ChannelUsers = factory.NewChannelUserListSlice(channel_users)
+	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
+	resp.Paginator = &pb.PageQuick{
+		Limit:  uint64(quickpage.Limit),
+		NextId: quickpage.NextID,
+		Total:  uint64(quickpage.TotalRecords),
+	}
+	return &resp, nil
+}
+
+func (s socialService) ChannelInfo(ctx context.Context, in *pb.ChannelInfoRequest) (*pb.ChannelInfoResponse, error) {
+	var resp pb.ChannelInfoResponse
+	out, err := channelSVC.ChannelInfo(ctx, &channelSVC.ChannelUrlInput{Misesid: in.Misesid})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Url = out.Url
+	resp.PosterUrl = out.PosterUrl
+	resp.AirdropAmount = uint64(out.AirdropAmount)
+	resp.TotalChannelUser = out.TotalChannelUser
 	return &resp, nil
 }

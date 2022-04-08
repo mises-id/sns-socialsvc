@@ -499,6 +499,17 @@ service Social {
       }
     };
   }
+  rpc AirdropChannel (AirdropChannelRequest) returns (AirdropChannelResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/airdrop/channel"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/airdrop/channel/"
+      }
+    };
+  }
   rpc CreateAirdropTwitter (CreateAirdropTwitterRequest) returns (CreateAirdropTwitterResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
@@ -507,6 +518,17 @@ service Social {
       additional_bindings {
         // Trailing slashes are different routes
         get: "/airdrop/create/"
+      }
+    };
+  }
+  rpc CreateChannelAirdrop (CreateChannelAirdropRequest) returns (CreateChannelAirdropResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/channel_airdrop/create"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/channel_airdrop/create/"
       }
     };
   }
@@ -521,10 +543,33 @@ service Social {
       }
     };
   }
+  rpc ChannelInfo (ChannelInfoRequest) returns (ChannelInfoResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/channel/info"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/channel/info/"
+      }
+    };
+  }
+  rpc PageChannelUser (PageChannelUserRequest) returns (PageChannelUserResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/channel_user/page"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/channel_user/page/"
+      }
+    };
+  }
 }
 
 message SignInRequest {
   string auth = 1;
+  string referrer = 2;
 }
 
 message SignInResponse {
@@ -558,6 +603,7 @@ message UserInfo {
   bool is_airdropped = 16;
   bool airdrop_status = 17;
   bool is_logined = 18;
+  string help_misesid = 19;
 }
 
 message FindUserRequest {
@@ -657,6 +703,28 @@ message ListStatusRequest {
 message ListStatusResponse {
   uint64 code = 1;
   repeated StatusInfo statuses = 2;
+  PageQuick paginator = 3;
+}
+message PageChannelUserRequest {
+  string misesid = 1;
+  PageQuick paginator = 2;
+}
+
+message ChannelUserInfo {
+  string id = 1;
+  string channel_id = 2;
+  int32 valid_state = 3;
+  uint64 amount = 4;
+  string tx_id = 5;
+  UserInfo user = 6;
+  int32 airdrop_state = 7;
+  uint64 airdrop_time = 8;
+  uint64 created_at = 9;
+}
+
+message PageChannelUserResponse {
+  uint64 code = 1;
+  repeated ChannelUserInfo channel_users = 2;
   PageQuick paginator = 3;
 }
 message NewListStatusRequest {
@@ -1001,10 +1069,22 @@ message AirdropTwitterRequest {
 message AirdropTwitterResponse {
   
 }
+message AirdropChannelRequest {
+ 
+}
+message AirdropChannelResponse {
+  
+}
 message CreateAirdropTwitterRequest {
   
 }
 message CreateAirdropTwitterResponse {
+  
+}
+message CreateChannelAirdropRequest {
+  
+}
+message CreateChannelAirdropResponse {
   
 }
 message UserToChainRequest {
@@ -1012,4 +1092,15 @@ message UserToChainRequest {
 }
 message UserToChainResponse {
   
+}
+message ChannelInfoRequest {
+  string misesid = 1;
+}
+message ChannelInfoResponse {
+  uint64 code = 1;
+  string url = 2;
+  repeated string poster  = 3;
+  uint64 total_channel_user = 4;
+  uint64 airdrop_amount = 5;
+  string poster_url = 6;
 }

@@ -12,7 +12,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/search"
-	"github.com/mises-id/sns-socialsvc/lib/airdrop"
+	airdropLib "github.com/mises-id/sns-socialsvc/lib/airdrop"
 	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -20,7 +20,6 @@ import (
 var (
 	getListNum              = 20
 	userTwitterAuthMaxIdKey = "user_twiter_auth_max_id"
-	airdropClient           airdrop.IClient
 	airdropStop             chan int
 	airdropDo               bool
 	totalAirdropNum         int
@@ -35,7 +34,7 @@ func AirdropTwitter(ctx context.Context) {
 	airdropStop = make(chan int)
 	airdropDo = true
 	utils.WirteLogDay("./log/airdrop.log")
-	airdropClient.SetListener(&FaucetCallback{ctx})
+	airdropLib.AirdropClient.SetListener(&FaucetCallback{ctx})
 	go airdropTx(ctx)
 	select {
 	case <-airdropStop:
@@ -109,7 +108,7 @@ func airdropRun(ctx context.Context, airdrop *models.Airdrop) error {
 		return errors.New("too many airdrop num")
 	}
 	fmt.Printf("num:%d,misesid:%s,coin:%d\n", totalAirdropNum, airdrop.Misesid, airdrop.Coin)
-	err := airdropClient.RunAsync(airdrop.Misesid, "", airdrop.Coin)
+	err := airdropLib.AirdropClient.RunAsync(airdrop.Misesid, "", airdrop.Coin)
 	if err != nil {
 		fmt.Println("airdrop run error: ", err.Error())
 		return err
@@ -250,6 +249,7 @@ func txGeneratedAfter(ctx context.Context, misesid string, tx_id string) error {
 	return airdrop.UpdateTxID(ctx, tx_id)
 }
 
+//create twitter airdrop
 func CretaeAirdropTwitter(ctx context.Context) {
 
 	utils.WirteLogDay("./log/create_airdrop.log")
@@ -368,8 +368,4 @@ func countAirdropUserTwitterAuth(ctx context.Context) (int64, error) {
 		return c, err
 	}
 	return c, nil
-}
-
-func SetAirdropClient() {
-	airdropClient = airdrop.New()
 }

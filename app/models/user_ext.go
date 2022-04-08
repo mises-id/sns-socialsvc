@@ -29,6 +29,7 @@ type (
 		ID                        primitive.ObjectID         `bson:"_id,omitempty"`
 		UID                       uint64                     `bson:"uid"`
 		AirdropCoin               uint64                     `bson:"airdrop_coin"`
+		ChannelAirdropCoin        uint64                     `bson:"channel_airdrop_coin"`
 		IsLogined                 bool                       `bson:"is_logined"`
 		TwitterAirdrop            bool                       `bson:"twitter_airdrop"`
 		LastViewTime              time.Time                  `bson:"last_view_time"`
@@ -86,6 +87,16 @@ func (m *UserExt) UpdateAirdrop(ctx context.Context) error {
 	update := bson.M{}
 	update["twitter_airdrop"] = true
 	update["airdrop_coin"] = m.AirdropCoin
+	_, err := db.DB().Collection("userexts").UpdateOne(ctx, &bson.M{
+		"uid": m.UID,
+	}, bson.D{{
+		Key:   "$set",
+		Value: update}})
+	return err
+}
+func (m *UserExt) UpdateChannelAirdrop(ctx context.Context) error {
+	update := bson.M{}
+	update["channel_airdrop_coin"] = m.ChannelAirdropCoin
 	_, err := db.DB().Collection("userexts").UpdateOne(ctx, &bson.M{
 		"uid": m.UID,
 	}, bson.D{{
