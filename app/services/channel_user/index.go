@@ -31,10 +31,7 @@ func CreateChannelUser(ctx context.Context, uid uint64, channel_str string) erro
 
 func createChannelUser(ctx context.Context, uid uint64, channel *models.ChannelList) error {
 	channel_id := channel.ID
-	err := models.UpdateUserChannelIDByUID(ctx, uid, channel_id)
-	if err != nil {
-		return err
-	}
+
 	//create channel user
 	channelUser := &models.ChannelUser{
 		ChannelID:      channel.ID,
@@ -43,8 +40,12 @@ func createChannelUser(ctx context.Context, uid uint64, channel *models.ChannelL
 		ValidState:     enum.UserValidDefalut,
 		AirdropState:   enum.ChannelAirdropDefault,
 	}
-	_, err = models.CreateChannelUser(ctx, channelUser)
-	return nil
+	_, err := models.CreateChannelUser(ctx, channelUser)
+	if err != nil && err != models.ChannelUserExist {
+		return err
+	}
+	return models.UpdateUserChannelIDByUID(ctx, uid, channel_id)
+
 }
 
 //page channel user

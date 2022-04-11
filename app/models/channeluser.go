@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -12,6 +13,10 @@ import (
 	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+var (
+	ChannelUserExist = errors.New("channel user exist")
 )
 
 type (
@@ -74,18 +79,18 @@ func ListChannelUser(ctx context.Context, params IAdminParams) ([]*ChannelUser, 
 func (this *ChannelUser) BeforeCreate(ctx context.Context) error {
 	var lc sync.Mutex
 	lc.Lock()
+	defer lc.Unlock()
 	this.ID = primitive.NilObjectID
 	this.CreatedAt = time.Now()
 	query := db.ODM(ctx).Where(bson.M{"uid": this.UID})
 
 	var c int64
 	err := query.Model(this).Count(&c).Error
-	lc.Unlock()
 	if err != nil {
 		return err
 	}
 	if c > 0 {
-		return ChannelExist
+		return ChannelUserExist
 	}
 	return nil
 }
