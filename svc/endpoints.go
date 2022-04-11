@@ -69,8 +69,12 @@ type Endpoints struct {
 	ShareTweetUrlEndpoint        endpoint.Endpoint
 	TwitterAuthEndpoint          endpoint.Endpoint
 	AirdropTwitterEndpoint       endpoint.Endpoint
+	AirdropChannelEndpoint       endpoint.Endpoint
 	CreateAirdropTwitterEndpoint endpoint.Endpoint
+	CreateChannelAirdropEndpoint endpoint.Endpoint
 	UserToChainEndpoint          endpoint.Endpoint
+	ChannelInfoEndpoint          endpoint.Endpoint
+	PageChannelUserEndpoint      endpoint.Endpoint
 }
 
 // Endpoints
@@ -363,6 +367,14 @@ func (e Endpoints) AirdropTwitter(ctx context.Context, in *pb.AirdropTwitterRequ
 	return response.(*pb.AirdropTwitterResponse), nil
 }
 
+func (e Endpoints) AirdropChannel(ctx context.Context, in *pb.AirdropChannelRequest) (*pb.AirdropChannelResponse, error) {
+	response, err := e.AirdropChannelEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.AirdropChannelResponse), nil
+}
+
 func (e Endpoints) CreateAirdropTwitter(ctx context.Context, in *pb.CreateAirdropTwitterRequest) (*pb.CreateAirdropTwitterResponse, error) {
 	response, err := e.CreateAirdropTwitterEndpoint(ctx, in)
 	if err != nil {
@@ -371,12 +383,36 @@ func (e Endpoints) CreateAirdropTwitter(ctx context.Context, in *pb.CreateAirdro
 	return response.(*pb.CreateAirdropTwitterResponse), nil
 }
 
+func (e Endpoints) CreateChannelAirdrop(ctx context.Context, in *pb.CreateChannelAirdropRequest) (*pb.CreateChannelAirdropResponse, error) {
+	response, err := e.CreateChannelAirdropEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.CreateChannelAirdropResponse), nil
+}
+
 func (e Endpoints) UserToChain(ctx context.Context, in *pb.UserToChainRequest) (*pb.UserToChainResponse, error) {
 	response, err := e.UserToChainEndpoint(ctx, in)
 	if err != nil {
 		return nil, err
 	}
 	return response.(*pb.UserToChainResponse), nil
+}
+
+func (e Endpoints) ChannelInfo(ctx context.Context, in *pb.ChannelInfoRequest) (*pb.ChannelInfoResponse, error) {
+	response, err := e.ChannelInfoEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.ChannelInfoResponse), nil
+}
+
+func (e Endpoints) PageChannelUser(ctx context.Context, in *pb.PageChannelUserRequest) (*pb.PageChannelUserResponse, error) {
+	response, err := e.PageChannelUserEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.PageChannelUserResponse), nil
 }
 
 // Make Endpoints
@@ -777,6 +813,17 @@ func MakeAirdropTwitterEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeAirdropChannelEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.AirdropChannelRequest)
+		v, err := s.AirdropChannel(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeCreateAirdropTwitterEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.CreateAirdropTwitterRequest)
@@ -788,10 +835,43 @@ func MakeCreateAirdropTwitterEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeCreateChannelAirdropEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.CreateChannelAirdropRequest)
+		v, err := s.CreateChannelAirdrop(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeUserToChainEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.UserToChainRequest)
 		v, err := s.UserToChain(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeChannelInfoEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ChannelInfoRequest)
+		v, err := s.ChannelInfo(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakePageChannelUserEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.PageChannelUserRequest)
+		v, err := s.PageChannelUser(ctx, req)
 		if err != nil {
 			return nil, err
 		}
@@ -842,8 +922,12 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"ShareTweetUrl":        {},
 		"TwitterAuth":          {},
 		"AirdropTwitter":       {},
+		"AirdropChannel":       {},
 		"CreateAirdropTwitter": {},
+		"CreateChannelAirdrop": {},
 		"UserToChain":          {},
+		"ChannelInfo":          {},
+		"PageChannelUser":      {},
 	}
 
 	for _, ex := range excluded {
@@ -962,11 +1046,23 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "AirdropTwitter" {
 			e.AirdropTwitterEndpoint = middleware(e.AirdropTwitterEndpoint)
 		}
+		if inc == "AirdropChannel" {
+			e.AirdropChannelEndpoint = middleware(e.AirdropChannelEndpoint)
+		}
 		if inc == "CreateAirdropTwitter" {
 			e.CreateAirdropTwitterEndpoint = middleware(e.CreateAirdropTwitterEndpoint)
 		}
+		if inc == "CreateChannelAirdrop" {
+			e.CreateChannelAirdropEndpoint = middleware(e.CreateChannelAirdropEndpoint)
+		}
 		if inc == "UserToChain" {
 			e.UserToChainEndpoint = middleware(e.UserToChainEndpoint)
+		}
+		if inc == "ChannelInfo" {
+			e.ChannelInfoEndpoint = middleware(e.ChannelInfoEndpoint)
+		}
+		if inc == "PageChannelUser" {
+			e.PageChannelUserEndpoint = middleware(e.PageChannelUserEndpoint)
 		}
 	}
 }
@@ -1018,8 +1114,12 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"ShareTweetUrl":        {},
 		"TwitterAuth":          {},
 		"AirdropTwitter":       {},
+		"AirdropChannel":       {},
 		"CreateAirdropTwitter": {},
+		"CreateChannelAirdrop": {},
 		"UserToChain":          {},
+		"ChannelInfo":          {},
+		"PageChannelUser":      {},
 	}
 
 	for _, ex := range excluded {
@@ -1138,11 +1238,23 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		if inc == "AirdropTwitter" {
 			e.AirdropTwitterEndpoint = middleware("AirdropTwitter", e.AirdropTwitterEndpoint)
 		}
+		if inc == "AirdropChannel" {
+			e.AirdropChannelEndpoint = middleware("AirdropChannel", e.AirdropChannelEndpoint)
+		}
 		if inc == "CreateAirdropTwitter" {
 			e.CreateAirdropTwitterEndpoint = middleware("CreateAirdropTwitter", e.CreateAirdropTwitterEndpoint)
 		}
+		if inc == "CreateChannelAirdrop" {
+			e.CreateChannelAirdropEndpoint = middleware("CreateChannelAirdrop", e.CreateChannelAirdropEndpoint)
+		}
 		if inc == "UserToChain" {
 			e.UserToChainEndpoint = middleware("UserToChain", e.UserToChainEndpoint)
+		}
+		if inc == "ChannelInfo" {
+			e.ChannelInfoEndpoint = middleware("ChannelInfo", e.ChannelInfoEndpoint)
+		}
+		if inc == "PageChannelUser" {
+			e.PageChannelUserEndpoint = middleware("PageChannelUser", e.PageChannelUserEndpoint)
 		}
 	}
 }

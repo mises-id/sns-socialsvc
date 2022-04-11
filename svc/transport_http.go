@@ -526,6 +526,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("GET").Path("/airdrop/channel/").Handler(httptransport.NewServer(
+		endpoints.AirdropChannelEndpoint,
+		DecodeHTTPAirdropChannelZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/airdrop/channel").Handler(httptransport.NewServer(
+		endpoints.AirdropChannelEndpoint,
+		DecodeHTTPAirdropChannelOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("GET").Path("/airdrop/create/").Handler(httptransport.NewServer(
 		endpoints.CreateAirdropTwitterEndpoint,
 		DecodeHTTPCreateAirdropTwitterZeroRequest,
@@ -539,6 +552,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("GET").Path("/channel_airdrop/create/").Handler(httptransport.NewServer(
+		endpoints.CreateChannelAirdropEndpoint,
+		DecodeHTTPCreateChannelAirdropZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/channel_airdrop/create").Handler(httptransport.NewServer(
+		endpoints.CreateChannelAirdropEndpoint,
+		DecodeHTTPCreateChannelAirdropOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("GET").Path("/user/to_chain/").Handler(httptransport.NewServer(
 		endpoints.UserToChainEndpoint,
 		DecodeHTTPUserToChainZeroRequest,
@@ -548,6 +574,32 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 	m.Methods("GET").Path("/user/to_chain").Handler(httptransport.NewServer(
 		endpoints.UserToChainEndpoint,
 		DecodeHTTPUserToChainOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/channel/info/").Handler(httptransport.NewServer(
+		endpoints.ChannelInfoEndpoint,
+		DecodeHTTPChannelInfoZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/channel/info").Handler(httptransport.NewServer(
+		endpoints.ChannelInfoEndpoint,
+		DecodeHTTPChannelInfoOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/channel_user/page/").Handler(httptransport.NewServer(
+		endpoints.PageChannelUserEndpoint,
+		DecodeHTTPPageChannelUserZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/channel_user/page").Handler(httptransport.NewServer(
+		endpoints.PageChannelUserEndpoint,
+		DecodeHTTPPageChannelUserOneRequest,
 		responseEncoder,
 		serverOptions...,
 	))
@@ -643,6 +695,12 @@ func DecodeHTTPSignInZeroRequest(_ context.Context, r *http.Request) (interface{
 		req.Auth = AuthSignIn
 	}
 
+	if ReferrerSignInStrArr, ok := queryParams["referrer"]; ok {
+		ReferrerSignInStr := ReferrerSignInStrArr[0]
+		ReferrerSignIn := ReferrerSignInStr
+		req.Referrer = ReferrerSignIn
+	}
+
 	return &req, err
 }
 
@@ -683,6 +741,12 @@ func DecodeHTTPSignInOneRequest(_ context.Context, r *http.Request) (interface{}
 		AuthSignInStr := AuthSignInStrArr[0]
 		AuthSignIn := AuthSignInStr
 		req.Auth = AuthSignIn
+	}
+
+	if ReferrerSignInStrArr, ok := queryParams["referrer"]; ok {
+		ReferrerSignInStr := ReferrerSignInStrArr[0]
+		ReferrerSignIn := ReferrerSignInStr
+		req.Referrer = ReferrerSignIn
 	}
 
 	return &req, err
@@ -4076,6 +4140,78 @@ func DecodeHTTPAirdropTwitterOneRequest(_ context.Context, r *http.Request) (int
 	return &req, err
 }
 
+// DecodeHTTPAirdropChannelZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded airdropchannel request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPAirdropChannelZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.AirdropChannelRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPAirdropChannelOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded airdropchannel request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPAirdropChannelOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.AirdropChannelRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
 // DecodeHTTPCreateAirdropTwitterZeroRequest is a transport/http.DecodeRequestFunc that
 // decodes a JSON-encoded createairdroptwitter request from the HTTP request
 // body. Primarily useful in a server.
@@ -4118,6 +4254,78 @@ func DecodeHTTPCreateAirdropTwitterZeroRequest(_ context.Context, r *http.Reques
 func DecodeHTTPCreateAirdropTwitterOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	defer r.Body.Close()
 	var req pb.CreateAirdropTwitterRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPCreateChannelAirdropZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded createchannelairdrop request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPCreateChannelAirdropZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.CreateChannelAirdropRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPCreateChannelAirdropOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded createchannelairdrop request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPCreateChannelAirdropOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.CreateChannelAirdropRequest
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot read body of http request")
@@ -4216,6 +4424,194 @@ func DecodeHTTPUserToChainOneRequest(_ context.Context, r *http.Request) (interf
 
 	queryParams := r.URL.Query()
 	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPChannelInfoZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded channelinfo request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPChannelInfoZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ChannelInfoRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if MisesidChannelInfoStrArr, ok := queryParams["misesid"]; ok {
+		MisesidChannelInfoStr := MisesidChannelInfoStrArr[0]
+		MisesidChannelInfo := MisesidChannelInfoStr
+		req.Misesid = MisesidChannelInfo
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPChannelInfoOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded channelinfo request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPChannelInfoOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ChannelInfoRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if MisesidChannelInfoStrArr, ok := queryParams["misesid"]; ok {
+		MisesidChannelInfoStr := MisesidChannelInfoStrArr[0]
+		MisesidChannelInfo := MisesidChannelInfoStr
+		req.Misesid = MisesidChannelInfo
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPPageChannelUserZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded pagechanneluser request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPPageChannelUserZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.PageChannelUserRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if MisesidPageChannelUserStrArr, ok := queryParams["misesid"]; ok {
+		MisesidPageChannelUserStr := MisesidPageChannelUserStrArr[0]
+		MisesidPageChannelUser := MisesidPageChannelUserStr
+		req.Misesid = MisesidPageChannelUser
+	}
+
+	if PaginatorPageChannelUserStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorPageChannelUserStr := PaginatorPageChannelUserStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorPageChannelUserStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorPageChannelUser from %v", PaginatorPageChannelUserStr)
+		}
+
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPPageChannelUserOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded pagechanneluser request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPPageChannelUserOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.PageChannelUserRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if MisesidPageChannelUserStrArr, ok := queryParams["misesid"]; ok {
+		MisesidPageChannelUserStr := MisesidPageChannelUserStrArr[0]
+		MisesidPageChannelUser := MisesidPageChannelUserStr
+		req.Misesid = MisesidPageChannelUser
+	}
+
+	if PaginatorPageChannelUserStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorPageChannelUserStr := PaginatorPageChannelUserStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorPageChannelUserStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorPageChannelUser from %v", PaginatorPageChannelUserStr)
+		}
+
+	}
 
 	return &req, err
 }

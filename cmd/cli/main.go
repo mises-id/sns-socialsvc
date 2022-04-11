@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
-	"github.com/mises-id/sns-socialsvc/app/services/airdrop"
 	"github.com/mises-id/sns-socialsvc/app/services/session"
 	_ "github.com/mises-id/sns-socialsvc/config"
+	"github.com/mises-id/sns-socialsvc/lib/airdrop"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	_ "github.com/mises-id/sns-socialsvc/lib/mises"
 

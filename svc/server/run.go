@@ -89,8 +89,12 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		sharetweeturlEndpoint        = svc.MakeShareTweetUrlEndpoint(service)
 		twitterauthEndpoint          = svc.MakeTwitterAuthEndpoint(service)
 		airdroptwitterEndpoint       = svc.MakeAirdropTwitterEndpoint(service)
+		airdropchannelEndpoint       = svc.MakeAirdropChannelEndpoint(service)
 		createairdroptwitterEndpoint = svc.MakeCreateAirdropTwitterEndpoint(service)
+		createchannelairdropEndpoint = svc.MakeCreateChannelAirdropEndpoint(service)
 		usertochainEndpoint          = svc.MakeUserToChainEndpoint(service)
+		channelinfoEndpoint          = svc.MakeChannelInfoEndpoint(service)
+		pagechanneluserEndpoint      = svc.MakePageChannelUserEndpoint(service)
 	)
 
 	endpoints := svc.Endpoints{
@@ -130,8 +134,12 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		ShareTweetUrlEndpoint:        sharetweeturlEndpoint,
 		TwitterAuthEndpoint:          twitterauthEndpoint,
 		AirdropTwitterEndpoint:       airdroptwitterEndpoint,
+		AirdropChannelEndpoint:       airdropchannelEndpoint,
 		CreateAirdropTwitterEndpoint: createairdroptwitterEndpoint,
+		CreateChannelAirdropEndpoint: createchannelairdropEndpoint,
 		UserToChainEndpoint:          usertochainEndpoint,
+		ChannelInfoEndpoint:          channelinfoEndpoint,
+		PageChannelUserEndpoint:      pagechanneluserEndpoint,
 	}
 
 	// Wrap selected Endpoints with middlewares. See handlers/middlewares.go

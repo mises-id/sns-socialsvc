@@ -411,6 +411,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var AirdropChannelZeroEndpoint endpoint.Endpoint
+	{
+		AirdropChannelZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/airdrop/channel/"),
+			EncodeHTTPAirdropChannelZeroRequest,
+			DecodeHTTPAirdropChannelResponse,
+			options...,
+		).Endpoint()
+	}
 	var CreateAirdropTwitterZeroEndpoint endpoint.Endpoint
 	{
 		CreateAirdropTwitterZeroEndpoint = httptransport.NewClient(
@@ -421,6 +431,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var CreateChannelAirdropZeroEndpoint endpoint.Endpoint
+	{
+		CreateChannelAirdropZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/channel_airdrop/create/"),
+			EncodeHTTPCreateChannelAirdropZeroRequest,
+			DecodeHTTPCreateChannelAirdropResponse,
+			options...,
+		).Endpoint()
+	}
 	var UserToChainZeroEndpoint endpoint.Endpoint
 	{
 		UserToChainZeroEndpoint = httptransport.NewClient(
@@ -428,6 +448,26 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			copyURL(u, "/user/to_chain/"),
 			EncodeHTTPUserToChainZeroRequest,
 			DecodeHTTPUserToChainResponse,
+			options...,
+		).Endpoint()
+	}
+	var ChannelInfoZeroEndpoint endpoint.Endpoint
+	{
+		ChannelInfoZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/channel/info/"),
+			EncodeHTTPChannelInfoZeroRequest,
+			DecodeHTTPChannelInfoResponse,
+			options...,
+		).Endpoint()
+	}
+	var PageChannelUserZeroEndpoint endpoint.Endpoint
+	{
+		PageChannelUserZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/channel_user/page/"),
+			EncodeHTTPPageChannelUserZeroRequest,
+			DecodeHTTPPageChannelUserResponse,
 			options...,
 		).Endpoint()
 	}
@@ -469,8 +509,12 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		ShareTweetUrlEndpoint:        ShareTweetUrlZeroEndpoint,
 		TwitterAuthEndpoint:          TwitterAuthZeroEndpoint,
 		AirdropTwitterEndpoint:       AirdropTwitterZeroEndpoint,
+		AirdropChannelEndpoint:       AirdropChannelZeroEndpoint,
 		CreateAirdropTwitterEndpoint: CreateAirdropTwitterZeroEndpoint,
+		CreateChannelAirdropEndpoint: CreateChannelAirdropZeroEndpoint,
 		UserToChainEndpoint:          UserToChainZeroEndpoint,
+		ChannelInfoEndpoint:          ChannelInfoZeroEndpoint,
+		PageChannelUserEndpoint:      PageChannelUserZeroEndpoint,
 	}, nil
 }
 
@@ -1469,6 +1513,33 @@ func DecodeHTTPAirdropTwitterResponse(_ context.Context, r *http.Response) (inte
 	return &resp, nil
 }
 
+// DecodeHTTPAirdropChannelResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded AirdropChannelResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPAirdropChannelResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.AirdropChannelResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
 // DecodeHTTPCreateAirdropTwitterResponse is a transport/http.DecodeResponseFunc that decodes
 // a JSON-encoded CreateAirdropTwitterResponse response from the HTTP response body.
 // If the response has a non-200 status code, we will interpret that as an
@@ -1496,6 +1567,33 @@ func DecodeHTTPCreateAirdropTwitterResponse(_ context.Context, r *http.Response)
 	return &resp, nil
 }
 
+// DecodeHTTPCreateChannelAirdropResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded CreateChannelAirdropResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPCreateChannelAirdropResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.CreateChannelAirdropResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
 // DecodeHTTPUserToChainResponse is a transport/http.DecodeResponseFunc that decodes
 // a JSON-encoded UserToChainResponse response from the HTTP response body.
 // If the response has a non-200 status code, we will interpret that as an
@@ -1516,6 +1614,60 @@ func DecodeHTTPUserToChainResponse(_ context.Context, r *http.Response) (interfa
 	}
 
 	var resp pb.UserToChainResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPChannelInfoResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded ChannelInfoResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPChannelInfoResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.ChannelInfoResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPPageChannelUserResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded PageChannelUserResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPPageChannelUserResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.PageChannelUserResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -1557,6 +1709,8 @@ func EncodeHTTPSignInZeroRequest(_ context.Context, r *http.Request, request int
 
 	values.Add("auth", fmt.Sprint(req.Auth))
 
+	values.Add("referrer", fmt.Sprint(req.Referrer))
+
 	r.URL.RawQuery = values.Encode()
 	return nil
 }
@@ -1591,6 +1745,8 @@ func EncodeHTTPSignInOneRequest(_ context.Context, r *http.Request, request inte
 	_ = tmp
 
 	values.Add("auth", fmt.Sprint(req.Auth))
+
+	values.Add("referrer", fmt.Sprint(req.Referrer))
 
 	r.URL.RawQuery = values.Encode()
 	return nil
@@ -4823,6 +4979,75 @@ func EncodeHTTPAirdropTwitterOneRequest(_ context.Context, r *http.Request, requ
 	return nil
 }
 
+// EncodeHTTPAirdropChannelZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a airdropchannel request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPAirdropChannelZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.AirdropChannelRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"airdrop",
+		"channel",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPAirdropChannelOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a airdropchannel request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPAirdropChannelOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.AirdropChannelRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"airdrop",
+		"channel",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
 // EncodeHTTPCreateAirdropTwitterZeroRequest is a transport/http.EncodeRequestFunc
 // that encodes a createairdroptwitter request into the various portions of
 // the http request (path, query, and body).
@@ -4874,6 +5099,75 @@ func EncodeHTTPCreateAirdropTwitterOneRequest(_ context.Context, r *http.Request
 	path := strings.Join([]string{
 		"",
 		"airdrop",
+		"create",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPCreateChannelAirdropZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a createchannelairdrop request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPCreateChannelAirdropZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.CreateChannelAirdropRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"channel_airdrop",
+		"create",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPCreateChannelAirdropOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a createchannelairdrop request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPCreateChannelAirdropOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.CreateChannelAirdropRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"channel_airdrop",
 		"create",
 	}, "/")
 	u, err := url.Parse(path)
@@ -4956,6 +5250,166 @@ func EncodeHTTPUserToChainOneRequest(_ context.Context, r *http.Request, request
 	values := r.URL.Query()
 	var tmp []byte
 	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPChannelInfoZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a channelinfo request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPChannelInfoZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ChannelInfoRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"channel",
+		"info",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("misesid", fmt.Sprint(req.Misesid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPChannelInfoOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a channelinfo request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPChannelInfoOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ChannelInfoRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"channel",
+		"info",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("misesid", fmt.Sprint(req.Misesid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPPageChannelUserZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a pagechanneluser request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPPageChannelUserZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.PageChannelUserRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"channel_user",
+		"page",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("misesid", fmt.Sprint(req.Misesid))
+
+	tmp, err = json.Marshal(req.Paginator)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.Paginator")
+	}
+	strval = string(tmp)
+	values.Add("paginator", strval)
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPPageChannelUserOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a pagechanneluser request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPPageChannelUserOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.PageChannelUserRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"channel_user",
+		"page",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("misesid", fmt.Sprint(req.Misesid))
+
+	tmp, err = json.Marshal(req.Paginator)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.Paginator")
+	}
+	strval = string(tmp)
+	values.Add("paginator", strval)
 
 	r.URL.RawQuery = values.Encode()
 	return nil

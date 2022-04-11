@@ -31,6 +31,7 @@ func NewUserInfo(user *models.User) *pb.UserInfo {
 		LikedCount:      user.LikedCount,
 		NewFansCount:    user.NewFansCount,
 		IsLogined:       user.IsLogined,
+		HelpMisesid:     user.Misesid,
 	}
 	return &userinfo
 }
@@ -283,6 +284,23 @@ func NewBlacklistSlice(blacklists []*models.Blacklist) []*pb.Blacklist {
 		result[i] = &pb.Blacklist{
 			User:      NewUserInfo(blacklist.TargetUser),
 			CreatedAt: uint64(blacklist.CreatedAt.Unix()),
+		}
+	}
+	return result
+}
+func NewChannelUserListSlice(channel_users []*models.ChannelUser) []*pb.ChannelUserInfo {
+	result := make([]*pb.ChannelUserInfo, len(channel_users))
+	for i, channel_user := range channel_users {
+		result[i] = &pb.ChannelUserInfo{
+			Id:           channel_user.ID.Hex(),
+			ChannelId:    channel_user.ChannelID.Hex(),
+			ValidState:   int32(channel_user.ValidState),
+			Amount:       uint64(channel_user.Amount),
+			TxId:         channel_user.TxID,
+			User:         NewUserInfo(channel_user.User),
+			AirdropState: int32(channel_user.AirdropState),
+			AirdropTime:  uint64(channel_user.AirdropTime.Unix()),
+			CreatedAt:    uint64(channel_user.CreatedAt.Unix()),
 		}
 	}
 	return result

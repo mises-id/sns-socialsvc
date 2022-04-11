@@ -34,6 +34,7 @@ type Env struct {
 	DebugAirdropPrefix          string        `env:"DEBUG_AIRDROP_PREFIX" envDefault:""`
 	GOTWI_API_KEY               string        `env:"GOTWI_API_KEY" envDefault:""`
 	GOTWI_API_KEY_SECRET        string        `env:"GOTWI_API_KEY_SECRET" envDefault:""`
+	GooglePlayAppID             string        `env:"GOOGLE_PLAY_APPID" envDefault:""`
 	TWEET_TAG                   string        `env:"TWEET_TAG"`
 	VALID_TWITTER_REGISTER_DATE string        `env:"VALID_TWITTER_REGISTER_DATE"`
 	RootPath                    string
