@@ -151,9 +151,9 @@ func (m *ChannelUser) UpdateStatusSuccess(ctx context.Context) error {
 	return err
 }
 
-func (m *ChannelUser) UpdateCreateAirdrop(ctx context.Context, amount int64) error {
+func (m *ChannelUser) UpdateCreateAirdrop(ctx context.Context, valid_state enum.UserValidState, amount int64) error {
 	update := bson.M{}
-	update["valid_state"] = enum.UserValidSucessed
+	update["valid_state"] = valid_state
 	update["amount"] = amount
 	update["valid_time"] = time.Now()
 	_, err := db.DB().Collection("channelusers").UpdateOne(ctx, &bson.M{

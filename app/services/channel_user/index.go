@@ -26,6 +26,9 @@ func CreateChannelUser(ctx context.Context, uid uint64, channel_str string) erro
 		return err
 	}
 	channel, err := models.FindChannelListByID(ctx, channel_id)
+	if err != nil {
+		return err
+	}
 	return createChannelUser(ctx, uid, channel)
 }
 

@@ -12,6 +12,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/search"
+	"github.com/mises-id/sns-socialsvc/app/services/user_twitter"
 	airdropLib "github.com/mises-id/sns-socialsvc/lib/airdrop"
 	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -285,16 +286,18 @@ func createdTwitterAirdrop(ctx context.Context) error {
 	}
 	airdrops := make([]*models.Airdrop, 0)
 	for _, v := range userTwitterAuthList {
-		airdrop := &models.Airdrop{
-			UID:       v.UID,
-			Misesid:   v.Misesid,
-			Status:    enum.AirdropDefault,
-			Type:      enum.AirdropTwitter,
-			Coin:      getTwitterAirdropCoin(ctx, v),
-			TxID:      "",
-			CreatedAt: time.Now(),
+		if user_twitter.IsValidTwitterUser(v.TwitterUser) {
+			airdrop := &models.Airdrop{
+				UID:       v.UID,
+				Misesid:   v.Misesid,
+				Status:    enum.AirdropDefault,
+				Type:      enum.AirdropTwitter,
+				Coin:      getTwitterAirdropCoin(ctx, v),
+				TxID:      "",
+				CreatedAt: time.Now(),
+			}
+			airdrops = append(airdrops, airdrop)
 		}
-		airdrops = append(airdrops, airdrop)
 	}
 	err1 := models.CreateAirdropMany(ctx, airdrops)
 	if err1 != nil {
