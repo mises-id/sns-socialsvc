@@ -18,7 +18,7 @@ func UMisesToMises(umises uint64) (mises float64) {
 	if umises == 0 {
 		return mises
 	}
-	mises = float64(umises / 1000000)
+	mises = float64(umises) / float64(1000000)
 	return mises
 
 }

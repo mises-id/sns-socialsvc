@@ -23,6 +23,7 @@ type (
 	ChannelUser struct {
 		ID             primitive.ObjectID       `bson:"_id,omitempty"`
 		ChannelID      primitive.ObjectID       `bson:"channel_id"`
+		ChannelUID     uint64                   `bson:"channel_uid"`
 		ChannelMisesid string                   `bson:"channel_misesid"`
 		UID            uint64                   `bson:"uid"`
 		ValidState     enum.UserValidState      `bson:"valid_state"`   //default  success failed

@@ -1101,6 +1101,6 @@ message ChannelInfoResponse {
   string url = 2;
   repeated string poster  = 3;
   uint64 total_channel_user = 4;
-  uint64 airdrop_amount = 5;
+  float airdrop_amount = 5;
   string poster_url = 6;
 }

@@ -31,7 +31,7 @@ type (
 
 //airdrop channel
 func AirdropChannel(ctx context.Context) {
-	totalAirdropNum = 10000
+	totalAirdropNum = 10
 	airdropStop = make(chan int)
 	airdropDo = true
 	utils.WirteLogDay("./log/airdrop_channel.log")
@@ -185,7 +185,7 @@ func successAfter(ctx context.Context, id primitive.ObjectID) error {
 		return err
 	}
 	//update user airdrop coin
-	if err = updateUserAirdrop(ctx, channel_user.UID, channel_user.Amount); err != nil {
+	if err = updateUserAirdrop(ctx, channel_user.ChannelUID, channel_user.Amount); err != nil {
 		fmt.Println("channel airdrop success update user ext error: ", err.Error())
 		return err
 	}
