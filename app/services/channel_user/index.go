@@ -36,6 +36,7 @@ func createChannelUser(ctx context.Context, uid uint64, channel *models.ChannelL
 	channelUser := &models.ChannelUser{
 		ChannelID:      channel.ID,
 		ChannelMisesid: channel.Misesid,
+		ChannelUID:     channel.UID,
 		UID:            uid,
 		ValidState:     enum.UserValidDefalut,
 		AirdropState:   enum.ChannelAirdropDefault,

@@ -756,7 +756,7 @@ func (s socialService) ChannelInfo(ctx context.Context, in *pb.ChannelInfoReques
 	resp.Code = 0
 	resp.Url = out.Url
 	resp.PosterUrl = out.PosterUrl
-	resp.AirdropAmount = uint64(out.AirdropAmount)
+	resp.AirdropAmount = float32(out.AirdropAmount)
 	resp.TotalChannelUser = out.TotalChannelUser
 	return &resp, nil
 }
