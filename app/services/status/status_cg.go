@@ -175,6 +175,11 @@ func findListFollowing2Status(ctx context.Context, uid uint64, num int64) ([]*mo
 	if err == nil && len(blackUids) > 0 {
 		params.NInUIDs = append(params.NInUIDs, blackUids...)
 	}
+	//TODO filter problem user
+	problemUserUids, err := getProblemUserUids(ctx)
+	if err == nil && len(problemUserUids) > 0 {
+		params.NInUIDs = append(params.NInUIDs, problemUserUids...)
+	}
 	//filter login user
 	params.NInUIDs = append(params.NInUIDs, uid)
 	status_list, err := models.NewListStatus(ctx, params)
@@ -270,11 +275,6 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 	} else {
 		return []*models.Status{}, nil
 	}
-	//TODO filter problem user
-	/* problemUserUids, err := getProblemUserUids(ctx)
-	if err == nil && len(problemUserUids) > 0 {
-		params.NInUIDs = append(params.NInUIDs, problemUserUids...)
-	} */
 	//login user
 	if uid > 0 {
 		uids, err := findUserFollowing2Uids(ctx, uid)

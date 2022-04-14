@@ -3,6 +3,7 @@ package admin
 import (
 	"context"
 	"errors"
+	"strconv"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
@@ -110,7 +111,7 @@ func (a *userApi) CreateTag(ctx context.Context, uid uint64, in *CreateUserTagIn
 	}
 	params := &models.CreateTagParams{
 		TagType:     tag,
-		TagableID:   string(rune(uid)),
+		TagableID:   strconv.Itoa(int(uid)),
 		TagableType: enum.TagableUser,
 		Note:        in.Note,
 	}
@@ -119,7 +120,7 @@ func (a *userApi) CreateTag(ctx context.Context, uid uint64, in *CreateUserTagIn
 		return nil, err
 	}
 	//delete
-	if err := models.DeleteTagsByTagtypes(ctx, string(rune(uid)), enum.TagableUser, deleteTags...); err != nil {
+	if err := models.DeleteTagsByTagtypes(ctx, strconv.Itoa(int(uid)), enum.TagableUser, deleteTags...); err != nil {
 		return nil, err
 	}
 	return &UserTag{nil, tag_data}, nil
@@ -145,7 +146,7 @@ func (a *userApi) DeleteTag(ctx context.Context, uid uint64, tagArr ...enum.TagT
 	if err := models.UpdateUserTag(ctx, user); err != nil {
 		return nil, err
 	}
-	err := models.DeleteTagsByTagtypes(ctx, string(rune(uid)), enum.TagableUser, tagArr...)
+	err := models.DeleteTagsByTagtypes(ctx, strconv.Itoa(int(uid)), enum.TagableUser, tagArr...)
 	if err != nil {
 		return nil, err
 	}
