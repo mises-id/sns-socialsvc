@@ -25,10 +25,11 @@ type (
 	ChannelUrlInput struct {
 		Misesid string
 		Type    string
+		Medium  string
 	}
 	ChannelUrlOutput struct {
 		Url              string
-		PosterUrl        string
+		MediumUrl        string
 		TotalChannelUser uint64
 		AirdropAmount    float64 //mises
 	}
@@ -54,9 +55,11 @@ func ChannelInfo(ctx context.Context, in *ChannelUrlInput) (*ChannelUrlOutput, e
 	if channel == nil {
 		return out, codes.ErrInvalidArgument.Newf(err.Error())
 	}
-	url := getChannelUrl(ctx, channel)
+	url := getChannelUrl(ctx, channel, "")
 	out.Url = url
-	out.PosterUrl = getChannelPosterUrl(ctx, channel)
+	if in.Medium != "" {
+		out.MediumUrl = getChannelUrl(ctx, channel, in.Medium)
+	}
 	if in.Type != "url" {
 		out.TotalChannelUser = countChannelTotalUser(ctx, channel.ID)
 		out.AirdropAmount = getChannelAirdropAmount(ctx, channel.UID)
@@ -92,17 +95,13 @@ func countChannelTotalUser(ctx context.Context, channel_id primitive.ObjectID) u
 }
 
 //get channel url
-func getChannelUrl(ctx context.Context, ch *models.ChannelList) string {
+func getChannelUrl(ctx context.Context, ch *models.ChannelList, medium string) string {
 
 	appid := env.Envs.GooglePlayAppID
 	referrer := "utm_source=" + utils.AddChannelUrlProfix(ch.ID.Hex())
-	googlePlay := googlePlayUrl + appid + "&referrer=" + url.QueryEscape(referrer)
-	return playAppUrl + url.QueryEscape(googlePlay)
-}
-func getChannelPosterUrl(ctx context.Context, ch *models.ChannelList) string {
-
-	appid := env.Envs.GooglePlayAppID
-	referrer := "utm_source=" + utils.AddChannelUrlProfix(ch.ID.Hex()) + "&utm_medium=poster"
+	if medium != "" {
+		referrer += "&utm_medium=poster"
+	}
 	googlePlay := googlePlayUrl + appid + "&referrer=" + url.QueryEscape(referrer)
 	return playAppUrl + url.QueryEscape(googlePlay)
 }

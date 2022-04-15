@@ -4473,6 +4473,12 @@ func DecodeHTTPChannelInfoZeroRequest(_ context.Context, r *http.Request) (inter
 		req.Type = TypeChannelInfo
 	}
 
+	if MediumChannelInfoStrArr, ok := queryParams["medium"]; ok {
+		MediumChannelInfoStr := MediumChannelInfoStrArr[0]
+		MediumChannelInfo := MediumChannelInfoStr
+		req.Medium = MediumChannelInfo
+	}
+
 	return &req, err
 }
 
@@ -4519,6 +4525,12 @@ func DecodeHTTPChannelInfoOneRequest(_ context.Context, r *http.Request) (interf
 		TypeChannelInfoStr := TypeChannelInfoStrArr[0]
 		TypeChannelInfo := TypeChannelInfoStr
 		req.Type = TypeChannelInfo
+	}
+
+	if MediumChannelInfoStrArr, ok := queryParams["medium"]; ok {
+		MediumChannelInfoStr := MediumChannelInfoStrArr[0]
+		MediumChannelInfo := MediumChannelInfoStr
+		req.Medium = MediumChannelInfo
 	}
 
 	return &req, err

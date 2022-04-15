@@ -5290,6 +5290,8 @@ func EncodeHTTPChannelInfoZeroRequest(_ context.Context, r *http.Request, reques
 
 	values.Add("type", fmt.Sprint(req.Type))
 
+	values.Add("medium", fmt.Sprint(req.Medium))
+
 	r.URL.RawQuery = values.Encode()
 	return nil
 }
@@ -5327,6 +5329,8 @@ func EncodeHTTPChannelInfoOneRequest(_ context.Context, r *http.Request, request
 	values.Add("misesid", fmt.Sprint(req.Misesid))
 
 	values.Add("type", fmt.Sprint(req.Type))
+
+	values.Add("medium", fmt.Sprint(req.Medium))
 
 	r.URL.RawQuery = values.Encode()
 	return nil
