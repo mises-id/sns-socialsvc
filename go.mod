@@ -7,7 +7,6 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/go-kit/kit v0.12.0
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/go-redis/redis/v8 v8.11.5
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang-jwt/jwt/v4 v4.2.0
 	github.com/google/go-github/v33 v33.0.0
@@ -57,6 +56,7 @@ require (
 	github.com/go-logfmt/logfmt v0.5.1 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
+	github.com/go-redis/redis/v8 v8.11.5
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -146,4 +146,4 @@ replace github.com/tendermint/tendermint => github.com/mises-id/tendermint v0.34
 
 replace github.com/michimani/gotwi => github.com/mises-id/gotwi v0.0.0-20220308010653-907d3f6f05d3
 
-
+replace github.com/go-redis/redis/v8 => github.com/mises-id/redis/v8 v8.11.6-0.20220412060519-ab8472510a62

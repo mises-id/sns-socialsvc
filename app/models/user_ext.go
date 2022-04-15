@@ -36,6 +36,7 @@ type (
 		RecommendStatusPoolCursor *RecommendStatusPoolCursor `bson:"recommend_status_pool_cursor"`
 		Following2PoolCursor      *Following2PoolCursor      `bson:"following2_cursor"`
 		CommonPoolCursor          *CommonPoolCursor          `bson:"common_cursor"`
+		Referrer                  string                     `bson:"referrer"`
 		CreatedAt                 time.Time                  `bson:"created_at,omitempty"`
 		UpdatedAt                 time.Time                  `bson:"updated_at,omitempty"`
 	}
@@ -107,6 +108,25 @@ func (m *UserExt) UpdateChannelAirdrop(ctx context.Context) error {
 func (m *UserExt) updateIsLogin(ctx context.Context) error {
 	update := bson.M{}
 	update["is_logined"] = true
+	_, err := db.DB().Collection("userexts").UpdateOne(ctx, &bson.M{
+		"uid": m.UID,
+	}, bson.D{{
+		Key:   "$set",
+		Value: update}})
+	return err
+}
+
+func InsertReferrer(ctx context.Context, uid uint64, referrer string) error {
+	user_ext, err := FindOrCreateUserExt(ctx, uid)
+	if err != nil {
+		return err
+	}
+	return user_ext.updateReferrer(ctx, referrer)
+}
+
+func (m *UserExt) updateReferrer(ctx context.Context, referrer string) error {
+	update := bson.M{}
+	update["referrer"] = referrer
 	_, err := db.DB().Collection("userexts").UpdateOne(ctx, &bson.M{
 		"uid": m.UID,
 	}, bson.D{{

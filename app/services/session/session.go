@@ -44,6 +44,10 @@ func SignIn(ctx context.Context, auth, referrer string) (string, bool, error) {
 	}
 	//referrer not empty
 	if referrer != "" && user.ChannelID.IsZero() && (user.CreatedAt.Unix()+24*60*60-time.Now().UTC().Unix()) > 0 {
+		err := models.InsertReferrer(ctx, user.UID, referrer)
+		if err != nil {
+			fmt.Println("insert referrer error: ", err.Error())
+		}
 		ref, err := handleReferrer(referrer)
 		if err != nil {
 			fmt.Printf("uid[%d], referrer[%s], error:%s\n ", user.UID, referrer, err.Error())

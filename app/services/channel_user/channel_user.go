@@ -10,6 +10,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/search"
+	"github.com/mises-id/sns-socialsvc/app/services/user_twitter"
 	airdropLib "github.com/mises-id/sns-socialsvc/lib/airdrop"
 	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -309,8 +310,17 @@ func createdChannelAirdrop(ctx context.Context) error {
 	}
 	if len(channel_users) > 0 {
 		for _, channel_user := range channel_users {
-			amount := getChannelAirdropCoin(ctx, userTwitterAuthMap[channel_user.UID])
-			err := channel_user.UpdateCreateAirdrop(ctx, amount)
+			var amount int64
+			var valid_state enum.UserValidState
+			valid_state = enum.UserValidFailed
+			//valid twitter register time
+			twitter_user := userTwitterAuthMap[channel_user.UID]
+			is_valid := user_twitter.IsValidTwitterUser(twitter_user.TwitterUser)
+			if is_valid {
+				amount = getChannelAirdropCoin(ctx, twitter_user)
+				valid_state = enum.UserValidSucessed
+			}
+			err := channel_user.UpdateCreateAirdrop(ctx, valid_state, amount)
 			if err != nil {
 				fmt.Printf("uid[%d], update create airdrop error:%s \n", channel_user.UID, err.Error())
 				return err
@@ -329,7 +339,7 @@ func createdChannelAirdrop(ctx context.Context) error {
 func getNotAuthChannelUserByUIDs(ctx context.Context, uids ...uint64) ([]*models.ChannelUser, error) {
 	params := &search.ChannelUserSearch{
 		UIDs:        uids,
-		ValidStates: []enum.UserValidState{enum.UserValidDefalut},
+		ValidStates: []enum.UserValidState{enum.UserValidDefalut, enum.UserValidFailed},
 	}
 	return models.ListChannelUser(ctx, params)
 }

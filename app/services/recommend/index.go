@@ -1,22 +1,20 @@
 package recommend
 
 import (
-	"strings"
+	"context"
 
-	"github.com/go-redis/redis/v8"
-	redislib "github.com/mises-id/sns-socialsvc/lib/redis"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-var (
-	cacheSep    = ":"
-	redisClient *redis.Client
-	cacheKeyPre = "mises-sns"
-)
+func ListStatus(ctx context.Context, uid uint64, num int) ([]primitive.ObjectID, error) {
 
-func init() {
-	redisClient = redislib.Client()
+	return listStatus(ctx, uid, num)
+
 }
 
-func getCacheKey(keys ...string) string {
-	return cacheKeyPre + cacheSep + strings.Join(keys, cacheSep)
+func listStatus(ctx context.Context, uid uint64, num int) ([]primitive.ObjectID, error) {
+
+	//find recommend status
+	return nil, nil
+
 }

@@ -15,7 +15,6 @@ import (
 	"github.com/michimani/gotwi/tweets/types"
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/config/env"
-	"github.com/mises-id/sns-socialsvc/lib/utils"
 )
 
 var (
@@ -41,7 +40,6 @@ func init() {
 }
 
 func TwitterAuth(ctx context.Context) {
-	utils.WirteLogDay("./log/get_twitter.log")
 	if !models.GetAirdropStatus(ctx) {
 		fmt.Println("airdrop status end")
 		return
@@ -68,7 +66,6 @@ func TwitterAuth(ctx context.Context) {
 	//endTime := time.Date(dateNow.Year(), dateNow.Month(), dateNow.Day(), 23, 59, 59, 0, dateNow.Location())
 	sh, _ := time.ParseDuration("-6h")
 	startTime := time.Now().UTC().Add(sh)
-	fmt.Println("search tweet start time: ", startTime.String())
 	tweetIn := &TweetsIn{
 		Query:     tweeTtag,
 		StartTime: &startTime,
@@ -185,20 +182,23 @@ func twitterAuth(ctx context.Context, tweets *types.SearchTweetsRecentResponse) 
 }
 
 func checkMisesidOrTwitterUserIdIsExists(misesid string, twitter_user *models.TwitterUser, existUserTwitterAuths []*models.UserTwitterAuth) bool {
-	timeFormat := "2006-01-02"
-	st, _ := time.Parse(timeFormat, validRegisterDate)
-	vt := st.Unix()
-	twitterUserCreatedAt := twitter_user.CreatedAt.Unix()
-	//valid twitter register time
-	if vt < twitterUserCreatedAt {
-		return true
-	}
 	for _, exists := range existUserTwitterAuths {
-		if misesid == exists.Misesid || twitter_user.TwitterUserId == exists.TwitterUserId {
+		if (misesid == exists.Misesid && IsValidTwitterUser(exists.TwitterUser)) || twitter_user.TwitterUserId == exists.TwitterUserId {
 			return true
 		}
 	}
 	return false
+}
+
+func IsValidTwitterUser(twitter_user *models.TwitterUser) (is_valid bool) {
+	timeFormat := "2006-01-02"
+	st, _ := time.Parse(timeFormat, validRegisterDate)
+	vt := st.Unix()
+	twitterUserCreatedAt := twitter_user.CreatedAt.Unix()
+	if vt >= twitterUserCreatedAt {
+		is_valid = true
+	}
+	return is_valid
 }
 
 func getMisesIdByTweetText(text string) (string, error) {
