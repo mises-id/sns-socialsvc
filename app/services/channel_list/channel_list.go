@@ -24,6 +24,7 @@ var (
 type (
 	ChannelUrlInput struct {
 		Misesid string
+		Type    string
 	}
 	ChannelUrlOutput struct {
 		Url              string
@@ -56,8 +57,10 @@ func ChannelInfo(ctx context.Context, in *ChannelUrlInput) (*ChannelUrlOutput, e
 	url := getChannelUrl(ctx, channel)
 	out.Url = url
 	out.PosterUrl = getChannelPosterUrl(ctx, channel)
-	out.TotalChannelUser = countChannelTotalUser(ctx, channel.ID)
-	out.AirdropAmount = getChannelAirdropAmount(ctx, channel.UID)
+	if in.Type != "url" {
+		out.TotalChannelUser = countChannelTotalUser(ctx, channel.ID)
+		out.AirdropAmount = getChannelAirdropAmount(ctx, channel.UID)
+	}
 	return out, nil
 }
 
