@@ -749,13 +749,13 @@ func (s socialService) PageChannelUser(ctx context.Context, in *pb.PageChannelUs
 
 func (s socialService) ChannelInfo(ctx context.Context, in *pb.ChannelInfoRequest) (*pb.ChannelInfoResponse, error) {
 	var resp pb.ChannelInfoResponse
-	out, err := channelSVC.ChannelInfo(ctx, &channelSVC.ChannelUrlInput{Misesid: in.Misesid, Type: in.Type})
+	out, err := channelSVC.ChannelInfo(ctx, &channelSVC.ChannelUrlInput{Misesid: in.Misesid, Type: in.Type, Medium: in.Medium})
 	if err != nil {
 		return nil, err
 	}
 	resp.Code = 0
 	resp.Url = out.Url
-	resp.PosterUrl = out.PosterUrl
+	resp.MediumUrl = out.MediumUrl
 	resp.AirdropAmount = float32(out.AirdropAmount)
 	resp.TotalChannelUser = out.TotalChannelUser
 	return &resp, nil
