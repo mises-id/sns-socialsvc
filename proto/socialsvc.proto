@@ -1101,8 +1101,7 @@ message ChannelInfoRequest {
 message ChannelInfoResponse {
   uint64 code = 1;
   string url = 2;
-  repeated string poster  = 3;
-  uint64 total_channel_user = 4;
-  float airdrop_amount = 5;
-  string medium_url = 6;
+  uint64 total_channel_user = 3;
+  float airdrop_amount = 4;
+  string medium_url = 5;
 }
