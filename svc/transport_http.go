@@ -4467,6 +4467,12 @@ func DecodeHTTPChannelInfoZeroRequest(_ context.Context, r *http.Request) (inter
 		req.Misesid = MisesidChannelInfo
 	}
 
+	if TypeChannelInfoStrArr, ok := queryParams["type"]; ok {
+		TypeChannelInfoStr := TypeChannelInfoStrArr[0]
+		TypeChannelInfo := TypeChannelInfoStr
+		req.Type = TypeChannelInfo
+	}
+
 	return &req, err
 }
 
@@ -4507,6 +4513,12 @@ func DecodeHTTPChannelInfoOneRequest(_ context.Context, r *http.Request) (interf
 		MisesidChannelInfoStr := MisesidChannelInfoStrArr[0]
 		MisesidChannelInfo := MisesidChannelInfoStr
 		req.Misesid = MisesidChannelInfo
+	}
+
+	if TypeChannelInfoStrArr, ok := queryParams["type"]; ok {
+		TypeChannelInfoStr := TypeChannelInfoStrArr[0]
+		TypeChannelInfo := TypeChannelInfoStr
+		req.Type = TypeChannelInfo
 	}
 
 	return &req, err

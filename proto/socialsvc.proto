@@ -1095,6 +1095,7 @@ message UserToChainResponse {
 }
 message ChannelInfoRequest {
   string misesid = 1;
+  string type = 2;
 }
 message ChannelInfoResponse {
   uint64 code = 1;

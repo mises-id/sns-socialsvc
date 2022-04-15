@@ -37,7 +37,6 @@ func (c Client) RunAsync(uid string, pubkey string, coin int64, opts ...Options)
 	for _, opt := range opts {
 		appcmd = opt(appcmd)
 	}
-	fmt.Println("trackid", appcmd.TrackID())
 	return c.app.RunAsync(appcmd, false)
 }
 func (c Client) SetTrackID(id string) Options {

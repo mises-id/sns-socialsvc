@@ -32,6 +32,12 @@ type (
 		NextToken  string
 		MaxResults int
 	}
+	misesTweet struct {
+		AuthorID  string
+		TweetID   string
+		TweetText string
+		CreatedAt time.Time
+	}
 )
 
 func init() {
@@ -44,11 +50,11 @@ func TwitterAuth(ctx context.Context) {
 		fmt.Println("airdrop status end")
 		return
 	}
-	/* proxy := func(_ *http.Request) (*url.URL, error) {
-		return url.Parse("http://127.0.0.1:1087")
-	}
-	transport := &http.Transport{Proxy: proxy}
-	client := &http.Client{Transport: transport} */
+	/* 	proxy := func(_ *http.Request) (*url.URL, error) {
+	   		return url.Parse("http://127.0.0.1:1087")
+	   	}
+	   	transport := &http.Transport{Proxy: proxy}
+	   	client := &http.Client{Transport: transport} */
 	client := &http.Client{}
 	in := &gotwi.NewGotwiClientInput{
 		HTTPClient:           client,
@@ -64,7 +70,7 @@ func TwitterAuth(ctx context.Context) {
 	//dateNow := time.Now().UTC().AddDate(0, 0, -3)
 	//startTime := time.Date(dateNow.Year(), dateNow.Month(), dateNow.Day(), 0, 0, 0, 0, dateNow.Location())
 	//endTime := time.Date(dateNow.Year(), dateNow.Month(), dateNow.Day(), 23, 59, 59, 0, dateNow.Location())
-	sh, _ := time.ParseDuration("-6h")
+	sh, _ := time.ParseDuration("-5h")
 	startTime := time.Now().UTC().Add(sh)
 	tweetIn := &TweetsIn{
 		Query:     tweeTtag,
@@ -89,17 +95,13 @@ func getTwitter(ctx context.Context, in *TweetsIn) {
 }
 
 func twitterAuth(ctx context.Context, tweets *types.SearchTweetsRecentResponse) {
-	type misesTweet struct {
-		AuthorID  string
-		TweetID   string
-		TweetText string
-		CreatedAt time.Time
-	}
+
 	misesids := make([]string, 0)
 	twitterUserIds := make([]string, 0)
 	userTwitters := make([]*models.UserTwitterAuth, 0)
 	tweetAuthors := make(map[string]*models.TwitterUser, 0)
-	misesTweetsMap := make(map[string]misesTweet, 0)
+	misesTweetsMap := make(map[string][]misesTweet, 0)
+	//misesTweetsMap := make(map[string]misesTweet, 0)
 	for _, v := range tweets.Includes.Users {
 		userMetrics := v.PublicMetrics
 		twitterUserId := gotwi.StringValue(v.ID)
@@ -113,6 +115,7 @@ func twitterAuth(ctx context.Context, tweets *types.SearchTweetsRecentResponse) 
 		}
 		twitterUserIds = append(twitterUserIds, twitterUserId)
 		tweetAuthors[twitterUserId] = tweetUser
+
 	}
 	//check tweet text
 	for _, v := range tweets.Data {
@@ -129,12 +132,20 @@ func twitterAuth(ctx context.Context, tweets *types.SearchTweetsRecentResponse) 
 		twitterUserId := gotwi.StringValue(v.AuthorID)
 		tweetId := gotwi.StringValue(v.ID)
 		misesids = append(misesids, misesid)
-		misesTweetsMap[misesid] = misesTweet{
+		mises_tweet := misesTweet{
 			AuthorID:  twitterUserId,
 			TweetID:   tweetId,
 			TweetText: text,
 			CreatedAt: *v.CreatedAt,
 		}
+		//misesTweetsMap[misesid] = mises_tweet
+		_, ok := misesTweetsMap[misesid]
+		if !ok {
+			misesTweetsMap[misesid] = []misesTweet{mises_tweet}
+		} else {
+			misesTweetsMap[misesid] = append(misesTweetsMap[misesid], mises_tweet)
+		}
+
 	}
 	//find users by misesids
 	misesUserNum := len(misesids)
@@ -151,8 +162,10 @@ func twitterAuth(ctx context.Context, tweets *types.SearchTweetsRecentResponse) 
 	if err != nil {
 		fmt.Println("find exists user twitter auth error: ", err.Error())
 	}
+	authorIDs := make([]string, 0)
 	for _, user := range users {
-		mises_tweet := misesTweetsMap[user.Misesid]
+		mises_tweet := getMisesTweet(user.Misesid, misesTweetsMap, existUserTwitterAuths)
+		//mises_tweet := misesTweetsMap[user.Misesid]
 		twitter_user_id := mises_tweet.AuthorID
 		if checkMisesidOrTwitterUserIdIsExists(user.Misesid, tweetAuthors[twitter_user_id], existUserTwitterAuths) {
 			continue
@@ -170,6 +183,7 @@ func twitterAuth(ctx context.Context, tweets *types.SearchTweetsRecentResponse) 
 			CreatedAt:     time.Now(),
 		}
 		userTwitters = append(userTwitters, userTwitter)
+		authorIDs = append(authorIDs, twitter_user_id)
 	}
 	if len(userTwitters) == 0 {
 		return
@@ -179,6 +193,38 @@ func twitterAuth(ctx context.Context, tweets *types.SearchTweetsRecentResponse) 
 	if err1 != nil {
 		fmt.Println("insert user twitter auth error: ", err1.Error())
 	}
+}
+func isUseAuthorID(twitter_user_id string, authorIDs []string) bool {
+	is_use := false
+	for _, authorID := range authorIDs {
+		if authorID == twitter_user_id {
+			return true
+		}
+	}
+	return is_use
+}
+
+func getMisesTweet(misesid string, misesTweetsMap map[string][]misesTweet, existUserTwitterAuths []*models.UserTwitterAuth) misesTweet {
+	mises_tweets := misesTweetsMap[misesid]
+	num := len(mises_tweets)
+	res := mises_tweets[0]
+	if num > 1 {
+		for _, mises_tweet := range mises_tweets {
+			twitter_user_id := mises_tweet.AuthorID
+			is_exist := false
+			for _, exists := range existUserTwitterAuths {
+				if twitter_user_id == exists.TwitterUserId {
+					is_exist = true
+					break
+				}
+			}
+			if !is_exist {
+				res = mises_tweet
+			}
+		}
+
+	}
+	return res
 }
 
 func checkMisesidOrTwitterUserIdIsExists(misesid string, twitter_user *models.TwitterUser, existUserTwitterAuths []*models.UserTwitterAuth) bool {

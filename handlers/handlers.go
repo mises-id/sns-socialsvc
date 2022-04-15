@@ -749,7 +749,7 @@ func (s socialService) PageChannelUser(ctx context.Context, in *pb.PageChannelUs
 
 func (s socialService) ChannelInfo(ctx context.Context, in *pb.ChannelInfoRequest) (*pb.ChannelInfoResponse, error) {
 	var resp pb.ChannelInfoResponse
-	out, err := channelSVC.ChannelInfo(ctx, &channelSVC.ChannelUrlInput{Misesid: in.Misesid})
+	out, err := channelSVC.ChannelInfo(ctx, &channelSVC.ChannelUrlInput{Misesid: in.Misesid, Type: in.Type})
 	if err != nil {
 		return nil, err
 	}
