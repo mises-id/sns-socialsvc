@@ -100,7 +100,7 @@ func getChannelUrl(ctx context.Context, ch *models.ChannelList, medium string) s
 	appid := env.Envs.GooglePlayAppID
 	referrer := "utm_source=" + utils.AddChannelUrlProfix(ch.ID.Hex())
 	if medium != "" {
-		referrer += "&utm_medium=poster"
+		referrer += "&utm_medium=" + medium
 	}
 	googlePlay := googlePlayUrl + appid + "&referrer=" + url.QueryEscape(referrer)
 	return playAppUrl + url.QueryEscape(googlePlay)
