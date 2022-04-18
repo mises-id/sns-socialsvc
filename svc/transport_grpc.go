@@ -281,6 +281,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCPageChannelUserResponse,
 			serverOptions...,
 		),
+		getchanneluser: grpctransport.NewServer(
+			endpoints.GetChannelUserEndpoint,
+			DecodeGRPCGetChannelUserRequest,
+			EncodeGRPCGetChannelUserResponse,
+			serverOptions...,
+		),
 	}
 }
 
@@ -328,6 +334,7 @@ type grpcServer struct {
 	usertochain          grpctransport.Handler
 	channelinfo          grpctransport.Handler
 	pagechanneluser      grpctransport.Handler
+	getchanneluser       grpctransport.Handler
 }
 
 // Methods for grpcServer to implement SocialServer interface
@@ -668,6 +675,14 @@ func (s *grpcServer) PageChannelUser(ctx context.Context, req *pb.PageChannelUse
 	return rep.(*pb.PageChannelUserResponse), nil
 }
 
+func (s *grpcServer) GetChannelUser(ctx context.Context, req *pb.GetChannelUserRequest) (*pb.GetChannelUserResponse, error) {
+	_, rep, err := s.getchanneluser.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.GetChannelUserResponse), nil
+}
+
 // Server Decode
 
 // DecodeGRPCSignInRequest is a transport/grpc.DecodeRequestFunc that converts a
@@ -964,6 +979,13 @@ func DecodeGRPCPageChannelUserRequest(_ context.Context, grpcReq interface{}) (i
 	return req, nil
 }
 
+// DecodeGRPCGetChannelUserRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC getchanneluser request to a user-domain getchanneluser request. Primarily useful in a server.
+func DecodeGRPCGetChannelUserRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.GetChannelUserRequest)
+	return req, nil
+}
+
 // Server Encode
 
 // EncodeGRPCSignInResponse is a transport/grpc.EncodeResponseFunc that converts a
@@ -1257,6 +1279,13 @@ func EncodeGRPCChannelInfoResponse(_ context.Context, response interface{}) (int
 // user-domain pagechanneluser response to a gRPC pagechanneluser reply. Primarily useful in a server.
 func EncodeGRPCPageChannelUserResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.PageChannelUserResponse)
+	return resp, nil
+}
+
+// EncodeGRPCGetChannelUserResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain getchanneluser response to a gRPC getchanneluser reply. Primarily useful in a server.
+func EncodeGRPCGetChannelUserResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.GetChannelUserResponse)
 	return resp, nil
 }
 

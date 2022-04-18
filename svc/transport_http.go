@@ -603,6 +603,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		responseEncoder,
 		serverOptions...,
 	))
+
+	m.Methods("GET").Path("/channel_user/").Handler(httptransport.NewServer(
+		endpoints.GetChannelUserEndpoint,
+		DecodeHTTPGetChannelUserZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/channel_user").Handler(httptransport.NewServer(
+		endpoints.GetChannelUserEndpoint,
+		DecodeHTTPGetChannelUserOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
 	return m
 }
 
@@ -4635,6 +4648,90 @@ func DecodeHTTPPageChannelUserOneRequest(_ context.Context, r *http.Request) (in
 			return nil, errors.Wrapf(err, "couldn't decode PaginatorPageChannelUser from %v", PaginatorPageChannelUserStr)
 		}
 
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetChannelUserZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getchanneluser request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetChannelUserZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetChannelUserRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if MisesidGetChannelUserStrArr, ok := queryParams["misesid"]; ok {
+		MisesidGetChannelUserStr := MisesidGetChannelUserStrArr[0]
+		MisesidGetChannelUser := MisesidGetChannelUserStr
+		req.Misesid = MisesidGetChannelUser
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetChannelUserOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getchanneluser request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetChannelUserOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetChannelUserRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if MisesidGetChannelUserStrArr, ok := queryParams["misesid"]; ok {
+		MisesidGetChannelUserStr := MisesidGetChannelUserStrArr[0]
+		MisesidGetChannelUser := MisesidGetChannelUserStr
+		req.Misesid = MisesidGetChannelUser
 	}
 
 	return &req, err

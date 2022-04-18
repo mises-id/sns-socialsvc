@@ -25,6 +25,7 @@ type (
 		Misesid   string             `bson:"misesid"`
 		State     enum.State         `bson:"state"` //state: open or close
 		CreatedAt time.Time          `bson:"created_at"`
+		User      *User              `bson:"-"`
 	}
 )
 

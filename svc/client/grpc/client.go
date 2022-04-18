@@ -582,6 +582,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var getchanneluserEndpoint endpoint.Endpoint
+	{
+		getchanneluserEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"GetChannelUser",
+			EncodeGRPCGetChannelUserRequest,
+			DecodeGRPCGetChannelUserResponse,
+			pb.GetChannelUserResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	return svc.Endpoints{
 		SignInEndpoint:               signinEndpoint,
 		FindUserEndpoint:             finduserEndpoint,
@@ -625,6 +638,7 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		UserToChainEndpoint:          usertochainEndpoint,
 		ChannelInfoEndpoint:          channelinfoEndpoint,
 		PageChannelUserEndpoint:      pagechanneluserEndpoint,
+		GetChannelUserEndpoint:       getchanneluserEndpoint,
 	}, nil
 }
 
@@ -924,6 +938,13 @@ func DecodeGRPCPageChannelUserResponse(_ context.Context, grpcReply interface{})
 	return reply, nil
 }
 
+// DecodeGRPCGetChannelUserResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC getchanneluser reply to a user-domain getchanneluser response. Primarily useful in a client.
+func DecodeGRPCGetChannelUserResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.GetChannelUserResponse)
+	return reply, nil
+}
+
 // GRPC Client Encode
 
 // EncodeGRPCSignInRequest is a transport/grpc.EncodeRequestFunc that converts a
@@ -1217,6 +1238,13 @@ func EncodeGRPCChannelInfoRequest(_ context.Context, request interface{}) (inter
 // user-domain pagechanneluser request to a gRPC pagechanneluser request. Primarily useful in a client.
 func EncodeGRPCPageChannelUserRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.PageChannelUserRequest)
+	return req, nil
+}
+
+// EncodeGRPCGetChannelUserRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain getchanneluser request to a gRPC getchanneluser request. Primarily useful in a client.
+func EncodeGRPCGetChannelUserRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.GetChannelUserRequest)
 	return req, nil
 }
 

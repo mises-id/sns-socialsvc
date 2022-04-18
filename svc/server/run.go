@@ -95,6 +95,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		usertochainEndpoint          = svc.MakeUserToChainEndpoint(service)
 		channelinfoEndpoint          = svc.MakeChannelInfoEndpoint(service)
 		pagechanneluserEndpoint      = svc.MakePageChannelUserEndpoint(service)
+		getchanneluserEndpoint       = svc.MakeGetChannelUserEndpoint(service)
 	)
 
 	endpoints := svc.Endpoints{
@@ -140,6 +141,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		UserToChainEndpoint:          usertochainEndpoint,
 		ChannelInfoEndpoint:          channelinfoEndpoint,
 		PageChannelUserEndpoint:      pagechanneluserEndpoint,
+		GetChannelUserEndpoint:       getchanneluserEndpoint,
 	}
 
 	// Wrap selected Endpoints with middlewares. See handlers/middlewares.go

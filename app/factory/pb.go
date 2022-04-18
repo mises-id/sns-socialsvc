@@ -291,19 +291,27 @@ func NewBlacklistSlice(blacklists []*models.Blacklist) []*pb.Blacklist {
 func NewChannelUserListSlice(channel_users []*models.ChannelUser) []*pb.ChannelUserInfo {
 	result := make([]*pb.ChannelUserInfo, len(channel_users))
 	for i, channel_user := range channel_users {
-		result[i] = &pb.ChannelUserInfo{
-			Id:           channel_user.ID.Hex(),
-			ChannelId:    channel_user.ChannelID.Hex(),
-			ValidState:   int32(channel_user.ValidState),
-			Amount:       uint64(channel_user.Amount),
-			TxId:         channel_user.TxID,
-			User:         NewUserInfo(channel_user.User),
-			AirdropState: int32(channel_user.AirdropState),
-			AirdropTime:  uint64(channel_user.AirdropTime.Unix()),
-			CreatedAt:    uint64(channel_user.CreatedAt.Unix()),
-		}
+		result[i] = NewChannelUser(channel_user)
 	}
 	return result
+}
+
+func NewChannelUser(channel_user *models.ChannelUser) *pb.ChannelUserInfo {
+
+	return &pb.ChannelUserInfo{
+		Id:             channel_user.ID.Hex(),
+		ChannelId:      channel_user.ChannelID.Hex(),
+		ValidState:     int32(channel_user.ValidState),
+		Amount:         uint64(channel_user.Amount),
+		TxId:           channel_user.TxID,
+		User:           NewUserInfo(channel_user.User),
+		AirdropState:   int32(channel_user.AirdropState),
+		AirdropTime:    uint64(channel_user.AirdropTime.Unix()),
+		CreatedAt:      uint64(channel_user.CreatedAt.Unix()),
+		ChannelUid:     channel_user.ChannelUID,
+		ChannelMisesid: channel_user.ChannelMisesid,
+	}
+
 }
 
 func NewStatusLikeSlice(likes []*models.Like) []*pb.StatusLike {
