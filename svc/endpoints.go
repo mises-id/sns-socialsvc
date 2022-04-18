@@ -75,6 +75,7 @@ type Endpoints struct {
 	UserToChainEndpoint          endpoint.Endpoint
 	ChannelInfoEndpoint          endpoint.Endpoint
 	PageChannelUserEndpoint      endpoint.Endpoint
+	GetChannelUserEndpoint       endpoint.Endpoint
 }
 
 // Endpoints
@@ -413,6 +414,14 @@ func (e Endpoints) PageChannelUser(ctx context.Context, in *pb.PageChannelUserRe
 		return nil, err
 	}
 	return response.(*pb.PageChannelUserResponse), nil
+}
+
+func (e Endpoints) GetChannelUser(ctx context.Context, in *pb.GetChannelUserRequest) (*pb.GetChannelUserResponse, error) {
+	response, err := e.GetChannelUserEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.GetChannelUserResponse), nil
 }
 
 // Make Endpoints
@@ -879,6 +888,17 @@ func MakePageChannelUserEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeGetChannelUserEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.GetChannelUserRequest)
+		v, err := s.GetChannelUser(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 // WrapAllExcept wraps each Endpoint field of struct Endpoints with a
 // go-kit/kit/endpoint.Middleware.
 // Use this for applying a set of middlewares to every endpoint in the service.
@@ -928,6 +948,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"UserToChain":          {},
 		"ChannelInfo":          {},
 		"PageChannelUser":      {},
+		"GetChannelUser":       {},
 	}
 
 	for _, ex := range excluded {
@@ -1064,6 +1085,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "PageChannelUser" {
 			e.PageChannelUserEndpoint = middleware(e.PageChannelUserEndpoint)
 		}
+		if inc == "GetChannelUser" {
+			e.GetChannelUserEndpoint = middleware(e.GetChannelUserEndpoint)
+		}
 	}
 }
 
@@ -1120,6 +1144,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"UserToChain":          {},
 		"ChannelInfo":          {},
 		"PageChannelUser":      {},
+		"GetChannelUser":       {},
 	}
 
 	for _, ex := range excluded {
@@ -1255,6 +1280,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "PageChannelUser" {
 			e.PageChannelUserEndpoint = middleware("PageChannelUser", e.PageChannelUserEndpoint)
+		}
+		if inc == "GetChannelUser" {
+			e.GetChannelUserEndpoint = middleware("GetChannelUser", e.GetChannelUserEndpoint)
 		}
 	}
 }

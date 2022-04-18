@@ -760,3 +760,13 @@ func (s socialService) ChannelInfo(ctx context.Context, in *pb.ChannelInfoReques
 	resp.TotalChannelUser = out.TotalChannelUser
 	return &resp, nil
 }
+
+func (s socialService) GetChannelUser(ctx context.Context, in *pb.GetChannelUserRequest) (*pb.GetChannelUserResponse, error) {
+	var resp pb.GetChannelUserResponse
+	out, err := channelUserSVC.GetChannelUser(ctx, &channelUserSVC.GetCHannelUserInput{Misesid: in.Misesid})
+	if err != nil {
+		return nil, err
+	}
+	resp.ChanelUser = factory.NewChannelUser(out)
+	return &resp, nil
+}

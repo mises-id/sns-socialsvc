@@ -5,6 +5,8 @@ import (
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/search"
+	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,7 +17,33 @@ type (
 		PageParams *pagination.PageQuickParams
 		Misesid    string
 	}
+	GetCHannelUserInput struct {
+		Misesid string
+	}
 )
+
+//get channel user
+func GetChannelUser(ctx context.Context, in *GetCHannelUserInput) (*models.ChannelUser, error) {
+
+	misesid := in.Misesid
+	if misesid == "" {
+		return nil, codes.ErrInvalidArgument.Newf("invalid misesid")
+	}
+	user, err := models.FindUserByMisesid(ctx, utils.AddMisesidProfix(misesid))
+	if err != nil {
+		return nil, codes.ErrInvalidArgument.Newf(err.Error())
+	}
+	params := &search.ChannelUserSearch{
+		UID: user.UID,
+	}
+	channel_user, err := models.FindChannelUser(ctx, params)
+	if err != nil {
+		return nil, codes.ErrNotFound.Newf(err.Error())
+	}
+	channel_user.User = user
+	return channel_user, nil
+
+}
 
 //create channel user
 func CreateChannelUser(ctx context.Context, uid uint64, channel_str string) error {

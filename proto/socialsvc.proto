@@ -565,6 +565,17 @@ service Social {
       }
     };
   }
+  rpc GetChannelUser (GetChannelUserRequest) returns (GetChannelUserResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/channel_user"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/channel_user/"
+      }
+    };
+  }
 }
 
 message SignInRequest {
@@ -720,6 +731,8 @@ message ChannelUserInfo {
   int32 airdrop_state = 7;
   uint64 airdrop_time = 8;
   uint64 created_at = 9;
+  uint64 channel_uid = 10;
+  string channel_misesid = 11;
 }
 
 message PageChannelUserResponse {
@@ -1104,4 +1117,13 @@ message ChannelInfoResponse {
   uint64 total_channel_user = 3;
   float airdrop_amount = 4;
   string medium_url = 5;
+}
+
+message GetChannelUserRequest {
+  string misesid = 1;
+}
+
+message GetChannelUserResponse {
+  uint64 code = 1;
+  ChannelUserInfo chanel_user = 2;
 }

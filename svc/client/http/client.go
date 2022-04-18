@@ -471,6 +471,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var GetChannelUserZeroEndpoint endpoint.Endpoint
+	{
+		GetChannelUserZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/channel_user/"),
+			EncodeHTTPGetChannelUserZeroRequest,
+			DecodeHTTPGetChannelUserResponse,
+			options...,
+		).Endpoint()
+	}
 
 	return svc.Endpoints{
 		SignInEndpoint:               SignInZeroEndpoint,
@@ -515,6 +525,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		UserToChainEndpoint:          UserToChainZeroEndpoint,
 		ChannelInfoEndpoint:          ChannelInfoZeroEndpoint,
 		PageChannelUserEndpoint:      PageChannelUserZeroEndpoint,
+		GetChannelUserEndpoint:       GetChannelUserZeroEndpoint,
 	}, nil
 }
 
@@ -1668,6 +1679,33 @@ func DecodeHTTPPageChannelUserResponse(_ context.Context, r *http.Response) (int
 	}
 
 	var resp pb.PageChannelUserResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPGetChannelUserResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded GetChannelUserResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPGetChannelUserResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.GetChannelUserResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -5418,6 +5456,77 @@ func EncodeHTTPPageChannelUserOneRequest(_ context.Context, r *http.Request, req
 	}
 	strval = string(tmp)
 	values.Add("paginator", strval)
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetChannelUserZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a getchanneluser request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetChannelUserZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetChannelUserRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"channel_user",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("misesid", fmt.Sprint(req.Misesid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetChannelUserOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a getchanneluser request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetChannelUserOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetChannelUserRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"channel_user",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("misesid", fmt.Sprint(req.Misesid))
 
 	r.URL.RawQuery = values.Encode()
 	return nil
