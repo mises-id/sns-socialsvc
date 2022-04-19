@@ -6,12 +6,26 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var (
 	misesidPrefix    = "did:mises:"
 	channelUrlPrefix = "ch_"
 )
+
+func InArrayObject(elem primitive.ObjectID, arr []primitive.ObjectID) int {
+	var index int
+	index = -1
+	for k, v := range arr {
+		if v == elem {
+			index = k
+			break
+		}
+	}
+	return index
+}
 
 func UMisesToMises(umises uint64) (mises float64) {
 
