@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	getListNum                 = 5
+	getListNum                 = 10
 	channelTwitterAuthMaxIdKey = "channel_twiter_auth_max_id"
 	airdropStop                chan int
 	airdropDo                  bool
@@ -32,7 +32,7 @@ type (
 
 //airdrop channel
 func AirdropChannel(ctx context.Context) {
-	totalAirdropNum = 10
+	totalAirdropNum = 100
 	airdropStop = make(chan int)
 	airdropDo = true
 	utils.WirteLogDay("./log/airdrop_channel.log")
