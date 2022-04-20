@@ -70,7 +70,7 @@ func TwitterAuth(ctx context.Context) {
 	//dateNow := time.Now().UTC().AddDate(0, 0, -3)
 	//startTime := time.Date(dateNow.Year(), dateNow.Month(), dateNow.Day(), 0, 0, 0, 0, dateNow.Location())
 	//endTime := time.Date(dateNow.Year(), dateNow.Month(), dateNow.Day(), 23, 59, 59, 0, dateNow.Location())
-	sh, _ := time.ParseDuration("-5h")
+	sh, _ := time.ParseDuration("-7m")
 	startTime := time.Now().UTC().Add(sh)
 	tweetIn := &TweetsIn{
 		Query:     tweeTtag,
