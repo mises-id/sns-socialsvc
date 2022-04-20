@@ -726,23 +726,30 @@ func (s socialService) CreateChannelAirdrop(ctx context.Context, in *pb.CreateCh
 
 func (s socialService) PageChannelUser(ctx context.Context, in *pb.PageChannelUserRequest) (*pb.PageChannelUserResponse, error) {
 	var resp pb.PageChannelUserResponse
+	fmt.Println("in: ", in)
+	PageParams := &pagination.TraditionalParams{}
+	if in.Paginator != nil {
+		PageParams = &pagination.TraditionalParams{
+			PageNum:  int64(in.Paginator.PageNum),
+			PageSize: int64(in.Paginator.PageSize),
+		}
+	}
 	channel_users, page, err := channelUserSVC.PageChannelUser(ctx, &channelUserSVC.PageChannelUserInput{
-		Misesid: in.Misesid,
-		PageParams: &pagination.PageQuickParams{
-			Limit:  int64(in.Paginator.Limit),
-			NextID: in.Paginator.NextId,
-		},
+		Misesid:    in.Misesid,
+		PageParams: PageParams,
 	})
+
 	if err != nil {
 		return nil, err
 	}
 	resp.Code = 0
 	resp.ChannelUsers = factory.NewChannelUserListSlice(channel_users)
-	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
-	resp.Paginator = &pb.PageQuick{
-		Limit:  uint64(quickpage.Limit),
-		NextId: quickpage.NextID,
-		Total:  uint64(quickpage.TotalRecords),
+	tradpage := page.BuildJSONResult().(*pagination.TraditionalPagination)
+	resp.Paginator = &pb.Page{
+		PageNum:      uint64(tradpage.PageNum),
+		PageSize:     uint64(tradpage.PageSize),
+		TotalPage:    uint64(tradpage.TotalPages),
+		TotalRecords: uint64(tradpage.TotalRecords),
 	}
 	return &resp, nil
 }

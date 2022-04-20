@@ -62,6 +62,31 @@ func NewListStatus(ctx context.Context, in *NewListStatusInput) ([]*models.Statu
 	return status_list, nil
 }
 
+/*
+func ListRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) (*NewRecommendOutput, error) {
+	statusIDs, err := recommend.ListStatus(ctx, &recommend.ListStatusInput{UID: uid, Num: 10})
+	if err != nil {
+		return nil, err
+	}
+	out := &NewRecommendOutput{
+		Next: &NewRecommendNext{},
+	}
+	if len(statusIDs) == 0 {
+		return out, nil
+	}
+	params := &admin.AdminStatusParams{
+		IDs:       statusIDs,
+		FromTypes: []enum.FromType{enum.FromForward, enum.FromPost},
+	}
+	status_list, err := models.NewListStatus(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	out.Data = status_list
+	recommend.ListStatusAfter(ctx, uid, status_list)
+	return out, nil
+} */
+
 // new recommend status
 func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) (*NewRecommendOutput, error) {
 
@@ -162,7 +187,7 @@ func findListFollowing2Status(ctx context.Context, uid uint64, num int64) ([]*mo
 		OnlyShow:  true,
 		StartTime: &start_time,
 		SortType:  1,
-		SortKey:   "created_at",
+		SortKey:   "_id",
 		FromTypes: []enum.FromType{enum.FromForward, enum.FromPost, enum.FromComment},
 	}
 	//find status recommend pool cursor
@@ -203,14 +228,14 @@ func findListRecommendStatus(ctx context.Context, uid uint64, num int64) ([]*mod
 	}
 	var err error
 	var pool_cursors *models.RecommendStatusPoolCursor
-	start_time := time.Now().AddDate(0, 0, -30)
+	start_time := time.Now().AddDate(0, 0, -15)
 	params := &admin.AdminStatusParams{
 		Tag:       enum.TagRecommendStatus,
 		ListNum:   num,
 		OnlyShow:  true,
 		StartTime: &start_time,
 		SortType:  1,
-		SortKey:   "created_at",
+		SortKey:   "_id",
 		FromTypes: []enum.FromType{enum.FromForward, enum.FromPost},
 	}
 	if uid > 0 {
@@ -264,7 +289,7 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 		OnlyShow:  true,
 		StartTime: &start_time,
 		SortType:  1,
-		SortKey:   "created_at",
+		SortKey:   "_id",
 		FromTypes: []enum.FromType{enum.FromForward, enum.FromPost},
 	}
 	//find star user

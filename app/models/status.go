@@ -329,6 +329,7 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*Status, pagin
 	statuses := make([]*Status, 0)
 	chain := db.ODM(ctx)
 	and := bson.A{}
+	NInUIDs := make([]uint64, 0)
 	if params.UIDs != nil && len(params.UIDs) > 0 {
 		//chain = chain.Where(bson.M{"uid": bson.M{"$in": params.UIDs}})
 		and = append(and, bson.M{"uid": bson.M{"$in": params.UIDs}})
@@ -346,13 +347,20 @@ func ListStatus(ctx context.Context, params *ListStatusParams) ([]*Status, pagin
 		}
 		chain = chain.Where(bson.M{"$or": orFilter})
 	}
+	//filter problem user
+	problemUserUids, err := AdminListProblemUserIDs(ctx)
+	if err == nil && len(problemUserUids) > 0 {
+		NInUIDs = append(NInUIDs, problemUserUids...)
+	}
 	blockedUIDs, err := ListBlockedUIDs(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
 	if len(blockedUIDs) > 0 {
-		//chain = chain.Where(bson.M{"uid": bson.M{"$nin": blockedUIDs}})
-		and = append(and, bson.M{"uid": bson.M{"$nin": blockedUIDs}})
+		NInUIDs = append(NInUIDs, blockedUIDs...)
+	}
+	if len(NInUIDs) > 0 {
+		and = append(and, bson.M{"uid": bson.M{"$nin": NInUIDs}})
 	}
 	if len(and) > 0 {
 		chain = chain.Where(bson.M{"$and": and})

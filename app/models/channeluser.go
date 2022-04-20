@@ -37,7 +37,7 @@ type (
 		User           *User                    `bson:"-"`
 	}
 	PageChannelUserInput struct {
-		PageParams *pagination.PageQuickParams
+		PageParams *pagination.TraditionalParams
 		Misesid    string
 	}
 )
@@ -166,7 +166,7 @@ func (m *ChannelUser) UpdateCreateAirdrop(ctx context.Context, valid_state enum.
 
 func PageChannelUser(ctx context.Context, params *PageChannelUserInput) ([]*ChannelUser, pagination.Pagination, error) {
 	if params.PageParams == nil {
-		params.PageParams = pagination.DefaultQuickParams()
+		params.PageParams = pagination.DefaultTraditionalParams()
 	}
 	res := make([]*ChannelUser, 0)
 	chain := db.ODM(ctx)
@@ -177,7 +177,7 @@ func PageChannelUser(ctx context.Context, params *PageChannelUserInput) ([]*Chan
 	if len(and) > 0 {
 		chain = chain.Where(bson.M{"$and": and})
 	}
-	paginator := pagination.NewQuickPaginator(params.PageParams.Limit, params.PageParams.NextID, chain, pagination.IsCount(true))
+	paginator := pagination.NewTraditionalPaginator(params.PageParams.PageNum, params.PageParams.PageSize, chain)
 	page, err := paginator.Paginate(&res)
 	if err != nil {
 		return nil, nil, err
