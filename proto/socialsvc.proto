@@ -702,6 +702,12 @@ message PageQuick {
   string next_id = 2;
   uint64 total = 3;
 }
+message Page {
+  uint64 total_records = 1;
+  uint64 page_size = 2;
+  uint64 page_num = 3;
+  uint64 total_page = 4;
+}
 
 message ListStatusRequest {
   uint64 current_uid = 1;
@@ -718,7 +724,7 @@ message ListStatusResponse {
 }
 message PageChannelUserRequest {
   string misesid = 1;
-  PageQuick paginator = 2;
+  Page paginator = 2;
 }
 
 message ChannelUserInfo {
@@ -738,7 +744,7 @@ message ChannelUserInfo {
 message PageChannelUserResponse {
   uint64 code = 1;
   repeated ChannelUserInfo channel_users = 2;
-  PageQuick paginator = 3;
+  Page paginator = 3;
 }
 message NewListStatusRequest {
   uint64 current_uid = 1;

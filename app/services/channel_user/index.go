@@ -14,7 +14,7 @@ import (
 
 type (
 	PageChannelUserInput struct {
-		PageParams *pagination.PageQuickParams
+		PageParams *pagination.TraditionalParams
 		Misesid    string
 	}
 	GetCHannelUserInput struct {
@@ -84,7 +84,7 @@ func createChannelUser(ctx context.Context, uid uint64, channel *models.ChannelL
 func PageChannelUser(ctx context.Context, in *PageChannelUserInput) ([]*models.ChannelUser, pagination.Pagination, error) {
 
 	if in.Misesid == "" {
-		return []*models.ChannelUser{}, &pagination.QuickPagination{}, nil
+		return []*models.ChannelUser{}, &pagination.TraditionalPagination{}, nil
 	}
 	params := &models.PageChannelUserInput{
 		PageParams: in.PageParams,
