@@ -82,7 +82,6 @@ func createChannelUser(ctx context.Context, uid uint64, channel *models.ChannelL
 
 //page channel user
 func PageChannelUser(ctx context.Context, in *PageChannelUserInput) ([]*models.ChannelUser, pagination.Pagination, error) {
-
 	if in.Misesid == "" {
 		return []*models.ChannelUser{}, &pagination.TraditionalPagination{}, nil
 	}

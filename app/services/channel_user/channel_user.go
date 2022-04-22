@@ -35,7 +35,7 @@ func AirdropChannel(ctx context.Context) {
 	totalAirdropNum = 100
 	airdropStop = make(chan int)
 	airdropDo = true
-	utils.WirteLogDay("./log/airdrop_channel.log")
+	fmt.Println("airdrop channel start")
 	airdropLib.AirdropClient.SetListener(&FaucetCallback{ctx})
 	go airdropTx(ctx)
 	select {

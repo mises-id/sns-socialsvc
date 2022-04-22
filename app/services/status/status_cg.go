@@ -15,9 +15,9 @@ import (
 )
 
 var (
-	//updateUserCursor   *models.UserExt
-	newRecommendInput  *NewRecommendInput
-	newRecommendOutput *NewRecommendOutput
+//updateUserCursor   *models.UserExt
+//newRecommendInput  *NewRecommendInput
+//newRecommendOutput *NewRecommendOutput
 )
 
 type (
@@ -97,9 +97,8 @@ func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) 
 		UID: uid,
 	}
 	ctx = context.WithValue(ctx, models.UserExt{}, updateUserCursor)
-	fmt.Println("user id: ", uid)
-	newRecommendInput = in
-	newRecommendOutput = &NewRecommendOutput{
+
+	newRecommendOutput := &NewRecommendOutput{
 		Next: &NewRecommendNext{LastRecommendTime: 0, LastCommonTime: 0},
 	}
 	totalNum = 10
@@ -113,14 +112,14 @@ func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) 
 	now_following2_num := len(following2_status_list)
 	recommendPoolNum = 5 + following2Num - int64(now_following2_num)
 	//TODO filter problem user status && filter black list
-	recommend_pool_status_list, err := findListRecommendStatus(ctx, uid, recommendPoolNum)
+	recommend_pool_status_list, err := findListRecommendStatus(ctx, uid, recommendPoolNum, in, newRecommendOutput)
 	if err != nil {
 		return nil, err
 	}
 	//common pool status
 	now_recommend_num := len(recommend_pool_status_list)
 	commonPoolNum = totalNum - int64(now_following2_num+now_recommend_num)
-	common_pool_status, err := findListCommonStatus(ctx, uid, commonPoolNum)
+	common_pool_status, err := findListCommonStatus(ctx, uid, commonPoolNum, in, newRecommendOutput)
 	if err != nil {
 		return nil, err
 	}
@@ -130,17 +129,18 @@ func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) 
 	data := append(following2_status_list, append(recommend_pool_status_list, common_pool_status...)...)
 	randShuffle(data)
 	newRecommendOutput.Data = data
-	if newRecommendOutput.Next.LastRecommendTime == 0 {
-		newRecommendOutput.Next.LastRecommendTime = in.LastRecommendTime
-	}
-	if newRecommendOutput.Next.LastCommonTime == 0 {
-		newRecommendOutput.Next.LastCommonTime = in.LastCommonTime
-	}
 	//end update cursor
 	if uid > 0 {
 		ctxUserExt, err := getUserExtByCtx(ctx)
 		if err == nil && ctxUserExt.UID > 0 {
 			ctxUserExt.Update(ctx)
+		}
+	} else {
+		if newRecommendOutput.Next.LastRecommendTime == 0 {
+			newRecommendOutput.Next.LastRecommendTime = in.LastRecommendTime
+		}
+		if newRecommendOutput.Next.LastCommonTime == 0 {
+			newRecommendOutput.Next.LastCommonTime = in.LastCommonTime
 		}
 	}
 	return newRecommendOutput, err
@@ -221,7 +221,7 @@ func findListFollowing2Status(ctx context.Context, uid uint64, num int64) ([]*mo
 }
 
 //find recommend pool status
-func findListRecommendStatus(ctx context.Context, uid uint64, num int64) ([]*models.Status, error) {
+func findListRecommendStatus(ctx context.Context, uid uint64, num int64, newRecommendInput *NewRecommendInput, newRecommendOutput *NewRecommendOutput) ([]*models.Status, error) {
 
 	if num <= 0 {
 		return []*models.Status{}, nil
@@ -276,7 +276,7 @@ func findListRecommendStatus(ctx context.Context, uid uint64, num int64) ([]*mod
 }
 
 //find common pool status
-func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models.Status, error) {
+func findListCommonStatus(ctx context.Context, uid uint64, num int64, newRecommendInput *NewRecommendInput, newRecommendOutput *NewRecommendOutput) ([]*models.Status, error) {
 
 	if num <= 0 {
 		return []*models.Status{}, nil
@@ -295,7 +295,6 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 	//find star user
 	starUserUids, err := getStarUserUids(ctx)
 	if err == nil && len(starUserUids) > 0 {
-		fmt.Println("star user ids: ", starUserUids)
 		params.UIDs = append(params.UIDs, starUserUids...)
 	} else {
 		return []*models.Status{}, nil
@@ -336,7 +335,6 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64) ([]*models
 	max, min := getStatusListScoreMaxMin(status_list)
 	//update  status cursor
 	if uid > 0 {
-		fmt.Printf("max:%d,min%d\n", max, min)
 		updateUserCommonCursor(ctx, uid, cursors, max, min)
 	} else {
 		newRecommendOutput.Next.LastCommonTime = min
