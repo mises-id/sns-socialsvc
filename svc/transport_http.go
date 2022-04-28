@@ -616,6 +616,45 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		responseEncoder,
 		serverOptions...,
 	))
+
+	m.Methods("GET").Path("/opensea/single_asset/").Handler(httptransport.NewServer(
+		endpoints.GetOpenseaAssetEndpoint,
+		DecodeHTTPGetOpenseaAssetZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/opensea/single_asset").Handler(httptransport.NewServer(
+		endpoints.GetOpenseaAssetEndpoint,
+		DecodeHTTPGetOpenseaAssetOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/opensea/assets/").Handler(httptransport.NewServer(
+		endpoints.ListOpenseaAssetEndpoint,
+		DecodeHTTPListOpenseaAssetZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/opensea/assets").Handler(httptransport.NewServer(
+		endpoints.ListOpenseaAssetEndpoint,
+		DecodeHTTPListOpenseaAssetOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/opensea/asset_contract/").Handler(httptransport.NewServer(
+		endpoints.GetOpenseaAssetContractEndpoint,
+		DecodeHTTPGetOpenseaAssetContractZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/opensea/asset_contract").Handler(httptransport.NewServer(
+		endpoints.GetOpenseaAssetContractEndpoint,
+		DecodeHTTPGetOpenseaAssetContractOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
 	return m
 }
 
@@ -4732,6 +4771,396 @@ func DecodeHTTPGetChannelUserOneRequest(_ context.Context, r *http.Request) (int
 		MisesidGetChannelUserStr := MisesidGetChannelUserStrArr[0]
 		MisesidGetChannelUser := MisesidGetChannelUserStr
 		req.Misesid = MisesidGetChannelUser
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetOpenseaAssetZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getopenseaasset request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetOpenseaAssetZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetOpenseaAssetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if AssetContractAddressGetOpenseaAssetStrArr, ok := queryParams["asset_contract_address"]; ok {
+		AssetContractAddressGetOpenseaAssetStr := AssetContractAddressGetOpenseaAssetStrArr[0]
+		AssetContractAddressGetOpenseaAsset := AssetContractAddressGetOpenseaAssetStr
+		req.AssetContractAddress = AssetContractAddressGetOpenseaAsset
+	}
+
+	if TokenIdGetOpenseaAssetStrArr, ok := queryParams["token_id"]; ok {
+		TokenIdGetOpenseaAssetStr := TokenIdGetOpenseaAssetStrArr[0]
+		TokenIdGetOpenseaAsset := TokenIdGetOpenseaAssetStr
+		req.TokenId = TokenIdGetOpenseaAsset
+	}
+
+	if AccountAddressGetOpenseaAssetStrArr, ok := queryParams["account_address"]; ok {
+		AccountAddressGetOpenseaAssetStr := AccountAddressGetOpenseaAssetStrArr[0]
+		AccountAddressGetOpenseaAsset := AccountAddressGetOpenseaAssetStr
+		req.AccountAddress = AccountAddressGetOpenseaAsset
+	}
+
+	if IncludeOrdersGetOpenseaAssetStrArr, ok := queryParams["include_orders"]; ok {
+		IncludeOrdersGetOpenseaAssetStr := IncludeOrdersGetOpenseaAssetStrArr[0]
+		IncludeOrdersGetOpenseaAsset := IncludeOrdersGetOpenseaAssetStr
+		req.IncludeOrders = IncludeOrdersGetOpenseaAsset
+	}
+
+	if NetworkGetOpenseaAssetStrArr, ok := queryParams["network"]; ok {
+		NetworkGetOpenseaAssetStr := NetworkGetOpenseaAssetStrArr[0]
+		NetworkGetOpenseaAsset := NetworkGetOpenseaAssetStr
+		req.Network = NetworkGetOpenseaAsset
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetOpenseaAssetOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getopenseaasset request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetOpenseaAssetOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetOpenseaAssetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if AssetContractAddressGetOpenseaAssetStrArr, ok := queryParams["asset_contract_address"]; ok {
+		AssetContractAddressGetOpenseaAssetStr := AssetContractAddressGetOpenseaAssetStrArr[0]
+		AssetContractAddressGetOpenseaAsset := AssetContractAddressGetOpenseaAssetStr
+		req.AssetContractAddress = AssetContractAddressGetOpenseaAsset
+	}
+
+	if TokenIdGetOpenseaAssetStrArr, ok := queryParams["token_id"]; ok {
+		TokenIdGetOpenseaAssetStr := TokenIdGetOpenseaAssetStrArr[0]
+		TokenIdGetOpenseaAsset := TokenIdGetOpenseaAssetStr
+		req.TokenId = TokenIdGetOpenseaAsset
+	}
+
+	if AccountAddressGetOpenseaAssetStrArr, ok := queryParams["account_address"]; ok {
+		AccountAddressGetOpenseaAssetStr := AccountAddressGetOpenseaAssetStrArr[0]
+		AccountAddressGetOpenseaAsset := AccountAddressGetOpenseaAssetStr
+		req.AccountAddress = AccountAddressGetOpenseaAsset
+	}
+
+	if IncludeOrdersGetOpenseaAssetStrArr, ok := queryParams["include_orders"]; ok {
+		IncludeOrdersGetOpenseaAssetStr := IncludeOrdersGetOpenseaAssetStrArr[0]
+		IncludeOrdersGetOpenseaAsset := IncludeOrdersGetOpenseaAssetStr
+		req.IncludeOrders = IncludeOrdersGetOpenseaAsset
+	}
+
+	if NetworkGetOpenseaAssetStrArr, ok := queryParams["network"]; ok {
+		NetworkGetOpenseaAssetStr := NetworkGetOpenseaAssetStrArr[0]
+		NetworkGetOpenseaAsset := NetworkGetOpenseaAssetStr
+		req.Network = NetworkGetOpenseaAsset
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPListOpenseaAssetZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded listopenseaasset request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPListOpenseaAssetZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ListOpenseaAssetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if OwnerListOpenseaAssetStrArr, ok := queryParams["owner"]; ok {
+		OwnerListOpenseaAssetStr := OwnerListOpenseaAssetStrArr[0]
+		OwnerListOpenseaAsset := OwnerListOpenseaAssetStr
+		req.Owner = OwnerListOpenseaAsset
+	}
+
+	if LimitListOpenseaAssetStrArr, ok := queryParams["limit"]; ok {
+		LimitListOpenseaAssetStr := LimitListOpenseaAssetStrArr[0]
+		LimitListOpenseaAsset, err := strconv.ParseUint(LimitListOpenseaAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting LimitListOpenseaAsset from query, queryParams: %v", queryParams))
+		}
+		req.Limit = LimitListOpenseaAsset
+	}
+
+	if CursorListOpenseaAssetStrArr, ok := queryParams["cursor"]; ok {
+		CursorListOpenseaAssetStr := CursorListOpenseaAssetStrArr[0]
+		CursorListOpenseaAsset := CursorListOpenseaAssetStr
+		req.Cursor = CursorListOpenseaAsset
+	}
+
+	if NetworkListOpenseaAssetStrArr, ok := queryParams["network"]; ok {
+		NetworkListOpenseaAssetStr := NetworkListOpenseaAssetStrArr[0]
+		NetworkListOpenseaAsset := NetworkListOpenseaAssetStr
+		req.Network = NetworkListOpenseaAsset
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPListOpenseaAssetOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded listopenseaasset request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPListOpenseaAssetOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ListOpenseaAssetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if OwnerListOpenseaAssetStrArr, ok := queryParams["owner"]; ok {
+		OwnerListOpenseaAssetStr := OwnerListOpenseaAssetStrArr[0]
+		OwnerListOpenseaAsset := OwnerListOpenseaAssetStr
+		req.Owner = OwnerListOpenseaAsset
+	}
+
+	if LimitListOpenseaAssetStrArr, ok := queryParams["limit"]; ok {
+		LimitListOpenseaAssetStr := LimitListOpenseaAssetStrArr[0]
+		LimitListOpenseaAsset, err := strconv.ParseUint(LimitListOpenseaAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting LimitListOpenseaAsset from query, queryParams: %v", queryParams))
+		}
+		req.Limit = LimitListOpenseaAsset
+	}
+
+	if CursorListOpenseaAssetStrArr, ok := queryParams["cursor"]; ok {
+		CursorListOpenseaAssetStr := CursorListOpenseaAssetStrArr[0]
+		CursorListOpenseaAsset := CursorListOpenseaAssetStr
+		req.Cursor = CursorListOpenseaAsset
+	}
+
+	if NetworkListOpenseaAssetStrArr, ok := queryParams["network"]; ok {
+		NetworkListOpenseaAssetStr := NetworkListOpenseaAssetStrArr[0]
+		NetworkListOpenseaAsset := NetworkListOpenseaAssetStr
+		req.Network = NetworkListOpenseaAsset
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetOpenseaAssetContractZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getopenseaassetcontract request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetOpenseaAssetContractZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetOpenseaAssetContractRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if AssetContractAddressGetOpenseaAssetContractStrArr, ok := queryParams["asset_contract_address"]; ok {
+		AssetContractAddressGetOpenseaAssetContractStr := AssetContractAddressGetOpenseaAssetContractStrArr[0]
+		AssetContractAddressGetOpenseaAssetContract := AssetContractAddressGetOpenseaAssetContractStr
+		req.AssetContractAddress = AssetContractAddressGetOpenseaAssetContract
+	}
+
+	if TokenIdGetOpenseaAssetContractStrArr, ok := queryParams["token_id"]; ok {
+		TokenIdGetOpenseaAssetContractStr := TokenIdGetOpenseaAssetContractStrArr[0]
+		TokenIdGetOpenseaAssetContract := TokenIdGetOpenseaAssetContractStr
+		req.TokenId = TokenIdGetOpenseaAssetContract
+	}
+
+	if AccountAddressGetOpenseaAssetContractStrArr, ok := queryParams["account_address"]; ok {
+		AccountAddressGetOpenseaAssetContractStr := AccountAddressGetOpenseaAssetContractStrArr[0]
+		AccountAddressGetOpenseaAssetContract := AccountAddressGetOpenseaAssetContractStr
+		req.AccountAddress = AccountAddressGetOpenseaAssetContract
+	}
+
+	if IncludeOrdersGetOpenseaAssetContractStrArr, ok := queryParams["include_orders"]; ok {
+		IncludeOrdersGetOpenseaAssetContractStr := IncludeOrdersGetOpenseaAssetContractStrArr[0]
+		IncludeOrdersGetOpenseaAssetContract := IncludeOrdersGetOpenseaAssetContractStr
+		req.IncludeOrders = IncludeOrdersGetOpenseaAssetContract
+	}
+
+	if NetworkGetOpenseaAssetContractStrArr, ok := queryParams["network"]; ok {
+		NetworkGetOpenseaAssetContractStr := NetworkGetOpenseaAssetContractStrArr[0]
+		NetworkGetOpenseaAssetContract := NetworkGetOpenseaAssetContractStr
+		req.Network = NetworkGetOpenseaAssetContract
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetOpenseaAssetContractOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getopenseaassetcontract request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetOpenseaAssetContractOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetOpenseaAssetContractRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if AssetContractAddressGetOpenseaAssetContractStrArr, ok := queryParams["asset_contract_address"]; ok {
+		AssetContractAddressGetOpenseaAssetContractStr := AssetContractAddressGetOpenseaAssetContractStrArr[0]
+		AssetContractAddressGetOpenseaAssetContract := AssetContractAddressGetOpenseaAssetContractStr
+		req.AssetContractAddress = AssetContractAddressGetOpenseaAssetContract
+	}
+
+	if TokenIdGetOpenseaAssetContractStrArr, ok := queryParams["token_id"]; ok {
+		TokenIdGetOpenseaAssetContractStr := TokenIdGetOpenseaAssetContractStrArr[0]
+		TokenIdGetOpenseaAssetContract := TokenIdGetOpenseaAssetContractStr
+		req.TokenId = TokenIdGetOpenseaAssetContract
+	}
+
+	if AccountAddressGetOpenseaAssetContractStrArr, ok := queryParams["account_address"]; ok {
+		AccountAddressGetOpenseaAssetContractStr := AccountAddressGetOpenseaAssetContractStrArr[0]
+		AccountAddressGetOpenseaAssetContract := AccountAddressGetOpenseaAssetContractStr
+		req.AccountAddress = AccountAddressGetOpenseaAssetContract
+	}
+
+	if IncludeOrdersGetOpenseaAssetContractStrArr, ok := queryParams["include_orders"]; ok {
+		IncludeOrdersGetOpenseaAssetContractStr := IncludeOrdersGetOpenseaAssetContractStrArr[0]
+		IncludeOrdersGetOpenseaAssetContract := IncludeOrdersGetOpenseaAssetContractStr
+		req.IncludeOrders = IncludeOrdersGetOpenseaAssetContract
+	}
+
+	if NetworkGetOpenseaAssetContractStrArr, ok := queryParams["network"]; ok {
+		NetworkGetOpenseaAssetContractStr := NetworkGetOpenseaAssetContractStrArr[0]
+		NetworkGetOpenseaAssetContract := NetworkGetOpenseaAssetContractStr
+		req.Network = NetworkGetOpenseaAssetContract
 	}
 
 	return &req, err

@@ -12,6 +12,7 @@ func init() {
 type AdminApi interface {
 	User() UserApi
 	Status() StatusApi
+	ChannelUser() ChannelUserApi
 }
 
 type adminApi struct {
@@ -27,4 +28,7 @@ func (*adminApi) User() UserApi {
 
 func (*adminApi) Status() StatusApi {
 	return NewStatusApi()
+}
+func (*adminApi) ChannelUser() ChannelUserApi {
+	return NewChannelUserApi()
 }

@@ -37,8 +37,8 @@ type (
 		User           *User                    `bson:"-"`
 	}
 	ChannelUserRank struct {
-		ChannelMisesid string `bson:"_id"`
-		ChannelUserNum int64  `bson:"count"`
+		ID    string `bson:"_id"`
+		Count int64  `bson:"count"`
 	}
 	PageChannelUserInput struct {
 		PageParams *pagination.TraditionalParams
@@ -223,19 +223,27 @@ func CountChannelUser(ctx context.Context, params IAdminParams) (int64, error) {
 	return res, nil
 }
 
-func RankChannelUser(ctx context.Context) ([]*ChannelUserRank, error) {
+type RankChannelUserParams struct {
+	Pipe bson.A
+}
+
+func RankChannelUser(ctx context.Context, params *RankChannelUserParams) ([]*ChannelUserRank, error) {
 	out := make([]*ChannelUserRank, 0)
 	pipe := bson.A{
 		bson.M{"$group": bson.M{"_id": "$channel_misesid", "count": bson.M{"$sum": 1}}},
-		bson.M{"$match": bson.M{"count": bson.M{"$gt": 3}}},
+		bson.M{"$match": bson.M{}},
 		bson.M{"$sort": bson.M{"count": -1}},
 		bson.M{"$limit": 50},
+	}
+	if params.Pipe != nil && len(params.Pipe) > 0 {
+		pipe = params.Pipe
 	}
 	res, err := db.DB().Collection("channelusers").Aggregate(ctx, pipe)
 	if err != nil {
 		return nil, err
 	}
-	err = res.All(ctx, out)
+	err = res.All(ctx, &out)
 	fmt.Println("res: ", res)
+	fmt.Println("out: ", out)
 	return out, err
 }

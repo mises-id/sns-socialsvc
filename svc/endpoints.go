@@ -33,49 +33,52 @@ import (
 // single type that implements the Service interface. For example, you might
 // construct individual endpoints using transport/http.NewClient, combine them into an Endpoints, and return it to the caller as a Service.
 type Endpoints struct {
-	SignInEndpoint               endpoint.Endpoint
-	FindUserEndpoint             endpoint.Endpoint
-	UpdateUserProfileEndpoint    endpoint.Endpoint
-	UpdateUserAvatarEndpoint     endpoint.Endpoint
-	UpdateUserNameEndpoint       endpoint.Endpoint
-	CreateStatusEndpoint         endpoint.Endpoint
-	UpdateStatusEndpoint         endpoint.Endpoint
-	DeleteStatusEndpoint         endpoint.Endpoint
-	LikeStatusEndpoint           endpoint.Endpoint
-	UnLikeStatusEndpoint         endpoint.Endpoint
-	ListLikeStatusEndpoint       endpoint.Endpoint
-	GetStatusEndpoint            endpoint.Endpoint
-	ListStatusEndpoint           endpoint.Endpoint
-	NewListStatusEndpoint        endpoint.Endpoint
-	ListRecommendedEndpoint      endpoint.Endpoint
-	ListUserTimelineEndpoint     endpoint.Endpoint
-	LatestFollowingEndpoint      endpoint.Endpoint
-	ListRelationshipEndpoint     endpoint.Endpoint
-	FollowEndpoint               endpoint.Endpoint
-	UnFollowEndpoint             endpoint.Endpoint
-	ListMessageEndpoint          endpoint.Endpoint
-	ReadMessageEndpoint          endpoint.Endpoint
-	GetMessageSummaryEndpoint    endpoint.Endpoint
-	ListCommentEndpoint          endpoint.Endpoint
-	GetCommentEndpoint           endpoint.Endpoint
-	NewRecommendStatusEndpoint   endpoint.Endpoint
-	CreateCommentEndpoint        endpoint.Endpoint
-	DeleteCommentEndpoint        endpoint.Endpoint
-	LikeCommentEndpoint          endpoint.Endpoint
-	UnlikeCommentEndpoint        endpoint.Endpoint
-	ListBlacklistEndpoint        endpoint.Endpoint
-	CreateBlacklistEndpoint      endpoint.Endpoint
-	DeleteBlacklistEndpoint      endpoint.Endpoint
-	ShareTweetUrlEndpoint        endpoint.Endpoint
-	TwitterAuthEndpoint          endpoint.Endpoint
-	AirdropTwitterEndpoint       endpoint.Endpoint
-	AirdropChannelEndpoint       endpoint.Endpoint
-	CreateAirdropTwitterEndpoint endpoint.Endpoint
-	CreateChannelAirdropEndpoint endpoint.Endpoint
-	UserToChainEndpoint          endpoint.Endpoint
-	ChannelInfoEndpoint          endpoint.Endpoint
-	PageChannelUserEndpoint      endpoint.Endpoint
-	GetChannelUserEndpoint       endpoint.Endpoint
+	SignInEndpoint                  endpoint.Endpoint
+	FindUserEndpoint                endpoint.Endpoint
+	UpdateUserProfileEndpoint       endpoint.Endpoint
+	UpdateUserAvatarEndpoint        endpoint.Endpoint
+	UpdateUserNameEndpoint          endpoint.Endpoint
+	CreateStatusEndpoint            endpoint.Endpoint
+	UpdateStatusEndpoint            endpoint.Endpoint
+	DeleteStatusEndpoint            endpoint.Endpoint
+	LikeStatusEndpoint              endpoint.Endpoint
+	UnLikeStatusEndpoint            endpoint.Endpoint
+	ListLikeStatusEndpoint          endpoint.Endpoint
+	GetStatusEndpoint               endpoint.Endpoint
+	ListStatusEndpoint              endpoint.Endpoint
+	NewListStatusEndpoint           endpoint.Endpoint
+	ListRecommendedEndpoint         endpoint.Endpoint
+	ListUserTimelineEndpoint        endpoint.Endpoint
+	LatestFollowingEndpoint         endpoint.Endpoint
+	ListRelationshipEndpoint        endpoint.Endpoint
+	FollowEndpoint                  endpoint.Endpoint
+	UnFollowEndpoint                endpoint.Endpoint
+	ListMessageEndpoint             endpoint.Endpoint
+	ReadMessageEndpoint             endpoint.Endpoint
+	GetMessageSummaryEndpoint       endpoint.Endpoint
+	ListCommentEndpoint             endpoint.Endpoint
+	GetCommentEndpoint              endpoint.Endpoint
+	NewRecommendStatusEndpoint      endpoint.Endpoint
+	CreateCommentEndpoint           endpoint.Endpoint
+	DeleteCommentEndpoint           endpoint.Endpoint
+	LikeCommentEndpoint             endpoint.Endpoint
+	UnlikeCommentEndpoint           endpoint.Endpoint
+	ListBlacklistEndpoint           endpoint.Endpoint
+	CreateBlacklistEndpoint         endpoint.Endpoint
+	DeleteBlacklistEndpoint         endpoint.Endpoint
+	ShareTweetUrlEndpoint           endpoint.Endpoint
+	TwitterAuthEndpoint             endpoint.Endpoint
+	AirdropTwitterEndpoint          endpoint.Endpoint
+	AirdropChannelEndpoint          endpoint.Endpoint
+	CreateAirdropTwitterEndpoint    endpoint.Endpoint
+	CreateChannelAirdropEndpoint    endpoint.Endpoint
+	UserToChainEndpoint             endpoint.Endpoint
+	ChannelInfoEndpoint             endpoint.Endpoint
+	PageChannelUserEndpoint         endpoint.Endpoint
+	GetChannelUserEndpoint          endpoint.Endpoint
+	GetOpenseaAssetEndpoint         endpoint.Endpoint
+	ListOpenseaAssetEndpoint        endpoint.Endpoint
+	GetOpenseaAssetContractEndpoint endpoint.Endpoint
 }
 
 // Endpoints
@@ -422,6 +425,30 @@ func (e Endpoints) GetChannelUser(ctx context.Context, in *pb.GetChannelUserRequ
 		return nil, err
 	}
 	return response.(*pb.GetChannelUserResponse), nil
+}
+
+func (e Endpoints) GetOpenseaAsset(ctx context.Context, in *pb.GetOpenseaAssetRequest) (*pb.GetOpenseaAssetResponse, error) {
+	response, err := e.GetOpenseaAssetEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.GetOpenseaAssetResponse), nil
+}
+
+func (e Endpoints) ListOpenseaAsset(ctx context.Context, in *pb.ListOpenseaAssetRequest) (*pb.ListOpenseaAssetResponse, error) {
+	response, err := e.ListOpenseaAssetEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.ListOpenseaAssetResponse), nil
+}
+
+func (e Endpoints) GetOpenseaAssetContract(ctx context.Context, in *pb.GetOpenseaAssetContractRequest) (*pb.GetOpenseaAssetContractResponse, error) {
+	response, err := e.GetOpenseaAssetContractEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.GetOpenseaAssetContractResponse), nil
 }
 
 // Make Endpoints
@@ -899,6 +926,39 @@ func MakeGetChannelUserEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeGetOpenseaAssetEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.GetOpenseaAssetRequest)
+		v, err := s.GetOpenseaAsset(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeListOpenseaAssetEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ListOpenseaAssetRequest)
+		v, err := s.ListOpenseaAsset(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeGetOpenseaAssetContractEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.GetOpenseaAssetContractRequest)
+		v, err := s.GetOpenseaAssetContract(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 // WrapAllExcept wraps each Endpoint field of struct Endpoints with a
 // go-kit/kit/endpoint.Middleware.
 // Use this for applying a set of middlewares to every endpoint in the service.
@@ -906,49 +966,52 @@ func MakeGetChannelUserEndpoint(s pb.SocialServer) endpoint.Endpoint {
 // WrapAllExcept(middleware, "Status", "Ping")
 func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...string) {
 	included := map[string]struct{}{
-		"SignIn":               {},
-		"FindUser":             {},
-		"UpdateUserProfile":    {},
-		"UpdateUserAvatar":     {},
-		"UpdateUserName":       {},
-		"CreateStatus":         {},
-		"UpdateStatus":         {},
-		"DeleteStatus":         {},
-		"LikeStatus":           {},
-		"UnLikeStatus":         {},
-		"ListLikeStatus":       {},
-		"GetStatus":            {},
-		"ListStatus":           {},
-		"NewListStatus":        {},
-		"ListRecommended":      {},
-		"ListUserTimeline":     {},
-		"LatestFollowing":      {},
-		"ListRelationship":     {},
-		"Follow":               {},
-		"UnFollow":             {},
-		"ListMessage":          {},
-		"ReadMessage":          {},
-		"GetMessageSummary":    {},
-		"ListComment":          {},
-		"GetComment":           {},
-		"NewRecommendStatus":   {},
-		"CreateComment":        {},
-		"DeleteComment":        {},
-		"LikeComment":          {},
-		"UnlikeComment":        {},
-		"ListBlacklist":        {},
-		"CreateBlacklist":      {},
-		"DeleteBlacklist":      {},
-		"ShareTweetUrl":        {},
-		"TwitterAuth":          {},
-		"AirdropTwitter":       {},
-		"AirdropChannel":       {},
-		"CreateAirdropTwitter": {},
-		"CreateChannelAirdrop": {},
-		"UserToChain":          {},
-		"ChannelInfo":          {},
-		"PageChannelUser":      {},
-		"GetChannelUser":       {},
+		"SignIn":                  {},
+		"FindUser":                {},
+		"UpdateUserProfile":       {},
+		"UpdateUserAvatar":        {},
+		"UpdateUserName":          {},
+		"CreateStatus":            {},
+		"UpdateStatus":            {},
+		"DeleteStatus":            {},
+		"LikeStatus":              {},
+		"UnLikeStatus":            {},
+		"ListLikeStatus":          {},
+		"GetStatus":               {},
+		"ListStatus":              {},
+		"NewListStatus":           {},
+		"ListRecommended":         {},
+		"ListUserTimeline":        {},
+		"LatestFollowing":         {},
+		"ListRelationship":        {},
+		"Follow":                  {},
+		"UnFollow":                {},
+		"ListMessage":             {},
+		"ReadMessage":             {},
+		"GetMessageSummary":       {},
+		"ListComment":             {},
+		"GetComment":              {},
+		"NewRecommendStatus":      {},
+		"CreateComment":           {},
+		"DeleteComment":           {},
+		"LikeComment":             {},
+		"UnlikeComment":           {},
+		"ListBlacklist":           {},
+		"CreateBlacklist":         {},
+		"DeleteBlacklist":         {},
+		"ShareTweetUrl":           {},
+		"TwitterAuth":             {},
+		"AirdropTwitter":          {},
+		"AirdropChannel":          {},
+		"CreateAirdropTwitter":    {},
+		"CreateChannelAirdrop":    {},
+		"UserToChain":             {},
+		"ChannelInfo":             {},
+		"PageChannelUser":         {},
+		"GetChannelUser":          {},
+		"GetOpenseaAsset":         {},
+		"ListOpenseaAsset":        {},
+		"GetOpenseaAssetContract": {},
 	}
 
 	for _, ex := range excluded {
@@ -1088,6 +1151,15 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "GetChannelUser" {
 			e.GetChannelUserEndpoint = middleware(e.GetChannelUserEndpoint)
 		}
+		if inc == "GetOpenseaAsset" {
+			e.GetOpenseaAssetEndpoint = middleware(e.GetOpenseaAssetEndpoint)
+		}
+		if inc == "ListOpenseaAsset" {
+			e.ListOpenseaAssetEndpoint = middleware(e.ListOpenseaAssetEndpoint)
+		}
+		if inc == "GetOpenseaAssetContract" {
+			e.GetOpenseaAssetContractEndpoint = middleware(e.GetOpenseaAssetContractEndpoint)
+		}
 	}
 }
 
@@ -1102,49 +1174,52 @@ type LabeledMiddleware func(string, endpoint.Endpoint) endpoint.Endpoint
 // functionality.
 func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoint) endpoint.Endpoint, excluded ...string) {
 	included := map[string]struct{}{
-		"SignIn":               {},
-		"FindUser":             {},
-		"UpdateUserProfile":    {},
-		"UpdateUserAvatar":     {},
-		"UpdateUserName":       {},
-		"CreateStatus":         {},
-		"UpdateStatus":         {},
-		"DeleteStatus":         {},
-		"LikeStatus":           {},
-		"UnLikeStatus":         {},
-		"ListLikeStatus":       {},
-		"GetStatus":            {},
-		"ListStatus":           {},
-		"NewListStatus":        {},
-		"ListRecommended":      {},
-		"ListUserTimeline":     {},
-		"LatestFollowing":      {},
-		"ListRelationship":     {},
-		"Follow":               {},
-		"UnFollow":             {},
-		"ListMessage":          {},
-		"ReadMessage":          {},
-		"GetMessageSummary":    {},
-		"ListComment":          {},
-		"GetComment":           {},
-		"NewRecommendStatus":   {},
-		"CreateComment":        {},
-		"DeleteComment":        {},
-		"LikeComment":          {},
-		"UnlikeComment":        {},
-		"ListBlacklist":        {},
-		"CreateBlacklist":      {},
-		"DeleteBlacklist":      {},
-		"ShareTweetUrl":        {},
-		"TwitterAuth":          {},
-		"AirdropTwitter":       {},
-		"AirdropChannel":       {},
-		"CreateAirdropTwitter": {},
-		"CreateChannelAirdrop": {},
-		"UserToChain":          {},
-		"ChannelInfo":          {},
-		"PageChannelUser":      {},
-		"GetChannelUser":       {},
+		"SignIn":                  {},
+		"FindUser":                {},
+		"UpdateUserProfile":       {},
+		"UpdateUserAvatar":        {},
+		"UpdateUserName":          {},
+		"CreateStatus":            {},
+		"UpdateStatus":            {},
+		"DeleteStatus":            {},
+		"LikeStatus":              {},
+		"UnLikeStatus":            {},
+		"ListLikeStatus":          {},
+		"GetStatus":               {},
+		"ListStatus":              {},
+		"NewListStatus":           {},
+		"ListRecommended":         {},
+		"ListUserTimeline":        {},
+		"LatestFollowing":         {},
+		"ListRelationship":        {},
+		"Follow":                  {},
+		"UnFollow":                {},
+		"ListMessage":             {},
+		"ReadMessage":             {},
+		"GetMessageSummary":       {},
+		"ListComment":             {},
+		"GetComment":              {},
+		"NewRecommendStatus":      {},
+		"CreateComment":           {},
+		"DeleteComment":           {},
+		"LikeComment":             {},
+		"UnlikeComment":           {},
+		"ListBlacklist":           {},
+		"CreateBlacklist":         {},
+		"DeleteBlacklist":         {},
+		"ShareTweetUrl":           {},
+		"TwitterAuth":             {},
+		"AirdropTwitter":          {},
+		"AirdropChannel":          {},
+		"CreateAirdropTwitter":    {},
+		"CreateChannelAirdrop":    {},
+		"UserToChain":             {},
+		"ChannelInfo":             {},
+		"PageChannelUser":         {},
+		"GetChannelUser":          {},
+		"GetOpenseaAsset":         {},
+		"ListOpenseaAsset":        {},
+		"GetOpenseaAssetContract": {},
 	}
 
 	for _, ex := range excluded {
@@ -1283,6 +1358,15 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "GetChannelUser" {
 			e.GetChannelUserEndpoint = middleware("GetChannelUser", e.GetChannelUserEndpoint)
+		}
+		if inc == "GetOpenseaAsset" {
+			e.GetOpenseaAssetEndpoint = middleware("GetOpenseaAsset", e.GetOpenseaAssetEndpoint)
+		}
+		if inc == "ListOpenseaAsset" {
+			e.ListOpenseaAssetEndpoint = middleware("ListOpenseaAsset", e.ListOpenseaAssetEndpoint)
+		}
+		if inc == "GetOpenseaAssetContract" {
+			e.GetOpenseaAssetContractEndpoint = middleware("GetOpenseaAssetContract", e.GetOpenseaAssetContractEndpoint)
 		}
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
+	"github.com/mises-id/sns-socialsvc/app/services/opensea_api"
 	pb "github.com/mises-id/sns-socialsvc/proto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -312,6 +313,21 @@ func NewChannelUser(channel_user *models.ChannelUser) *pb.ChannelUserInfo {
 		ChannelMisesid: channel_user.ChannelMisesid,
 	}
 
+}
+func NewOpenseaAsset(in *opensea_api.AssetModel) *pb.OpenseaAsset {
+	return &pb.OpenseaAsset{
+		Id:       in.ID,
+		ImageUrl: in.ImageUrl,
+		Name:     in.Name,
+	}
+}
+
+func NewOpenseaAssetSlice(assets []*opensea_api.AssetModel) []*pb.OpenseaAsset {
+	result := make([]*pb.OpenseaAsset, len(assets))
+	for i, v := range assets {
+		result[i] = NewOpenseaAsset(v)
+	}
+	return result
 }
 
 func NewStatusLikeSlice(likes []*models.Like) []*pb.StatusLike {
