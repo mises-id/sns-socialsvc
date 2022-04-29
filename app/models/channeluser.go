@@ -36,6 +36,10 @@ type (
 		CreatedAt      time.Time                `bson:"created_at"`
 		User           *User                    `bson:"-"`
 	}
+	ChannelUserRank struct {
+		ID    string `bson:"_id"`
+		Count int64  `bson:"count"`
+	}
 	PageChannelUserInput struct {
 		PageParams *pagination.TraditionalParams
 		Misesid    string
@@ -102,6 +106,9 @@ func CreateChannelUser(ctx context.Context, data *ChannelUser) (*ChannelUser, er
 		return nil, err
 	}
 	res, err := db.DB().Collection("channelusers").InsertOne(ctx, data)
+	if err != nil {
+		return nil, err
+	}
 	data.ID = res.InsertedID.(primitive.ObjectID)
 	return data, err
 }
@@ -214,4 +221,29 @@ func CountChannelUser(ctx context.Context, params IAdminParams) (int64, error) {
 	}
 
 	return res, nil
+}
+
+type RankChannelUserParams struct {
+	Pipe bson.A
+}
+
+func RankChannelUser(ctx context.Context, params *RankChannelUserParams) ([]*ChannelUserRank, error) {
+	out := make([]*ChannelUserRank, 0)
+	pipe := bson.A{
+		bson.M{"$group": bson.M{"_id": "$channel_misesid", "count": bson.M{"$sum": 1}}},
+		bson.M{"$match": bson.M{}},
+		bson.M{"$sort": bson.M{"count": -1}},
+		bson.M{"$limit": 50},
+	}
+	if params.Pipe != nil && len(params.Pipe) > 0 {
+		pipe = params.Pipe
+	}
+	res, err := db.DB().Collection("channelusers").Aggregate(ctx, pipe)
+	if err != nil {
+		return nil, err
+	}
+	err = res.All(ctx, &out)
+	fmt.Println("res: ", res)
+	fmt.Println("out: ", out)
+	return out, err
 }

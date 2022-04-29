@@ -16,6 +16,7 @@ import (
 	commentSVC "github.com/mises-id/sns-socialsvc/app/services/comment"
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
 	messageSVC "github.com/mises-id/sns-socialsvc/app/services/message"
+	openseaApiSVC "github.com/mises-id/sns-socialsvc/app/services/opensea_api"
 	sessionSVC "github.com/mises-id/sns-socialsvc/app/services/session"
 	statusSVC "github.com/mises-id/sns-socialsvc/app/services/status"
 	userSVC "github.com/mises-id/sns-socialsvc/app/services/user"
@@ -775,5 +776,53 @@ func (s socialService) GetChannelUser(ctx context.Context, in *pb.GetChannelUser
 		return nil, err
 	}
 	resp.ChanelUser = factory.NewChannelUser(out)
+	return &resp, nil
+}
+
+func (s socialService) GetOpenseaAsset(ctx context.Context, in *pb.GetOpenseaAssetRequest) (*pb.GetOpenseaAssetResponse, error) {
+	var resp pb.GetOpenseaAssetResponse
+
+	out, err := openseaApiSVC.GetSingleAsset(ctx, &openseaApiSVC.SingleAssetInput{
+		AssetContractAddress: in.AssetContractAddress,
+		TokenId:              in.TokenId,
+		AccountAddress:       in.AccountAddress,
+		IncludeOrders:        in.IncludeOrders,
+		Network:              in.Network,
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.OpenseaAsset = out
+	return &resp, nil
+}
+
+func (s socialService) ListOpenseaAsset(ctx context.Context, in *pb.ListOpenseaAssetRequest) (*pb.ListOpenseaAssetResponse, error) {
+	var resp pb.ListOpenseaAssetResponse
+	out, err := openseaApiSVC.ListAsset(ctx, &openseaApiSVC.ListAssetInput{
+		Owner:   in.Owner,
+		Limit:   in.Limit,
+		Cursor:  in.Cursor,
+		Network: in.Network,
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Assets = out
+	return &resp, nil
+}
+
+func (s socialService) GetOpenseaAssetContract(ctx context.Context, in *pb.GetOpenseaAssetContractRequest) (*pb.GetOpenseaAssetContractResponse, error) {
+	var resp pb.GetOpenseaAssetContractResponse
+	out, err := openseaApiSVC.GetAssetContract(ctx, &openseaApiSVC.AssetContractInput{
+		AssetContractAddress: in.AssetContractAddress,
+		Network:              in.Network,
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.OpenseaAsset = out
 	return &resp, nil
 }

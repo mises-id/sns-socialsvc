@@ -595,50 +595,92 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var getopenseaassetEndpoint endpoint.Endpoint
+	{
+		getopenseaassetEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"GetOpenseaAsset",
+			EncodeGRPCGetOpenseaAssetRequest,
+			DecodeGRPCGetOpenseaAssetResponse,
+			pb.GetOpenseaAssetResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var listopenseaassetEndpoint endpoint.Endpoint
+	{
+		listopenseaassetEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"ListOpenseaAsset",
+			EncodeGRPCListOpenseaAssetRequest,
+			DecodeGRPCListOpenseaAssetResponse,
+			pb.ListOpenseaAssetResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var getopenseaassetcontractEndpoint endpoint.Endpoint
+	{
+		getopenseaassetcontractEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"GetOpenseaAssetContract",
+			EncodeGRPCGetOpenseaAssetContractRequest,
+			DecodeGRPCGetOpenseaAssetContractResponse,
+			pb.GetOpenseaAssetContractResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	return svc.Endpoints{
-		SignInEndpoint:               signinEndpoint,
-		FindUserEndpoint:             finduserEndpoint,
-		UpdateUserProfileEndpoint:    updateuserprofileEndpoint,
-		UpdateUserAvatarEndpoint:     updateuseravatarEndpoint,
-		UpdateUserNameEndpoint:       updateusernameEndpoint,
-		CreateStatusEndpoint:         createstatusEndpoint,
-		UpdateStatusEndpoint:         updatestatusEndpoint,
-		DeleteStatusEndpoint:         deletestatusEndpoint,
-		LikeStatusEndpoint:           likestatusEndpoint,
-		UnLikeStatusEndpoint:         unlikestatusEndpoint,
-		ListLikeStatusEndpoint:       listlikestatusEndpoint,
-		GetStatusEndpoint:            getstatusEndpoint,
-		ListStatusEndpoint:           liststatusEndpoint,
-		NewListStatusEndpoint:        newliststatusEndpoint,
-		ListRecommendedEndpoint:      listrecommendedEndpoint,
-		ListUserTimelineEndpoint:     listusertimelineEndpoint,
-		LatestFollowingEndpoint:      latestfollowingEndpoint,
-		ListRelationshipEndpoint:     listrelationshipEndpoint,
-		FollowEndpoint:               followEndpoint,
-		UnFollowEndpoint:             unfollowEndpoint,
-		ListMessageEndpoint:          listmessageEndpoint,
-		ReadMessageEndpoint:          readmessageEndpoint,
-		GetMessageSummaryEndpoint:    getmessagesummaryEndpoint,
-		ListCommentEndpoint:          listcommentEndpoint,
-		GetCommentEndpoint:           getcommentEndpoint,
-		NewRecommendStatusEndpoint:   newrecommendstatusEndpoint,
-		CreateCommentEndpoint:        createcommentEndpoint,
-		DeleteCommentEndpoint:        deletecommentEndpoint,
-		LikeCommentEndpoint:          likecommentEndpoint,
-		UnlikeCommentEndpoint:        unlikecommentEndpoint,
-		ListBlacklistEndpoint:        listblacklistEndpoint,
-		CreateBlacklistEndpoint:      createblacklistEndpoint,
-		DeleteBlacklistEndpoint:      deleteblacklistEndpoint,
-		ShareTweetUrlEndpoint:        sharetweeturlEndpoint,
-		TwitterAuthEndpoint:          twitterauthEndpoint,
-		AirdropTwitterEndpoint:       airdroptwitterEndpoint,
-		AirdropChannelEndpoint:       airdropchannelEndpoint,
-		CreateAirdropTwitterEndpoint: createairdroptwitterEndpoint,
-		CreateChannelAirdropEndpoint: createchannelairdropEndpoint,
-		UserToChainEndpoint:          usertochainEndpoint,
-		ChannelInfoEndpoint:          channelinfoEndpoint,
-		PageChannelUserEndpoint:      pagechanneluserEndpoint,
-		GetChannelUserEndpoint:       getchanneluserEndpoint,
+		SignInEndpoint:                  signinEndpoint,
+		FindUserEndpoint:                finduserEndpoint,
+		UpdateUserProfileEndpoint:       updateuserprofileEndpoint,
+		UpdateUserAvatarEndpoint:        updateuseravatarEndpoint,
+		UpdateUserNameEndpoint:          updateusernameEndpoint,
+		CreateStatusEndpoint:            createstatusEndpoint,
+		UpdateStatusEndpoint:            updatestatusEndpoint,
+		DeleteStatusEndpoint:            deletestatusEndpoint,
+		LikeStatusEndpoint:              likestatusEndpoint,
+		UnLikeStatusEndpoint:            unlikestatusEndpoint,
+		ListLikeStatusEndpoint:          listlikestatusEndpoint,
+		GetStatusEndpoint:               getstatusEndpoint,
+		ListStatusEndpoint:              liststatusEndpoint,
+		NewListStatusEndpoint:           newliststatusEndpoint,
+		ListRecommendedEndpoint:         listrecommendedEndpoint,
+		ListUserTimelineEndpoint:        listusertimelineEndpoint,
+		LatestFollowingEndpoint:         latestfollowingEndpoint,
+		ListRelationshipEndpoint:        listrelationshipEndpoint,
+		FollowEndpoint:                  followEndpoint,
+		UnFollowEndpoint:                unfollowEndpoint,
+		ListMessageEndpoint:             listmessageEndpoint,
+		ReadMessageEndpoint:             readmessageEndpoint,
+		GetMessageSummaryEndpoint:       getmessagesummaryEndpoint,
+		ListCommentEndpoint:             listcommentEndpoint,
+		GetCommentEndpoint:              getcommentEndpoint,
+		NewRecommendStatusEndpoint:      newrecommendstatusEndpoint,
+		CreateCommentEndpoint:           createcommentEndpoint,
+		DeleteCommentEndpoint:           deletecommentEndpoint,
+		LikeCommentEndpoint:             likecommentEndpoint,
+		UnlikeCommentEndpoint:           unlikecommentEndpoint,
+		ListBlacklistEndpoint:           listblacklistEndpoint,
+		CreateBlacklistEndpoint:         createblacklistEndpoint,
+		DeleteBlacklistEndpoint:         deleteblacklistEndpoint,
+		ShareTweetUrlEndpoint:           sharetweeturlEndpoint,
+		TwitterAuthEndpoint:             twitterauthEndpoint,
+		AirdropTwitterEndpoint:          airdroptwitterEndpoint,
+		AirdropChannelEndpoint:          airdropchannelEndpoint,
+		CreateAirdropTwitterEndpoint:    createairdroptwitterEndpoint,
+		CreateChannelAirdropEndpoint:    createchannelairdropEndpoint,
+		UserToChainEndpoint:             usertochainEndpoint,
+		ChannelInfoEndpoint:             channelinfoEndpoint,
+		PageChannelUserEndpoint:         pagechanneluserEndpoint,
+		GetChannelUserEndpoint:          getchanneluserEndpoint,
+		GetOpenseaAssetEndpoint:         getopenseaassetEndpoint,
+		ListOpenseaAssetEndpoint:        listopenseaassetEndpoint,
+		GetOpenseaAssetContractEndpoint: getopenseaassetcontractEndpoint,
 	}, nil
 }
 
@@ -945,6 +987,27 @@ func DecodeGRPCGetChannelUserResponse(_ context.Context, grpcReply interface{}) 
 	return reply, nil
 }
 
+// DecodeGRPCGetOpenseaAssetResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC getopenseaasset reply to a user-domain getopenseaasset response. Primarily useful in a client.
+func DecodeGRPCGetOpenseaAssetResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.GetOpenseaAssetResponse)
+	return reply, nil
+}
+
+// DecodeGRPCListOpenseaAssetResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC listopenseaasset reply to a user-domain listopenseaasset response. Primarily useful in a client.
+func DecodeGRPCListOpenseaAssetResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.ListOpenseaAssetResponse)
+	return reply, nil
+}
+
+// DecodeGRPCGetOpenseaAssetContractResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC getopenseaassetcontract reply to a user-domain getopenseaassetcontract response. Primarily useful in a client.
+func DecodeGRPCGetOpenseaAssetContractResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.GetOpenseaAssetContractResponse)
+	return reply, nil
+}
+
 // GRPC Client Encode
 
 // EncodeGRPCSignInRequest is a transport/grpc.EncodeRequestFunc that converts a
@@ -1245,6 +1308,27 @@ func EncodeGRPCPageChannelUserRequest(_ context.Context, request interface{}) (i
 // user-domain getchanneluser request to a gRPC getchanneluser request. Primarily useful in a client.
 func EncodeGRPCGetChannelUserRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.GetChannelUserRequest)
+	return req, nil
+}
+
+// EncodeGRPCGetOpenseaAssetRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain getopenseaasset request to a gRPC getopenseaasset request. Primarily useful in a client.
+func EncodeGRPCGetOpenseaAssetRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.GetOpenseaAssetRequest)
+	return req, nil
+}
+
+// EncodeGRPCListOpenseaAssetRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain listopenseaasset request to a gRPC listopenseaasset request. Primarily useful in a client.
+func EncodeGRPCListOpenseaAssetRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.ListOpenseaAssetRequest)
+	return req, nil
+}
+
+// EncodeGRPCGetOpenseaAssetContractRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain getopenseaassetcontract request to a gRPC getopenseaassetcontract request. Primarily useful in a client.
+func EncodeGRPCGetOpenseaAssetContractRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.GetOpenseaAssetContractRequest)
 	return req, nil
 }
 

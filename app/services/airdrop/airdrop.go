@@ -14,7 +14,6 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/search"
 	"github.com/mises-id/sns-socialsvc/app/services/user_twitter"
 	airdropLib "github.com/mises-id/sns-socialsvc/lib/airdrop"
-	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -34,7 +33,7 @@ func AirdropTwitter(ctx context.Context) {
 	totalAirdropNum = 200
 	airdropStop = make(chan int)
 	airdropDo = true
-	utils.WirteLogDay("./log/airdrop.log")
+	fmt.Println("airdrop start")
 	airdropLib.AirdropClient.SetListener(&FaucetCallback{ctx})
 	go airdropTx(ctx)
 	select {
@@ -252,8 +251,6 @@ func txGeneratedAfter(ctx context.Context, misesid string, tx_id string) error {
 
 //create twitter airdrop
 func CretaeAirdropTwitter(ctx context.Context) {
-
-	utils.WirteLogDay("./log/create_airdrop.log")
 	if !models.GetAirdropStatus(ctx) {
 		return
 	}

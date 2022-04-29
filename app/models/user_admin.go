@@ -114,3 +114,15 @@ func UpdateUserTag(ctx context.Context, user *User) error {
 		}}})
 	return err
 }
+
+func CountUser(ctx context.Context, params IAdminParams) (int64, error) {
+
+	var res int64
+	chain := params.BuildAdminSearch(db.ODM(ctx))
+	err := chain.Model(&User{}).Count(&res).Error
+	if err != nil {
+		return res, err
+	}
+
+	return res, nil
+}

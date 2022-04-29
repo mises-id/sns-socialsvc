@@ -576,6 +576,39 @@ service Social {
       }
     };
   }
+  rpc GetOpenseaAsset (GetOpenseaAssetRequest) returns (GetOpenseaAssetResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/opensea/single_asset"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/opensea/single_asset/"
+      }
+    };
+  }
+  rpc ListOpenseaAsset (ListOpenseaAssetRequest) returns (ListOpenseaAssetResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/opensea/assets"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/opensea/assets/"
+      }
+    };
+  }
+  rpc GetOpenseaAssetContract (GetOpenseaAssetContractRequest) returns (GetOpenseaAssetContractResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/opensea/asset_contract"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/opensea/asset_contract/"
+      }
+    };
+  }
 }
 
 message SignInRequest {
@@ -1132,4 +1165,50 @@ message GetChannelUserRequest {
 message GetChannelUserResponse {
   uint64 code = 1;
   ChannelUserInfo chanel_user = 2;
+}
+
+message OpenseaAsset {
+  uint64 id = 1;
+  string image_url = 2;
+  string name = 3;
+}
+
+message GetOpenseaAssetRequest {
+  string asset_contract_address = 1;
+  string token_id = 2;
+  string account_address = 3;
+  string include_orders = 4;
+  string network = 5;
+}
+
+message GetOpenseaAssetResponse {
+  uint64 code = 1;
+  string opensea_asset = 2;
+  
+}
+message GetOpenseaAssetContractRequest {
+  string asset_contract_address = 1;
+  string token_id = 2;
+  string account_address = 3;
+  string include_orders = 4;
+  string network = 5;
+}
+
+message GetOpenseaAssetContractResponse {
+  uint64 code = 1;
+  string opensea_asset = 2;
+ 
+}
+message ListOpenseaAssetRequest {
+  string owner = 1;
+  uint64 limit = 2;
+  string cursor = 3;
+  string network = 4;
+}
+
+message ListOpenseaAssetResponse {
+  uint64 code = 1;
+  string assets = 2;
+  string next = 3;
+  string previous = 4;
 }

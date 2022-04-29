@@ -46,22 +46,23 @@ func (e Code) Newf(msg string, args ...interface{}) Code {
 }
 
 const (
-	SuccessCode             = 0
-	InvalidArgumentCode     = 400000
-	InvalidAuthCode         = 400001
-	InvalidAuthMethodCode   = 400002
-	InvalidAuthTokenCode    = 400003
-	UnauthorizedCode        = 401000
-	AuthorizeFailedCode     = 401001
-	ForbiddenCode           = 403000
-	UsernameExistedCode     = 403001
-	TokenExpiredCode        = 403002
-	UserInBlacklistCode     = 403003
-	NotFoundCode            = 404000
-	UnprocessableEntityCode = 422000
-	UsernameDuplicateCode   = 422001
-	InternalCode            = 500000
-	UnimplementedCode       = 500001
+	SuccessCode               = 0
+	InvalidArgumentCode       = 400000
+	InvalidAuthCode           = 400001
+	InvalidAuthMethodCode     = 400002
+	InvalidAuthTokenCode      = 400003
+	UnauthorizedCode          = 401000
+	AuthorizeFailedCode       = 401001
+	ForbiddenCode             = 403000
+	UsernameExistedCode       = 403001
+	TokenExpiredCode          = 403002
+	UserInBlacklistCode       = 403003
+	NotFoundCode              = 404000
+	UnprocessableEntityCode   = 422000
+	UsernameDuplicateCode     = 422001
+	StatusTooManyRequestsCode = 429000
+	InternalCode              = 500000
+	UnimplementedCode         = 500001
 )
 
 var (
@@ -81,4 +82,5 @@ var (
 	ErrUsernameDuplicate   = Code{HTTPStatus: http.StatusUnprocessableEntity, Code: UsernameDuplicateCode, Msg: "username duplicate"}
 	ErrInternal            = Code{HTTPStatus: http.StatusInternalServerError, Code: InternalCode, Msg: "Unknown error"}
 	ErrUnimplemented       = Code{HTTPStatus: http.StatusInternalServerError, Code: InternalCode, Msg: "Unknown error"}
+	ErrTooManyRequests     = Code{HTTPStatus: http.StatusTooManyRequests, Code: StatusTooManyRequestsCode, Msg: "too many request"}
 )

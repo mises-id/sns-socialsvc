@@ -481,51 +481,84 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var GetOpenseaAssetZeroEndpoint endpoint.Endpoint
+	{
+		GetOpenseaAssetZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/opensea/single_asset/"),
+			EncodeHTTPGetOpenseaAssetZeroRequest,
+			DecodeHTTPGetOpenseaAssetResponse,
+			options...,
+		).Endpoint()
+	}
+	var ListOpenseaAssetZeroEndpoint endpoint.Endpoint
+	{
+		ListOpenseaAssetZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/opensea/assets/"),
+			EncodeHTTPListOpenseaAssetZeroRequest,
+			DecodeHTTPListOpenseaAssetResponse,
+			options...,
+		).Endpoint()
+	}
+	var GetOpenseaAssetContractZeroEndpoint endpoint.Endpoint
+	{
+		GetOpenseaAssetContractZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/opensea/asset_contract/"),
+			EncodeHTTPGetOpenseaAssetContractZeroRequest,
+			DecodeHTTPGetOpenseaAssetContractResponse,
+			options...,
+		).Endpoint()
+	}
 
 	return svc.Endpoints{
-		SignInEndpoint:               SignInZeroEndpoint,
-		FindUserEndpoint:             FindUserZeroEndpoint,
-		UpdateUserProfileEndpoint:    UpdateUserProfileZeroEndpoint,
-		UpdateUserAvatarEndpoint:     UpdateUserAvatarZeroEndpoint,
-		UpdateUserNameEndpoint:       UpdateUserNameZeroEndpoint,
-		CreateStatusEndpoint:         CreateStatusZeroEndpoint,
-		UpdateStatusEndpoint:         UpdateStatusZeroEndpoint,
-		DeleteStatusEndpoint:         DeleteStatusZeroEndpoint,
-		LikeStatusEndpoint:           LikeStatusZeroEndpoint,
-		UnLikeStatusEndpoint:         UnLikeStatusZeroEndpoint,
-		ListLikeStatusEndpoint:       ListLikeStatusZeroEndpoint,
-		GetStatusEndpoint:            GetStatusZeroEndpoint,
-		ListStatusEndpoint:           ListStatusZeroEndpoint,
-		NewListStatusEndpoint:        NewListStatusZeroEndpoint,
-		ListRecommendedEndpoint:      ListRecommendedZeroEndpoint,
-		ListUserTimelineEndpoint:     ListUserTimelineZeroEndpoint,
-		LatestFollowingEndpoint:      LatestFollowingZeroEndpoint,
-		ListRelationshipEndpoint:     ListRelationshipZeroEndpoint,
-		FollowEndpoint:               FollowZeroEndpoint,
-		UnFollowEndpoint:             UnFollowZeroEndpoint,
-		ListMessageEndpoint:          ListMessageZeroEndpoint,
-		ReadMessageEndpoint:          ReadMessageZeroEndpoint,
-		GetMessageSummaryEndpoint:    GetMessageSummaryZeroEndpoint,
-		ListCommentEndpoint:          ListCommentZeroEndpoint,
-		GetCommentEndpoint:           GetCommentZeroEndpoint,
-		NewRecommendStatusEndpoint:   NewRecommendStatusZeroEndpoint,
-		CreateCommentEndpoint:        CreateCommentZeroEndpoint,
-		DeleteCommentEndpoint:        DeleteCommentZeroEndpoint,
-		LikeCommentEndpoint:          LikeCommentZeroEndpoint,
-		UnlikeCommentEndpoint:        UnlikeCommentZeroEndpoint,
-		ListBlacklistEndpoint:        ListBlacklistZeroEndpoint,
-		CreateBlacklistEndpoint:      CreateBlacklistZeroEndpoint,
-		DeleteBlacklistEndpoint:      DeleteBlacklistZeroEndpoint,
-		ShareTweetUrlEndpoint:        ShareTweetUrlZeroEndpoint,
-		TwitterAuthEndpoint:          TwitterAuthZeroEndpoint,
-		AirdropTwitterEndpoint:       AirdropTwitterZeroEndpoint,
-		AirdropChannelEndpoint:       AirdropChannelZeroEndpoint,
-		CreateAirdropTwitterEndpoint: CreateAirdropTwitterZeroEndpoint,
-		CreateChannelAirdropEndpoint: CreateChannelAirdropZeroEndpoint,
-		UserToChainEndpoint:          UserToChainZeroEndpoint,
-		ChannelInfoEndpoint:          ChannelInfoZeroEndpoint,
-		PageChannelUserEndpoint:      PageChannelUserZeroEndpoint,
-		GetChannelUserEndpoint:       GetChannelUserZeroEndpoint,
+		SignInEndpoint:                  SignInZeroEndpoint,
+		FindUserEndpoint:                FindUserZeroEndpoint,
+		UpdateUserProfileEndpoint:       UpdateUserProfileZeroEndpoint,
+		UpdateUserAvatarEndpoint:        UpdateUserAvatarZeroEndpoint,
+		UpdateUserNameEndpoint:          UpdateUserNameZeroEndpoint,
+		CreateStatusEndpoint:            CreateStatusZeroEndpoint,
+		UpdateStatusEndpoint:            UpdateStatusZeroEndpoint,
+		DeleteStatusEndpoint:            DeleteStatusZeroEndpoint,
+		LikeStatusEndpoint:              LikeStatusZeroEndpoint,
+		UnLikeStatusEndpoint:            UnLikeStatusZeroEndpoint,
+		ListLikeStatusEndpoint:          ListLikeStatusZeroEndpoint,
+		GetStatusEndpoint:               GetStatusZeroEndpoint,
+		ListStatusEndpoint:              ListStatusZeroEndpoint,
+		NewListStatusEndpoint:           NewListStatusZeroEndpoint,
+		ListRecommendedEndpoint:         ListRecommendedZeroEndpoint,
+		ListUserTimelineEndpoint:        ListUserTimelineZeroEndpoint,
+		LatestFollowingEndpoint:         LatestFollowingZeroEndpoint,
+		ListRelationshipEndpoint:        ListRelationshipZeroEndpoint,
+		FollowEndpoint:                  FollowZeroEndpoint,
+		UnFollowEndpoint:                UnFollowZeroEndpoint,
+		ListMessageEndpoint:             ListMessageZeroEndpoint,
+		ReadMessageEndpoint:             ReadMessageZeroEndpoint,
+		GetMessageSummaryEndpoint:       GetMessageSummaryZeroEndpoint,
+		ListCommentEndpoint:             ListCommentZeroEndpoint,
+		GetCommentEndpoint:              GetCommentZeroEndpoint,
+		NewRecommendStatusEndpoint:      NewRecommendStatusZeroEndpoint,
+		CreateCommentEndpoint:           CreateCommentZeroEndpoint,
+		DeleteCommentEndpoint:           DeleteCommentZeroEndpoint,
+		LikeCommentEndpoint:             LikeCommentZeroEndpoint,
+		UnlikeCommentEndpoint:           UnlikeCommentZeroEndpoint,
+		ListBlacklistEndpoint:           ListBlacklistZeroEndpoint,
+		CreateBlacklistEndpoint:         CreateBlacklistZeroEndpoint,
+		DeleteBlacklistEndpoint:         DeleteBlacklistZeroEndpoint,
+		ShareTweetUrlEndpoint:           ShareTweetUrlZeroEndpoint,
+		TwitterAuthEndpoint:             TwitterAuthZeroEndpoint,
+		AirdropTwitterEndpoint:          AirdropTwitterZeroEndpoint,
+		AirdropChannelEndpoint:          AirdropChannelZeroEndpoint,
+		CreateAirdropTwitterEndpoint:    CreateAirdropTwitterZeroEndpoint,
+		CreateChannelAirdropEndpoint:    CreateChannelAirdropZeroEndpoint,
+		UserToChainEndpoint:             UserToChainZeroEndpoint,
+		ChannelInfoEndpoint:             ChannelInfoZeroEndpoint,
+		PageChannelUserEndpoint:         PageChannelUserZeroEndpoint,
+		GetChannelUserEndpoint:          GetChannelUserZeroEndpoint,
+		GetOpenseaAssetEndpoint:         GetOpenseaAssetZeroEndpoint,
+		ListOpenseaAssetEndpoint:        ListOpenseaAssetZeroEndpoint,
+		GetOpenseaAssetContractEndpoint: GetOpenseaAssetContractZeroEndpoint,
 	}, nil
 }
 
@@ -1706,6 +1739,87 @@ func DecodeHTTPGetChannelUserResponse(_ context.Context, r *http.Response) (inte
 	}
 
 	var resp pb.GetChannelUserResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPGetOpenseaAssetResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded GetOpenseaAssetResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPGetOpenseaAssetResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.GetOpenseaAssetResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPListOpenseaAssetResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded ListOpenseaAssetResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPListOpenseaAssetResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.ListOpenseaAssetResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPGetOpenseaAssetContractResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded GetOpenseaAssetContractResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPGetOpenseaAssetContractResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.GetOpenseaAssetContractResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -5527,6 +5641,269 @@ func EncodeHTTPGetChannelUserOneRequest(_ context.Context, r *http.Request, requ
 	_ = tmp
 
 	values.Add("misesid", fmt.Sprint(req.Misesid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetOpenseaAssetZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a getopenseaasset request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetOpenseaAssetZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetOpenseaAssetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"opensea",
+		"single_asset",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("asset_contract_address", fmt.Sprint(req.AssetContractAddress))
+
+	values.Add("token_id", fmt.Sprint(req.TokenId))
+
+	values.Add("account_address", fmt.Sprint(req.AccountAddress))
+
+	values.Add("include_orders", fmt.Sprint(req.IncludeOrders))
+
+	values.Add("network", fmt.Sprint(req.Network))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetOpenseaAssetOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a getopenseaasset request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetOpenseaAssetOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetOpenseaAssetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"opensea",
+		"single_asset",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("asset_contract_address", fmt.Sprint(req.AssetContractAddress))
+
+	values.Add("token_id", fmt.Sprint(req.TokenId))
+
+	values.Add("account_address", fmt.Sprint(req.AccountAddress))
+
+	values.Add("include_orders", fmt.Sprint(req.IncludeOrders))
+
+	values.Add("network", fmt.Sprint(req.Network))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPListOpenseaAssetZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a listopenseaasset request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPListOpenseaAssetZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ListOpenseaAssetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"opensea",
+		"assets",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("owner", fmt.Sprint(req.Owner))
+
+	values.Add("limit", fmt.Sprint(req.Limit))
+
+	values.Add("cursor", fmt.Sprint(req.Cursor))
+
+	values.Add("network", fmt.Sprint(req.Network))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPListOpenseaAssetOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a listopenseaasset request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPListOpenseaAssetOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ListOpenseaAssetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"opensea",
+		"assets",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("owner", fmt.Sprint(req.Owner))
+
+	values.Add("limit", fmt.Sprint(req.Limit))
+
+	values.Add("cursor", fmt.Sprint(req.Cursor))
+
+	values.Add("network", fmt.Sprint(req.Network))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetOpenseaAssetContractZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a getopenseaassetcontract request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetOpenseaAssetContractZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetOpenseaAssetContractRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"opensea",
+		"asset_contract",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("asset_contract_address", fmt.Sprint(req.AssetContractAddress))
+
+	values.Add("token_id", fmt.Sprint(req.TokenId))
+
+	values.Add("account_address", fmt.Sprint(req.AccountAddress))
+
+	values.Add("include_orders", fmt.Sprint(req.IncludeOrders))
+
+	values.Add("network", fmt.Sprint(req.Network))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetOpenseaAssetContractOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a getopenseaassetcontract request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetOpenseaAssetContractOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetOpenseaAssetContractRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"opensea",
+		"asset_contract",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("asset_contract_address", fmt.Sprint(req.AssetContractAddress))
+
+	values.Add("token_id", fmt.Sprint(req.TokenId))
+
+	values.Add("account_address", fmt.Sprint(req.AccountAddress))
+
+	values.Add("include_orders", fmt.Sprint(req.IncludeOrders))
+
+	values.Add("network", fmt.Sprint(req.Network))
 
 	r.URL.RawQuery = values.Encode()
 	return nil

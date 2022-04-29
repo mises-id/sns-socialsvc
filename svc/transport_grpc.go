@@ -287,54 +287,75 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCGetChannelUserResponse,
 			serverOptions...,
 		),
+		getopenseaasset: grpctransport.NewServer(
+			endpoints.GetOpenseaAssetEndpoint,
+			DecodeGRPCGetOpenseaAssetRequest,
+			EncodeGRPCGetOpenseaAssetResponse,
+			serverOptions...,
+		),
+		listopenseaasset: grpctransport.NewServer(
+			endpoints.ListOpenseaAssetEndpoint,
+			DecodeGRPCListOpenseaAssetRequest,
+			EncodeGRPCListOpenseaAssetResponse,
+			serverOptions...,
+		),
+		getopenseaassetcontract: grpctransport.NewServer(
+			endpoints.GetOpenseaAssetContractEndpoint,
+			DecodeGRPCGetOpenseaAssetContractRequest,
+			EncodeGRPCGetOpenseaAssetContractResponse,
+			serverOptions...,
+		),
 	}
 }
 
 // grpcServer implements the SocialServer interface
 type grpcServer struct {
-	signin               grpctransport.Handler
-	finduser             grpctransport.Handler
-	updateuserprofile    grpctransport.Handler
-	updateuseravatar     grpctransport.Handler
-	updateusername       grpctransport.Handler
-	createstatus         grpctransport.Handler
-	updatestatus         grpctransport.Handler
-	deletestatus         grpctransport.Handler
-	likestatus           grpctransport.Handler
-	unlikestatus         grpctransport.Handler
-	listlikestatus       grpctransport.Handler
-	getstatus            grpctransport.Handler
-	liststatus           grpctransport.Handler
-	newliststatus        grpctransport.Handler
-	listrecommended      grpctransport.Handler
-	listusertimeline     grpctransport.Handler
-	latestfollowing      grpctransport.Handler
-	listrelationship     grpctransport.Handler
-	follow               grpctransport.Handler
-	unfollow             grpctransport.Handler
-	listmessage          grpctransport.Handler
-	readmessage          grpctransport.Handler
-	getmessagesummary    grpctransport.Handler
-	listcomment          grpctransport.Handler
-	getcomment           grpctransport.Handler
-	newrecommendstatus   grpctransport.Handler
-	createcomment        grpctransport.Handler
-	deletecomment        grpctransport.Handler
-	likecomment          grpctransport.Handler
-	unlikecomment        grpctransport.Handler
-	listblacklist        grpctransport.Handler
-	createblacklist      grpctransport.Handler
-	deleteblacklist      grpctransport.Handler
-	sharetweeturl        grpctransport.Handler
-	twitterauth          grpctransport.Handler
-	airdroptwitter       grpctransport.Handler
-	airdropchannel       grpctransport.Handler
-	createairdroptwitter grpctransport.Handler
-	createchannelairdrop grpctransport.Handler
-	usertochain          grpctransport.Handler
-	channelinfo          grpctransport.Handler
-	pagechanneluser      grpctransport.Handler
-	getchanneluser       grpctransport.Handler
+	signin                  grpctransport.Handler
+	finduser                grpctransport.Handler
+	updateuserprofile       grpctransport.Handler
+	updateuseravatar        grpctransport.Handler
+	updateusername          grpctransport.Handler
+	createstatus            grpctransport.Handler
+	updatestatus            grpctransport.Handler
+	deletestatus            grpctransport.Handler
+	likestatus              grpctransport.Handler
+	unlikestatus            grpctransport.Handler
+	listlikestatus          grpctransport.Handler
+	getstatus               grpctransport.Handler
+	liststatus              grpctransport.Handler
+	newliststatus           grpctransport.Handler
+	listrecommended         grpctransport.Handler
+	listusertimeline        grpctransport.Handler
+	latestfollowing         grpctransport.Handler
+	listrelationship        grpctransport.Handler
+	follow                  grpctransport.Handler
+	unfollow                grpctransport.Handler
+	listmessage             grpctransport.Handler
+	readmessage             grpctransport.Handler
+	getmessagesummary       grpctransport.Handler
+	listcomment             grpctransport.Handler
+	getcomment              grpctransport.Handler
+	newrecommendstatus      grpctransport.Handler
+	createcomment           grpctransport.Handler
+	deletecomment           grpctransport.Handler
+	likecomment             grpctransport.Handler
+	unlikecomment           grpctransport.Handler
+	listblacklist           grpctransport.Handler
+	createblacklist         grpctransport.Handler
+	deleteblacklist         grpctransport.Handler
+	sharetweeturl           grpctransport.Handler
+	twitterauth             grpctransport.Handler
+	airdroptwitter          grpctransport.Handler
+	airdropchannel          grpctransport.Handler
+	createairdroptwitter    grpctransport.Handler
+	createchannelairdrop    grpctransport.Handler
+	usertochain             grpctransport.Handler
+	channelinfo             grpctransport.Handler
+	pagechanneluser         grpctransport.Handler
+	getchanneluser          grpctransport.Handler
+	getopenseaasset         grpctransport.Handler
+	listopenseaasset        grpctransport.Handler
+	getopenseaassetcontract grpctransport.Handler
 }
 
 // Methods for grpcServer to implement SocialServer interface
@@ -683,6 +704,30 @@ func (s *grpcServer) GetChannelUser(ctx context.Context, req *pb.GetChannelUserR
 	return rep.(*pb.GetChannelUserResponse), nil
 }
 
+func (s *grpcServer) GetOpenseaAsset(ctx context.Context, req *pb.GetOpenseaAssetRequest) (*pb.GetOpenseaAssetResponse, error) {
+	_, rep, err := s.getopenseaasset.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.GetOpenseaAssetResponse), nil
+}
+
+func (s *grpcServer) ListOpenseaAsset(ctx context.Context, req *pb.ListOpenseaAssetRequest) (*pb.ListOpenseaAssetResponse, error) {
+	_, rep, err := s.listopenseaasset.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.ListOpenseaAssetResponse), nil
+}
+
+func (s *grpcServer) GetOpenseaAssetContract(ctx context.Context, req *pb.GetOpenseaAssetContractRequest) (*pb.GetOpenseaAssetContractResponse, error) {
+	_, rep, err := s.getopenseaassetcontract.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.GetOpenseaAssetContractResponse), nil
+}
+
 // Server Decode
 
 // DecodeGRPCSignInRequest is a transport/grpc.DecodeRequestFunc that converts a
@@ -986,6 +1031,27 @@ func DecodeGRPCGetChannelUserRequest(_ context.Context, grpcReq interface{}) (in
 	return req, nil
 }
 
+// DecodeGRPCGetOpenseaAssetRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC getopenseaasset request to a user-domain getopenseaasset request. Primarily useful in a server.
+func DecodeGRPCGetOpenseaAssetRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.GetOpenseaAssetRequest)
+	return req, nil
+}
+
+// DecodeGRPCListOpenseaAssetRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC listopenseaasset request to a user-domain listopenseaasset request. Primarily useful in a server.
+func DecodeGRPCListOpenseaAssetRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ListOpenseaAssetRequest)
+	return req, nil
+}
+
+// DecodeGRPCGetOpenseaAssetContractRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC getopenseaassetcontract request to a user-domain getopenseaassetcontract request. Primarily useful in a server.
+func DecodeGRPCGetOpenseaAssetContractRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.GetOpenseaAssetContractRequest)
+	return req, nil
+}
+
 // Server Encode
 
 // EncodeGRPCSignInResponse is a transport/grpc.EncodeResponseFunc that converts a
@@ -1286,6 +1352,27 @@ func EncodeGRPCPageChannelUserResponse(_ context.Context, response interface{}) 
 // user-domain getchanneluser response to a gRPC getchanneluser reply. Primarily useful in a server.
 func EncodeGRPCGetChannelUserResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.GetChannelUserResponse)
+	return resp, nil
+}
+
+// EncodeGRPCGetOpenseaAssetResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain getopenseaasset response to a gRPC getopenseaasset reply. Primarily useful in a server.
+func EncodeGRPCGetOpenseaAssetResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.GetOpenseaAssetResponse)
+	return resp, nil
+}
+
+// EncodeGRPCListOpenseaAssetResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain listopenseaasset response to a gRPC listopenseaasset reply. Primarily useful in a server.
+func EncodeGRPCListOpenseaAssetResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.ListOpenseaAssetResponse)
+	return resp, nil
+}
+
+// EncodeGRPCGetOpenseaAssetContractResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain getopenseaassetcontract response to a gRPC getopenseaassetcontract reply. Primarily useful in a server.
+func EncodeGRPCGetOpenseaAssetContractResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.GetOpenseaAssetContractResponse)
 	return resp, nil
 }
 
