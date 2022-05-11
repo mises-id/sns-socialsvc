@@ -18,6 +18,10 @@ type (
 		BuildAdminSearch(chain *odm.DB) *odm.DB
 		GetPageParams() *pagination.TraditionalParams
 	}
+	IAdminQuickPageParams interface {
+		BuildAdminSearch(chain *odm.DB) *odm.DB
+		GetQuickPageParams() *pagination.PageQuickParams
+	}
 )
 
 func AdminFindStatus(ctx context.Context, params IAdminParams) (*Status, error) {

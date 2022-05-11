@@ -7,12 +7,16 @@ type LikeTargetType uint32
 const (
 	LikeStatus LikeTargetType = iota
 	LikeComment
+	LikeNft
+	LikeNftComment
 )
 
 var (
 	likeTargetTypeMap = map[LikeTargetType]string{
-		LikeStatus:  "status",
-		LikeComment: "comment",
+		LikeStatus:     "status",
+		LikeComment:    "comment",
+		LikeNft:        "nft",
+		LikeNftComment: "nft_comment",
 	}
 	likeTargetTypeStringMap = map[string]LikeTargetType{}
 )

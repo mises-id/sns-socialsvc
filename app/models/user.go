@@ -28,6 +28,7 @@ type User struct {
 	Mobile         string             `bson:"mobile,omitempty"`
 	Email          string             `bson:"email,omitempty"`
 	Address        string             `bson:"address,omitempty"`
+	Intro          string             `bson:"intro,omitempty"`
 	AvatarPath     string             `bson:"avatar_path,omitempty"`
 	FollowingCount uint32             `bson:"following_count,omitempty"`
 	FansCount      uint32             `bson:"fans_count,omitempty"`
@@ -36,6 +37,7 @@ type User struct {
 	UpdatedAt      time.Time          `bson:"updated_at,omitempty"`
 	OnChain        bool               `bson:"on_chain,omitempty"`
 	ChannelID      primitive.ObjectID `bson:"channel_id,omitempty"`
+	NftAvatar      *NftAvatar         `bson:"nft_avatar,omitempty"`
 	AvatarUrl      string             `bson:"-"`
 	IsFollowed     bool               `bson:"-"`
 	IsAirdropped   bool               `bson:"-"`
@@ -50,6 +52,12 @@ type User struct {
 	Avatar         *Avatar            `bson:"-"`
 }
 
+type NftAvatar struct {
+	NftAssetID        primitive.ObjectID `bson:"nft_asset_id"`
+	ImageURL          string             `bson:"image_url"`
+	ImagePreviewUrl   string             `bson:"image_preview_url"`
+	ImageThumbnailUrl string             `bson:"image_thumbnail_url"`
+}
 type Avatar struct {
 	Orgin  string
 	Large  string
@@ -148,6 +156,7 @@ func UpdateUserProfile(ctx context.Context, user *User) error {
 			"mobile":     user.Mobile,
 			"email":      user.Email,
 			"address":    user.Address,
+			"intro":      user.Intro,
 			"updated_at": time.Now(),
 		}}})
 	return err
@@ -177,6 +186,17 @@ func UpdateUserAvatar(ctx context.Context, user *User) error {
 		Value: bson.M{
 			"avatar_path": user.AvatarPath,
 			"updated_at":  time.Now(),
+		}}})
+	return err
+}
+func UpdateUserNftAvatar(ctx context.Context, user *User) error {
+	_, err := db.DB().Collection("users").UpdateOne(ctx, &bson.M{
+		"_id": user.UID,
+	}, bson.D{{
+		Key: "$set",
+		Value: bson.M{
+			"nft_avatar": user.NftAvatar,
+			"updated_at": time.Now(),
 		}}})
 	return err
 }

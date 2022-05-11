@@ -44,6 +44,8 @@ type Endpoints struct {
 	LikeStatusEndpoint              endpoint.Endpoint
 	UnLikeStatusEndpoint            endpoint.Endpoint
 	ListLikeStatusEndpoint          endpoint.Endpoint
+	LikeNftAssetEndpoint            endpoint.Endpoint
+	UnlikeNftAssetEndpoint          endpoint.Endpoint
 	GetStatusEndpoint               endpoint.Endpoint
 	ListStatusEndpoint              endpoint.Endpoint
 	NewListStatusEndpoint           endpoint.Endpoint
@@ -57,6 +59,7 @@ type Endpoints struct {
 	ReadMessageEndpoint             endpoint.Endpoint
 	GetMessageSummaryEndpoint       endpoint.Endpoint
 	ListCommentEndpoint             endpoint.Endpoint
+	ListLikeEndpoint                endpoint.Endpoint
 	GetCommentEndpoint              endpoint.Endpoint
 	NewRecommendStatusEndpoint      endpoint.Endpoint
 	CreateCommentEndpoint           endpoint.Endpoint
@@ -79,6 +82,11 @@ type Endpoints struct {
 	GetOpenseaAssetEndpoint         endpoint.Endpoint
 	ListOpenseaAssetEndpoint        endpoint.Endpoint
 	GetOpenseaAssetContractEndpoint endpoint.Endpoint
+	PageNftAssetEndpoint            endpoint.Endpoint
+	GetNftAssetEndpoint             endpoint.Endpoint
+	PageNftEventEndpoint            endpoint.Endpoint
+	UpdateUserConfigEndpoint        endpoint.Endpoint
+	GetUserConfigEndpoint           endpoint.Endpoint
 }
 
 // Endpoints
@@ -169,6 +177,22 @@ func (e Endpoints) ListLikeStatus(ctx context.Context, in *pb.ListLikeRequest) (
 		return nil, err
 	}
 	return response.(*pb.ListLikeResponse), nil
+}
+
+func (e Endpoints) LikeNftAsset(ctx context.Context, in *pb.LikeNftAssetRequest) (*pb.SimpleResponse, error) {
+	response, err := e.LikeNftAssetEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.SimpleResponse), nil
+}
+
+func (e Endpoints) UnlikeNftAsset(ctx context.Context, in *pb.UnLikeNftAssetRequest) (*pb.SimpleResponse, error) {
+	response, err := e.UnlikeNftAssetEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.SimpleResponse), nil
 }
 
 func (e Endpoints) GetStatus(ctx context.Context, in *pb.GetStatusRequest) (*pb.GetStatusResponse, error) {
@@ -273,6 +297,14 @@ func (e Endpoints) ListComment(ctx context.Context, in *pb.ListCommentRequest) (
 		return nil, err
 	}
 	return response.(*pb.ListCommentResponse), nil
+}
+
+func (e Endpoints) ListLike(ctx context.Context, in *pb.ListLikeUserRequest) (*pb.ListLikeUserResponse, error) {
+	response, err := e.ListLikeEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.ListLikeUserResponse), nil
 }
 
 func (e Endpoints) GetComment(ctx context.Context, in *pb.GetCommentRequest) (*pb.GetCommentResponse, error) {
@@ -451,6 +483,46 @@ func (e Endpoints) GetOpenseaAssetContract(ctx context.Context, in *pb.GetOpense
 	return response.(*pb.GetOpenseaAssetContractResponse), nil
 }
 
+func (e Endpoints) PageNftAsset(ctx context.Context, in *pb.PageNftAssetRequest) (*pb.PageNftAssetResponse, error) {
+	response, err := e.PageNftAssetEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.PageNftAssetResponse), nil
+}
+
+func (e Endpoints) GetNftAsset(ctx context.Context, in *pb.GetNftAssetRequest) (*pb.GetNftAssetResponse, error) {
+	response, err := e.GetNftAssetEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.GetNftAssetResponse), nil
+}
+
+func (e Endpoints) PageNftEvent(ctx context.Context, in *pb.PageNftEventRequest) (*pb.PageNftEventResponse, error) {
+	response, err := e.PageNftEventEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.PageNftEventResponse), nil
+}
+
+func (e Endpoints) UpdateUserConfig(ctx context.Context, in *pb.UpdateUserConfigRequest) (*pb.UpdateUserConfigResponse, error) {
+	response, err := e.UpdateUserConfigEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.UpdateUserConfigResponse), nil
+}
+
+func (e Endpoints) GetUserConfig(ctx context.Context, in *pb.GetUserConfigRequest) (*pb.GetUserConfigResponse, error) {
+	response, err := e.GetUserConfigEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.GetUserConfigResponse), nil
+}
+
 // Make Endpoints
 
 func MakeSignInEndpoint(s pb.SocialServer) endpoint.Endpoint {
@@ -567,6 +639,28 @@ func MakeListLikeStatusEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.ListLikeRequest)
 		v, err := s.ListLikeStatus(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeLikeNftAssetEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.LikeNftAssetRequest)
+		v, err := s.LikeNftAsset(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeUnlikeNftAssetEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.UnLikeNftAssetRequest)
+		v, err := s.UnlikeNftAsset(ctx, req)
 		if err != nil {
 			return nil, err
 		}
@@ -710,6 +804,17 @@ func MakeListCommentEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.ListCommentRequest)
 		v, err := s.ListComment(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeListLikeEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ListLikeUserRequest)
+		v, err := s.ListLike(ctx, req)
 		if err != nil {
 			return nil, err
 		}
@@ -959,6 +1064,61 @@ func MakeGetOpenseaAssetContractEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakePageNftAssetEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.PageNftAssetRequest)
+		v, err := s.PageNftAsset(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeGetNftAssetEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.GetNftAssetRequest)
+		v, err := s.GetNftAsset(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakePageNftEventEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.PageNftEventRequest)
+		v, err := s.PageNftEvent(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeUpdateUserConfigEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.UpdateUserConfigRequest)
+		v, err := s.UpdateUserConfig(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeGetUserConfigEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.GetUserConfigRequest)
+		v, err := s.GetUserConfig(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 // WrapAllExcept wraps each Endpoint field of struct Endpoints with a
 // go-kit/kit/endpoint.Middleware.
 // Use this for applying a set of middlewares to every endpoint in the service.
@@ -977,6 +1137,8 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"LikeStatus":              {},
 		"UnLikeStatus":            {},
 		"ListLikeStatus":          {},
+		"LikeNftAsset":            {},
+		"UnlikeNftAsset":          {},
 		"GetStatus":               {},
 		"ListStatus":              {},
 		"NewListStatus":           {},
@@ -990,6 +1152,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"ReadMessage":             {},
 		"GetMessageSummary":       {},
 		"ListComment":             {},
+		"ListLike":                {},
 		"GetComment":              {},
 		"NewRecommendStatus":      {},
 		"CreateComment":           {},
@@ -1012,6 +1175,11 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"GetOpenseaAsset":         {},
 		"ListOpenseaAsset":        {},
 		"GetOpenseaAssetContract": {},
+		"PageNftAsset":            {},
+		"GetNftAsset":             {},
+		"PageNftEvent":            {},
+		"UpdateUserConfig":        {},
+		"GetUserConfig":           {},
 	}
 
 	for _, ex := range excluded {
@@ -1055,6 +1223,12 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "ListLikeStatus" {
 			e.ListLikeStatusEndpoint = middleware(e.ListLikeStatusEndpoint)
 		}
+		if inc == "LikeNftAsset" {
+			e.LikeNftAssetEndpoint = middleware(e.LikeNftAssetEndpoint)
+		}
+		if inc == "UnlikeNftAsset" {
+			e.UnlikeNftAssetEndpoint = middleware(e.UnlikeNftAssetEndpoint)
+		}
 		if inc == "GetStatus" {
 			e.GetStatusEndpoint = middleware(e.GetStatusEndpoint)
 		}
@@ -1093,6 +1267,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		}
 		if inc == "ListComment" {
 			e.ListCommentEndpoint = middleware(e.ListCommentEndpoint)
+		}
+		if inc == "ListLike" {
+			e.ListLikeEndpoint = middleware(e.ListLikeEndpoint)
 		}
 		if inc == "GetComment" {
 			e.GetCommentEndpoint = middleware(e.GetCommentEndpoint)
@@ -1160,6 +1337,21 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "GetOpenseaAssetContract" {
 			e.GetOpenseaAssetContractEndpoint = middleware(e.GetOpenseaAssetContractEndpoint)
 		}
+		if inc == "PageNftAsset" {
+			e.PageNftAssetEndpoint = middleware(e.PageNftAssetEndpoint)
+		}
+		if inc == "GetNftAsset" {
+			e.GetNftAssetEndpoint = middleware(e.GetNftAssetEndpoint)
+		}
+		if inc == "PageNftEvent" {
+			e.PageNftEventEndpoint = middleware(e.PageNftEventEndpoint)
+		}
+		if inc == "UpdateUserConfig" {
+			e.UpdateUserConfigEndpoint = middleware(e.UpdateUserConfigEndpoint)
+		}
+		if inc == "GetUserConfig" {
+			e.GetUserConfigEndpoint = middleware(e.GetUserConfigEndpoint)
+		}
 	}
 }
 
@@ -1185,6 +1377,8 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"LikeStatus":              {},
 		"UnLikeStatus":            {},
 		"ListLikeStatus":          {},
+		"LikeNftAsset":            {},
+		"UnlikeNftAsset":          {},
 		"GetStatus":               {},
 		"ListStatus":              {},
 		"NewListStatus":           {},
@@ -1198,6 +1392,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"ReadMessage":             {},
 		"GetMessageSummary":       {},
 		"ListComment":             {},
+		"ListLike":                {},
 		"GetComment":              {},
 		"NewRecommendStatus":      {},
 		"CreateComment":           {},
@@ -1220,6 +1415,11 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"GetOpenseaAsset":         {},
 		"ListOpenseaAsset":        {},
 		"GetOpenseaAssetContract": {},
+		"PageNftAsset":            {},
+		"GetNftAsset":             {},
+		"PageNftEvent":            {},
+		"UpdateUserConfig":        {},
+		"GetUserConfig":           {},
 	}
 
 	for _, ex := range excluded {
@@ -1263,6 +1463,12 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		if inc == "ListLikeStatus" {
 			e.ListLikeStatusEndpoint = middleware("ListLikeStatus", e.ListLikeStatusEndpoint)
 		}
+		if inc == "LikeNftAsset" {
+			e.LikeNftAssetEndpoint = middleware("LikeNftAsset", e.LikeNftAssetEndpoint)
+		}
+		if inc == "UnlikeNftAsset" {
+			e.UnlikeNftAssetEndpoint = middleware("UnlikeNftAsset", e.UnlikeNftAssetEndpoint)
+		}
 		if inc == "GetStatus" {
 			e.GetStatusEndpoint = middleware("GetStatus", e.GetStatusEndpoint)
 		}
@@ -1301,6 +1507,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "ListComment" {
 			e.ListCommentEndpoint = middleware("ListComment", e.ListCommentEndpoint)
+		}
+		if inc == "ListLike" {
+			e.ListLikeEndpoint = middleware("ListLike", e.ListLikeEndpoint)
 		}
 		if inc == "GetComment" {
 			e.GetCommentEndpoint = middleware("GetComment", e.GetCommentEndpoint)
@@ -1367,6 +1576,21 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "GetOpenseaAssetContract" {
 			e.GetOpenseaAssetContractEndpoint = middleware("GetOpenseaAssetContract", e.GetOpenseaAssetContractEndpoint)
+		}
+		if inc == "PageNftAsset" {
+			e.PageNftAssetEndpoint = middleware("PageNftAsset", e.PageNftAssetEndpoint)
+		}
+		if inc == "GetNftAsset" {
+			e.GetNftAssetEndpoint = middleware("GetNftAsset", e.GetNftAssetEndpoint)
+		}
+		if inc == "PageNftEvent" {
+			e.PageNftEventEndpoint = middleware("PageNftEvent", e.PageNftEventEndpoint)
+		}
+		if inc == "UpdateUserConfig" {
+			e.UpdateUserConfigEndpoint = middleware("UpdateUserConfig", e.UpdateUserConfigEndpoint)
+		}
+		if inc == "GetUserConfig" {
+			e.GetUserConfigEndpoint = middleware("GetUserConfig", e.GetUserConfigEndpoint)
 		}
 	}
 }

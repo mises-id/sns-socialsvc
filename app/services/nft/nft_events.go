@@ -1,0 +1,86 @@
+package nft
+
+import (
+	"context"
+	"fmt"
+	"math"
+
+	"github.com/mises-id/sns-socialsvc/app/models"
+	"github.com/mises-id/sns-socialsvc/app/models/search"
+	"github.com/mises-id/sns-socialsvc/app/services/opensea_api"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+var (
+	eventListNum = 50
+	eventLastID  primitive.ObjectID
+)
+
+func InitNftEvent(ctx context.Context) error {
+
+	c, err := models.CountNftAsset(ctx, &search.NftAssetSearch{})
+	if err != nil {
+		fmt.Println("count nft_asset error: ", err.Error())
+		return err
+	}
+	if c == 0 {
+		return nil
+	}
+	times := int(math.Ceil(float64(c) / float64(eventListNum)))
+	for i := 0; i < times; i++ {
+		err := initNftEvent(ctx)
+		if err != nil {
+			fmt.Println("init err: ", err.Error())
+		}
+
+	}
+	return nil
+}
+func initNftEvent(ctx context.Context) error {
+	lists, err := models.NewListNftAsset(ctx, &search.NftAssetSearch{ListNum: int64(eventListNum), LastID: eventLastID})
+	if err != nil {
+		return err
+	}
+	for _, v := range lists {
+		err := initNftEventOne(ctx, v)
+		if err != nil {
+			fmt.Println("init nft_event one err: ", err.Error())
+		}
+	}
+	eventLastID = lists[len(lists)-1].ID
+	return nil
+}
+func initNftEventOne(ctx context.Context, asset *models.NftAsset) error {
+	params := &opensea_api.OpensaeInput{
+		AssetContractAddress: asset.AssetContract.Address,
+		TokenId:              asset.TokenId,
+	}
+	for i := 0; i < 100; i++ {
+		out, err := opensea_api.ListEventOut(ctx, params)
+		if err != nil {
+			fmt.Println("list err: ", err.Error())
+			return err
+		}
+		err = updateNftEvent(ctx, asset, out.AssetEvents)
+		if err != nil {
+			fmt.Println("update nft_event err: ", err.Error())
+			return err
+		}
+		if out.Next == "" {
+			break
+		}
+		params.Cursor = out.Previous
+	}
+	return nil
+}
+
+func updateNftEvent(ctx context.Context, asset *models.NftAsset, events []*models.AssetEvent) error {
+	for _, event := range events {
+		event.NftAssetID = asset.ID
+		err := models.SaveNftEvent(ctx, event)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

@@ -161,6 +161,26 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var LikeNftAssetZeroEndpoint endpoint.Endpoint
+	{
+		LikeNftAssetZeroEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, "/nft_asset/like/"),
+			EncodeHTTPLikeNftAssetZeroRequest,
+			DecodeHTTPLikeNftAssetResponse,
+			options...,
+		).Endpoint()
+	}
+	var UnlikeNftAssetZeroEndpoint endpoint.Endpoint
+	{
+		UnlikeNftAssetZeroEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, "/nft_asset/unlike/"),
+			EncodeHTTPUnlikeNftAssetZeroRequest,
+			DecodeHTTPUnlikeNftAssetResponse,
+			options...,
+		).Endpoint()
+	}
 	var GetStatusZeroEndpoint endpoint.Endpoint
 	{
 		GetStatusZeroEndpoint = httptransport.NewClient(
@@ -288,6 +308,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			copyURL(u, "/comment/list/"),
 			EncodeHTTPListCommentZeroRequest,
 			DecodeHTTPListCommentResponse,
+			options...,
+		).Endpoint()
+	}
+	var ListLikeZeroEndpoint endpoint.Endpoint
+	{
+		ListLikeZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/like/list/"),
+			EncodeHTTPListLikeZeroRequest,
+			DecodeHTTPListLikeResponse,
 			options...,
 		).Endpoint()
 	}
@@ -511,6 +541,56 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var PageNftAssetZeroEndpoint endpoint.Endpoint
+	{
+		PageNftAssetZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/nft_asset/page/"),
+			EncodeHTTPPageNftAssetZeroRequest,
+			DecodeHTTPPageNftAssetResponse,
+			options...,
+		).Endpoint()
+	}
+	var GetNftAssetZeroEndpoint endpoint.Endpoint
+	{
+		GetNftAssetZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/nft_asset/get/"),
+			EncodeHTTPGetNftAssetZeroRequest,
+			DecodeHTTPGetNftAssetResponse,
+			options...,
+		).Endpoint()
+	}
+	var PageNftEventZeroEndpoint endpoint.Endpoint
+	{
+		PageNftEventZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/nft_event/page/"),
+			EncodeHTTPPageNftEventZeroRequest,
+			DecodeHTTPPageNftEventResponse,
+			options...,
+		).Endpoint()
+	}
+	var UpdateUserConfigZeroEndpoint endpoint.Endpoint
+	{
+		UpdateUserConfigZeroEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, "/user/config/"),
+			EncodeHTTPUpdateUserConfigZeroRequest,
+			DecodeHTTPUpdateUserConfigResponse,
+			options...,
+		).Endpoint()
+	}
+	var GetUserConfigZeroEndpoint endpoint.Endpoint
+	{
+		GetUserConfigZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/user/config/"),
+			EncodeHTTPGetUserConfigZeroRequest,
+			DecodeHTTPGetUserConfigResponse,
+			options...,
+		).Endpoint()
+	}
 
 	return svc.Endpoints{
 		SignInEndpoint:                  SignInZeroEndpoint,
@@ -524,6 +604,8 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		LikeStatusEndpoint:              LikeStatusZeroEndpoint,
 		UnLikeStatusEndpoint:            UnLikeStatusZeroEndpoint,
 		ListLikeStatusEndpoint:          ListLikeStatusZeroEndpoint,
+		LikeNftAssetEndpoint:            LikeNftAssetZeroEndpoint,
+		UnlikeNftAssetEndpoint:          UnlikeNftAssetZeroEndpoint,
 		GetStatusEndpoint:               GetStatusZeroEndpoint,
 		ListStatusEndpoint:              ListStatusZeroEndpoint,
 		NewListStatusEndpoint:           NewListStatusZeroEndpoint,
@@ -537,6 +619,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		ReadMessageEndpoint:             ReadMessageZeroEndpoint,
 		GetMessageSummaryEndpoint:       GetMessageSummaryZeroEndpoint,
 		ListCommentEndpoint:             ListCommentZeroEndpoint,
+		ListLikeEndpoint:                ListLikeZeroEndpoint,
 		GetCommentEndpoint:              GetCommentZeroEndpoint,
 		NewRecommendStatusEndpoint:      NewRecommendStatusZeroEndpoint,
 		CreateCommentEndpoint:           CreateCommentZeroEndpoint,
@@ -559,6 +642,11 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		GetOpenseaAssetEndpoint:         GetOpenseaAssetZeroEndpoint,
 		ListOpenseaAssetEndpoint:        ListOpenseaAssetZeroEndpoint,
 		GetOpenseaAssetContractEndpoint: GetOpenseaAssetContractZeroEndpoint,
+		PageNftAssetEndpoint:            PageNftAssetZeroEndpoint,
+		GetNftAssetEndpoint:             GetNftAssetZeroEndpoint,
+		PageNftEventEndpoint:            PageNftEventZeroEndpoint,
+		UpdateUserConfigEndpoint:        UpdateUserConfigZeroEndpoint,
+		GetUserConfigEndpoint:           GetUserConfigZeroEndpoint,
 	}, nil
 }
 
@@ -875,6 +963,60 @@ func DecodeHTTPListLikeStatusResponse(_ context.Context, r *http.Response) (inte
 	}
 
 	var resp pb.ListLikeResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPLikeNftAssetResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded SimpleResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPLikeNftAssetResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.SimpleResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPUnlikeNftAssetResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded SimpleResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPUnlikeNftAssetResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.SimpleResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -1226,6 +1368,33 @@ func DecodeHTTPListCommentResponse(_ context.Context, r *http.Response) (interfa
 	}
 
 	var resp pb.ListCommentResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPListLikeResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded ListLikeUserResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPListLikeResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.ListLikeUserResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -1827,6 +1996,141 @@ func DecodeHTTPGetOpenseaAssetContractResponse(_ context.Context, r *http.Respon
 	return &resp, nil
 }
 
+// DecodeHTTPPageNftAssetResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded PageNftAssetResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPPageNftAssetResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.PageNftAssetResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPGetNftAssetResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded GetNftAssetResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPGetNftAssetResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.GetNftAssetResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPPageNftEventResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded PageNftEventResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPPageNftEventResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.PageNftEventResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPUpdateUserConfigResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded UpdateUserConfigResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPUpdateUserConfigResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.UpdateUserConfigResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPGetUserConfigResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded GetUserConfigResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPGetUserConfigResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.GetUserConfigResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
 // HTTP Client Encode
 
 // EncodeHTTPSignInZeroRequest is a transport/http.EncodeRequestFunc
@@ -2025,6 +2329,8 @@ func EncodeHTTPUpdateUserProfileZeroRequest(_ context.Context, r *http.Request, 
 
 	toRet.Address = req.Address
 
+	toRet.Intro = req.Intro
+
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(toRet); err != nil {
@@ -2079,6 +2385,8 @@ func EncodeHTTPUpdateUserProfileOneRequest(_ context.Context, r *http.Request, r
 
 	toRet.Address = req.Address
 
+	toRet.Intro = req.Intro
+
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(toRet); err != nil {
@@ -2128,6 +2436,8 @@ func EncodeHTTPUpdateUserAvatarZeroRequest(_ context.Context, r *http.Request, r
 
 	toRet.AttachmentPath = req.AttachmentPath
 
+	toRet.NftAssetId = req.NftAssetId
+
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(toRet); err != nil {
@@ -2175,6 +2485,8 @@ func EncodeHTTPUpdateUserAvatarOneRequest(_ context.Context, r *http.Request, re
 	toRet.Uid = req.Uid
 
 	toRet.AttachmentPath = req.AttachmentPath
+
+	toRet.NftAssetId = req.NftAssetId
 
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
@@ -2649,6 +2961,8 @@ func EncodeHTTPLikeStatusZeroRequest(_ context.Context, r *http.Request, request
 
 	toRet.Statusid = req.Statusid
 
+	toRet.NftAssetId = req.NftAssetId
+
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(toRet); err != nil {
@@ -2696,6 +3010,8 @@ func EncodeHTTPLikeStatusOneRequest(_ context.Context, r *http.Request, request 
 	toRet.CurrentUid = req.CurrentUid
 
 	toRet.Statusid = req.Statusid
+
+	toRet.NftAssetId = req.NftAssetId
 
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
@@ -2746,6 +3062,8 @@ func EncodeHTTPUnLikeStatusZeroRequest(_ context.Context, r *http.Request, reque
 
 	toRet.Statusid = req.Statusid
 
+	toRet.NftAssetId = req.NftAssetId
+
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(toRet); err != nil {
@@ -2793,6 +3111,8 @@ func EncodeHTTPUnLikeStatusOneRequest(_ context.Context, r *http.Request, reques
 	toRet.CurrentUid = req.CurrentUid
 
 	toRet.Statusid = req.Statusid
+
+	toRet.NftAssetId = req.NftAssetId
 
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
@@ -2892,6 +3212,200 @@ func EncodeHTTPListLikeStatusOneRequest(_ context.Context, r *http.Request, requ
 	values.Add("paginator", strval)
 
 	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPLikeNftAssetZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a likenftasset request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPLikeNftAssetZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.LikeNftAssetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"nft_asset",
+		"like",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.LikeNftAssetRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.NftAssetId = req.NftAssetId
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPLikeNftAssetOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a likenftasset request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPLikeNftAssetOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.LikeNftAssetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"nft_asset",
+		"like",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.LikeNftAssetRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.NftAssetId = req.NftAssetId
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPUnlikeNftAssetZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a unlikenftasset request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUnlikeNftAssetZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UnLikeNftAssetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"nft_asset",
+		"unlike",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.UnLikeNftAssetRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.NftAssetId = req.NftAssetId
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPUnlikeNftAssetOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a unlikenftasset request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUnlikeNftAssetOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UnLikeNftAssetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"nft_asset",
+		"unlike",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.UnLikeNftAssetRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.NftAssetId = req.NftAssetId
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
 	return nil
 }
 
@@ -4027,6 +4541,8 @@ func EncodeHTTPListCommentZeroRequest(_ context.Context, r *http.Request, reques
 	strval = string(tmp)
 	values.Add("paginator", strval)
 
+	values.Add("nft_asset_id", fmt.Sprint(req.NftAssetId))
+
 	r.URL.RawQuery = values.Encode()
 	return nil
 }
@@ -4066,6 +4582,99 @@ func EncodeHTTPListCommentOneRequest(_ context.Context, r *http.Request, request
 	values.Add("status_id", fmt.Sprint(req.StatusId))
 
 	values.Add("topic_id", fmt.Sprint(req.TopicId))
+
+	tmp, err = json.Marshal(req.Paginator)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.Paginator")
+	}
+	strval = string(tmp)
+	values.Add("paginator", strval)
+
+	values.Add("nft_asset_id", fmt.Sprint(req.NftAssetId))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPListLikeZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a listlike request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPListLikeZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ListLikeUserRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"like",
+		"list",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("targer_id", fmt.Sprint(req.TargerId))
+
+	tmp, err = json.Marshal(req.Paginator)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.Paginator")
+	}
+	strval = string(tmp)
+	values.Add("paginator", strval)
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPListLikeOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a listlike request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPListLikeOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ListLikeUserRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"like",
+		"list",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("targer_id", fmt.Sprint(req.TargerId))
 
 	tmp, err = json.Marshal(req.Paginator)
 	if err != nil {
@@ -4278,6 +4887,8 @@ func EncodeHTTPCreateCommentZeroRequest(_ context.Context, r *http.Request, requ
 
 	toRet.Content = req.Content
 
+	toRet.NftAssetId = req.NftAssetId
+
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(toRet); err != nil {
@@ -4329,6 +4940,8 @@ func EncodeHTTPCreateCommentOneRequest(_ context.Context, r *http.Request, reque
 	toRet.ParentId = req.ParentId
 
 	toRet.Content = req.Content
+
+	toRet.NftAssetId = req.NftAssetId
 
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)
@@ -5904,6 +6517,447 @@ func EncodeHTTPGetOpenseaAssetContractOneRequest(_ context.Context, r *http.Requ
 	values.Add("include_orders", fmt.Sprint(req.IncludeOrders))
 
 	values.Add("network", fmt.Sprint(req.Network))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPPageNftAssetZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a pagenftasset request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPPageNftAssetZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.PageNftAssetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"nft_asset",
+		"page",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("uid", fmt.Sprint(req.Uid))
+
+	tmp, err = json.Marshal(req.Paginator)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.Paginator")
+	}
+	strval = string(tmp)
+	values.Add("paginator", strval)
+
+	values.Add("sort_by", fmt.Sprint(req.SortBy))
+
+	values.Add("scene", fmt.Sprint(req.Scene))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPPageNftAssetOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a pagenftasset request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPPageNftAssetOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.PageNftAssetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"nft_asset",
+		"page",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("uid", fmt.Sprint(req.Uid))
+
+	tmp, err = json.Marshal(req.Paginator)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.Paginator")
+	}
+	strval = string(tmp)
+	values.Add("paginator", strval)
+
+	values.Add("sort_by", fmt.Sprint(req.SortBy))
+
+	values.Add("scene", fmt.Sprint(req.Scene))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetNftAssetZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a getnftasset request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetNftAssetZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetNftAssetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"nft_asset",
+		"get",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("nft_asset_id", fmt.Sprint(req.NftAssetId))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetNftAssetOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a getnftasset request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetNftAssetOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetNftAssetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"nft_asset",
+		"get",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("nft_asset_id", fmt.Sprint(req.NftAssetId))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPPageNftEventZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a pagenftevent request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPPageNftEventZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.PageNftEventRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"nft_event",
+		"page",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("uid", fmt.Sprint(req.Uid))
+
+	tmp, err = json.Marshal(req.Paginator)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.Paginator")
+	}
+	strval = string(tmp)
+	values.Add("paginator", strval)
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPPageNftEventOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a pagenftevent request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPPageNftEventOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.PageNftEventRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"nft_event",
+		"page",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("uid", fmt.Sprint(req.Uid))
+
+	tmp, err = json.Marshal(req.Paginator)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.Paginator")
+	}
+	strval = string(tmp)
+	values.Add("paginator", strval)
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPUpdateUserConfigZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a updateuserconfig request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUpdateUserConfigZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UpdateUserConfigRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"config",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.UpdateUserConfigRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.NftState = req.NftState
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPUpdateUserConfigOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a updateuserconfig request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUpdateUserConfigOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UpdateUserConfigRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"config",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.UpdateUserConfigRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.NftState = req.NftState
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPGetUserConfigZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a getuserconfig request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetUserConfigZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetUserConfigRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"config",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("uid", fmt.Sprint(req.Uid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetUserConfigOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a getuserconfig request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetUserConfigOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetUserConfigRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"config",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("uid", fmt.Sprint(req.Uid))
 
 	r.URL.RawQuery = values.Encode()
 	return nil

@@ -2,22 +2,19 @@ package opensea_api
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"path"
 	"strconv"
 
+	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/sirupsen/logrus"
 )
 
 type (
-	AssetModel struct {
-		ID       uint64 `json:"id"`
-		ImageUrl string `json:"image_url"`
-		Name     string `json:"name"`
-	}
-
 	SingleAssetInput struct {
 		AssetContractAddress string
 		TokenId              string
@@ -29,6 +26,14 @@ type (
 		AssetContractAddress string
 		Network              string
 	}
+	OpensaeInput struct {
+		AssetContractAddress string
+		TokenId              string
+		Owner                string
+		Limit                uint64
+		Cursor               string
+		Network              string
+	}
 	ListAssetInput struct {
 		Owner   string
 		Limit   uint64
@@ -36,11 +41,34 @@ type (
 		Network string
 	}
 	ListAssetOutput struct {
-		Assets   []*AssetModel `json:"assets"`
-		Next     string        `json:"next"`
-		Previous string        `json:"previous"`
+		Assets   []*models.Asset `json:"assets"`
+		Next     string          `json:"next"`
+		Previous string          `json:"previous"`
+	}
+	ListEventOutput struct {
+		AssetEvents []*models.AssetEvent `json:"asset_events"`
+		Next        string               `json:"next"`
+		Previous    string               `json:"previous"`
+	}
+	HttpResult struct {
+		body       []byte
+		status     string // e.g. "200 OK"
+		statusCode int    // e.g. 200
 	}
 )
+
+func (res *HttpResult) Restult(out interface{}) error {
+	if res.statusCode != http.StatusOK {
+		return errors.New(res.status)
+	}
+	json.Unmarshal(res.body, out)
+	return nil
+}
+
+func (res *HttpResult) String() string {
+
+	return string(res.body)
+}
 
 var (
 	openseaApiUrl     = "https://api.opensea.io/api/v1/"
@@ -55,8 +83,25 @@ func init() {
 }
 
 func ListAsset(ctx context.Context, in *ListAssetInput) (string, error) {
+	out, err := ListAssetApi(ctx, in)
+	if err != nil {
+		return "", codes.ErrTooManyRequests.Newf(err.Error())
+	}
+	return out.String(), nil
+}
+func ListAssetOut(ctx context.Context, in *ListAssetInput) (*ListAssetOutput, error) {
+	res := &ListAssetOutput{}
+	out, err := ListAssetApi(ctx, in)
+	if err != nil {
+		return nil, codes.ErrTooManyRequests.Newf(err.Error())
+	}
+	out.Restult(res)
+	return res, nil
+}
+
+func ListAssetApi(ctx context.Context, in *ListAssetInput) (*HttpResult, error) {
 	if in.Owner == "" {
-		return "", codes.ErrInvalidArgument.Newf("invalid owner params")
+		return nil, codes.ErrInvalidArgument.Newf("invalid owner params")
 	}
 	if in.Limit >= 50 || in.Limit <= 0 {
 		in.Limit = 50
@@ -73,11 +118,40 @@ func ListAsset(ctx context.Context, in *ListAssetInput) (string, error) {
 	}
 
 	apiUrl := api + queryParams
-	out, err := doOpenseaApi(ctx, apiUrl, in.Network)
+	return doOpenseaApi(ctx, apiUrl, in.Network)
+
+}
+func ListEventOut(ctx context.Context, in *OpensaeInput) (*ListEventOutput, error) {
+	res := &ListEventOutput{}
+	out, err := ListEventApi(ctx, in)
 	if err != nil {
-		return "", codes.ErrTooManyRequests.Newf(err.Error())
+		return nil, codes.ErrTooManyRequests.Newf(err.Error())
 	}
-	return out, nil
+	out.Restult(res)
+	return res, nil
+}
+func ListEventApi(ctx context.Context, in *OpensaeInput) (*HttpResult, error) {
+	if in.Limit >= 50 || in.Limit <= 0 {
+		in.Limit = 50
+	}
+	api := openseaApiUrl
+	if in.Network == "test" {
+		api = openseaTestApiUrl
+	}
+	queryParams := "events/?limit=" + strconv.Itoa(int(in.Limit))
+	if in.Cursor != "" {
+		queryParams = queryParams + "&cursor" + "=" + in.Cursor
+	}
+	if in.AssetContractAddress != "" {
+		queryParams = queryParams + "&asset_contract_address" + "=" + in.AssetContractAddress
+	}
+	if in.TokenId != "" {
+		queryParams = queryParams + "&token_id" + "=" + in.TokenId
+	}
+
+	apiUrl := api + queryParams
+	return doOpenseaApi(ctx, apiUrl, in.Network)
+
 }
 
 func GetAssetContract(ctx context.Context, in *AssetContractInput) (string, error) {
@@ -95,7 +169,7 @@ func GetAssetContract(ctx context.Context, in *AssetContractInput) (string, erro
 	if err != nil {
 		return "", codes.ErrTooManyRequests.Newf(err.Error())
 	}
-	return out, nil
+	return out.String(), nil
 }
 
 func GetSingleAsset(ctx context.Context, in *SingleAssetInput) (string, error) {
@@ -121,10 +195,10 @@ func GetSingleAsset(ctx context.Context, in *SingleAssetInput) (string, error) {
 	if err != nil {
 		return "", codes.ErrTooManyRequests.Newf(err.Error())
 	}
-	return out, nil
+	return out.String(), nil
 }
 
-func doOpenseaApi(ctx context.Context, api string, network string) (string, error) {
+func doOpenseaApi(ctx context.Context, api string, network string) (*HttpResult, error) {
 	/* proxy := func(_ *http.Request) (*url.URL, error) {
 		return url.Parse("http://127.0.0.1:1087")
 	}
@@ -138,8 +212,11 @@ func doOpenseaApi(ctx context.Context, api string, network string) (string, erro
 	}
 	res, err := client.Do(req)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
+	httpResult := &HttpResult{}
+	httpResult.status = res.Status
+	httpResult.statusCode = res.StatusCode
 	if res.StatusCode != http.StatusOK {
 		logrus.Printf("url[%s],status: %s", api, res.Status)
 		//return "", errors.New(res.Status)
@@ -147,7 +224,8 @@ func doOpenseaApi(ctx context.Context, api string, network string) (string, erro
 	defer res.Body.Close()
 
 	body, _ := ioutil.ReadAll(res.Body)
+	httpResult.body = body
 	//json.Unmarshal(body, out)
 
-	return string(body), nil
+	return httpResult, nil
 }

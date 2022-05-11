@@ -33,7 +33,7 @@ func runUserToChain(ctx context.Context) error {
 func getChainUser(ctx context.Context) ([]*models.ChainUser, error) {
 
 	params := &search.ChainUserSearch{
-		Status:   enum.ChainUserDefault,
+		Statuses: []enum.ChainUserStatus{enum.ChainUserDefault},
 		SortType: enum.SortAsc,
 		SortKey:  "_id",
 		ListNum:  20,
@@ -72,8 +72,8 @@ func (cb *RegisterCallback) OnFailed(cmd types.MisesAppCmd, err error) {
 func success(ctx context.Context, misesid string) error {
 	//airdrop update
 	params := &search.ChainUserSearch{
-		Misesid: misesid,
-		Status:  enum.ChainUserDefault,
+		Misesid:  misesid,
+		Statuses: []enum.ChainUserStatus{enum.ChainUserDefault},
 	}
 
 	chainUser, err := models.FindChainUser(ctx, params)
@@ -101,8 +101,8 @@ func failed(ctx context.Context, misesid string) error {
 func txGenerated(ctx context.Context, misesid string, tx_id string) error {
 	//update
 	params := &search.ChainUserSearch{
-		Misesid: misesid,
-		Status:  enum.ChainUserDefault,
+		Misesid:  misesid,
+		Statuses: []enum.ChainUserStatus{enum.ChainUserDefault},
 	}
 	chainUser, err := models.FindChainUser(ctx, params)
 	if err != nil {

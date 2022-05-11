@@ -89,7 +89,6 @@ func ListRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput)
 
 // new recommend status
 func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) (*NewRecommendOutput, error) {
-
 	var totalNum, following2Num, recommendPoolNum, commonPoolNum int64
 	//start
 	ctx = context.WithValue(ctx, utils.CurrentUIDKey{}, uid)

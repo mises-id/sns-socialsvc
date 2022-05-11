@@ -5,7 +5,6 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
-	"github.com/mises-id/sns-socialsvc/app/services/opensea_api"
 	pb "github.com/mises-id/sns-socialsvc/proto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -23,6 +22,7 @@ func NewUserInfo(user *models.User) *pb.UserInfo {
 		Email:           user.Email,
 		Address:         user.Address,
 		Avatar:          user.AvatarUrl,
+		Intro:           user.Intro,
 		IsFollowed:      user.IsFollowed,
 		IsAirdropped:    user.IsAirdropped,
 		AirdropStatus:   user.AirdropStatus,
@@ -33,6 +33,21 @@ func NewUserInfo(user *models.User) *pb.UserInfo {
 		NewFansCount:    user.NewFansCount,
 		IsLogined:       user.IsLogined,
 		HelpMisesid:     user.Misesid,
+	}
+	if user.NftAvatar != nil {
+		userinfo.AvatarUrl = &pb.UserAvatar{
+			Small:      user.NftAvatar.ImageThumbnailUrl,
+			Medium:     user.NftAvatar.ImageURL,
+			Large:      user.NftAvatar.ImagePreviewUrl,
+			NftAssetId: user.NftAvatar.NftAssetID.Hex(),
+		}
+	} else {
+		userinfo.AvatarUrl = &pb.UserAvatar{
+			Small:      user.AvatarUrl,
+			Medium:     user.AvatarUrl,
+			Large:      user.AvatarUrl,
+			NftAssetId: "",
+		}
 	}
 	return &userinfo
 }
@@ -98,6 +113,72 @@ func NewStatusInfoSlice(statuses []*models.Status) []*pb.StatusInfo {
 	for i, status := range statuses {
 		result[i] = NewStatusInfo(status)
 	}
+	return result
+}
+func NewNftAssetSlice(assets []*models.NftAsset) []*pb.NftAsset {
+	result := make([]*pb.NftAsset, len(assets))
+	for i, asset := range assets {
+		result[i] = NewNftAsset(asset)
+	}
+	return result
+}
+func NewLikeSlice(likes []*models.Like) []*pb.Like {
+	result := make([]*pb.Like, len(likes))
+	for i, like := range likes {
+		result[i] = NewLike(like)
+	}
+	return result
+}
+func NewLike(like *models.Like) *pb.Like {
+	if like == nil {
+		return nil
+	}
+	resp := &pb.Like{
+		Id: docID(like.ID),
+	}
+	resp.User = NewUserInfo(like.User)
+	return resp
+}
+
+func NewAssetContract(in *models.AssetContract) *pb.AssetContract {
+	if in == nil {
+		return nil
+	}
+	result := &pb.AssetContract{
+		Address: in.Address,
+	}
+	return result
+}
+func NewCollection(in *models.NftCollection) *pb.NftCollection {
+	if in == nil {
+		return nil
+	}
+	result := &pb.NftCollection{
+		Name: in.Name,
+		Slug: in.Slug,
+	}
+	return result
+}
+
+func NewNftAsset(asset *models.NftAsset) *pb.NftAsset {
+	if asset == nil {
+		return nil
+	}
+	result := &pb.NftAsset{
+		Id:                docID(asset.ID),
+		ImageUrl:          asset.ImageURL,
+		ImagePreviewUrl:   asset.ImagePreviewUrl,
+		ImageThumbnailUrl: asset.ImageThumbnailUrl,
+		TokenId:           asset.TokenId,
+		PermaLink:         asset.PermaLink,
+		LikesCount:        asset.LikesCount,
+		CommentsCount:     asset.CommentsCount,
+		Name:              asset.Name,
+		User:              NewUserInfo(asset.User),
+		IsLiked:           asset.IsLiked,
+	}
+	result.AssetContract = NewAssetContract(asset.AssetContract)
+	result.Collection = NewCollection(asset.Collection)
 	return result
 }
 
@@ -313,21 +394,6 @@ func NewChannelUser(channel_user *models.ChannelUser) *pb.ChannelUserInfo {
 		ChannelMisesid: channel_user.ChannelMisesid,
 	}
 
-}
-func NewOpenseaAsset(in *opensea_api.AssetModel) *pb.OpenseaAsset {
-	return &pb.OpenseaAsset{
-		Id:       in.ID,
-		ImageUrl: in.ImageUrl,
-		Name:     in.Name,
-	}
-}
-
-func NewOpenseaAssetSlice(assets []*opensea_api.AssetModel) []*pb.OpenseaAsset {
-	result := make([]*pb.OpenseaAsset, len(assets))
-	for i, v := range assets {
-		result[i] = NewOpenseaAsset(v)
-	}
-	return result
 }
 
 func NewStatusLikeSlice(likes []*models.Like) []*pb.StatusLike {

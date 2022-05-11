@@ -64,6 +64,8 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		likestatusEndpoint              = svc.MakeLikeStatusEndpoint(service)
 		unlikestatusEndpoint            = svc.MakeUnLikeStatusEndpoint(service)
 		listlikestatusEndpoint          = svc.MakeListLikeStatusEndpoint(service)
+		likenftassetEndpoint            = svc.MakeLikeNftAssetEndpoint(service)
+		unlikenftassetEndpoint          = svc.MakeUnlikeNftAssetEndpoint(service)
 		getstatusEndpoint               = svc.MakeGetStatusEndpoint(service)
 		liststatusEndpoint              = svc.MakeListStatusEndpoint(service)
 		newliststatusEndpoint           = svc.MakeNewListStatusEndpoint(service)
@@ -77,6 +79,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		readmessageEndpoint             = svc.MakeReadMessageEndpoint(service)
 		getmessagesummaryEndpoint       = svc.MakeGetMessageSummaryEndpoint(service)
 		listcommentEndpoint             = svc.MakeListCommentEndpoint(service)
+		listlikeEndpoint                = svc.MakeListLikeEndpoint(service)
 		getcommentEndpoint              = svc.MakeGetCommentEndpoint(service)
 		newrecommendstatusEndpoint      = svc.MakeNewRecommendStatusEndpoint(service)
 		createcommentEndpoint           = svc.MakeCreateCommentEndpoint(service)
@@ -99,6 +102,11 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		getopenseaassetEndpoint         = svc.MakeGetOpenseaAssetEndpoint(service)
 		listopenseaassetEndpoint        = svc.MakeListOpenseaAssetEndpoint(service)
 		getopenseaassetcontractEndpoint = svc.MakeGetOpenseaAssetContractEndpoint(service)
+		pagenftassetEndpoint            = svc.MakePageNftAssetEndpoint(service)
+		getnftassetEndpoint             = svc.MakeGetNftAssetEndpoint(service)
+		pagenfteventEndpoint            = svc.MakePageNftEventEndpoint(service)
+		updateuserconfigEndpoint        = svc.MakeUpdateUserConfigEndpoint(service)
+		getuserconfigEndpoint           = svc.MakeGetUserConfigEndpoint(service)
 	)
 
 	endpoints := svc.Endpoints{
@@ -113,6 +121,8 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		LikeStatusEndpoint:              likestatusEndpoint,
 		UnLikeStatusEndpoint:            unlikestatusEndpoint,
 		ListLikeStatusEndpoint:          listlikestatusEndpoint,
+		LikeNftAssetEndpoint:            likenftassetEndpoint,
+		UnlikeNftAssetEndpoint:          unlikenftassetEndpoint,
 		GetStatusEndpoint:               getstatusEndpoint,
 		ListStatusEndpoint:              liststatusEndpoint,
 		NewListStatusEndpoint:           newliststatusEndpoint,
@@ -126,6 +136,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		ReadMessageEndpoint:             readmessageEndpoint,
 		GetMessageSummaryEndpoint:       getmessagesummaryEndpoint,
 		ListCommentEndpoint:             listcommentEndpoint,
+		ListLikeEndpoint:                listlikeEndpoint,
 		GetCommentEndpoint:              getcommentEndpoint,
 		NewRecommendStatusEndpoint:      newrecommendstatusEndpoint,
 		CreateCommentEndpoint:           createcommentEndpoint,
@@ -148,6 +159,11 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		GetOpenseaAssetEndpoint:         getopenseaassetEndpoint,
 		ListOpenseaAssetEndpoint:        listopenseaassetEndpoint,
 		GetOpenseaAssetContractEndpoint: getopenseaassetcontractEndpoint,
+		PageNftAssetEndpoint:            pagenftassetEndpoint,
+		GetNftAssetEndpoint:             getnftassetEndpoint,
+		PageNftEventEndpoint:            pagenfteventEndpoint,
+		UpdateUserConfigEndpoint:        updateuserconfigEndpoint,
+		GetUserConfigEndpoint:           getuserconfigEndpoint,
 	}
 
 	// Wrap selected Endpoints with middlewares. See handlers/middlewares.go

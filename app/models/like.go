@@ -23,7 +23,16 @@ type Like struct {
 	CreatedAt  time.Time           `bson:"created_at,omitempty"`
 	UpdatedAt  time.Time           `bson:"updated_at,omitempty"`
 	Status     *Status             `bson:"-"`
+	User       *User               `bson:"-"`
+	NftAsset   *NftAsset           `bson:"-"`
 	Comment    *Comment            `bson:"-"`
+}
+
+type LikeSearch struct {
+	UID        uint64
+	TargetID   primitive.ObjectID
+	TargetType enum.LikeTargetType
+	PageParams *pagination.PageQuickParams
 }
 
 func (l *Like) AfterCreate(ctx context.Context) error {
@@ -49,6 +58,7 @@ func (l *Like) notifyLikeUser(ctx context.Context) error {
 	metaData := &message.MetaData{}
 	messageType := enum.NewLikeStatus
 	var statusID primitive.ObjectID
+	var nft_asset_id primitive.ObjectID
 	if l.TargetType == enum.LikeStatus {
 		statusID = l.TargetID
 		metaData.LikeStatusMeta = &message.LikeStatusMeta{
@@ -66,10 +76,29 @@ func (l *Like) notifyLikeUser(ctx context.Context) error {
 			CommentContent:  l.Comment.Content,
 		}
 		messageType = enum.NewLikeComment
+	} else if l.TargetType == enum.LikeNftComment {
+		messageType = enum.NewLikeNftComment
+		nft_asset_id = l.Comment.NftAssetID
+		metaData.LikeNftCommentMeta = &message.LikeNftAssetCommentMeta{
+			UID:             l.UID,
+			CommentID:       l.TargetID,
+			CommentUsername: l.Comment.User.Username,
+			CommentContent:  l.Comment.Content,
+		}
+	} else if l.TargetType == enum.LikeNft {
+		nft_asset_id = l.TargetID
+		messageType = enum.NewLikeNft
+		metaData.LikeNftMeta = &message.LikeNftAssetMeta{
+			UID:           l.UID,
+			NftAssetID:    l.TargetID,
+			NftAssetName:  l.NftAsset.Name,
+			NftAssetImage: l.NftAsset.ImageThumbnailUrl,
+		}
 	}
 	_, err = CreateMessage(ctx, &CreateMessageParams{
 		UID:         l.OwnerID,
 		StatusID:    statusID,
+		NftAssetID:  nft_asset_id,
 		FromUID:     l.UID,
 		MessageType: messageType,
 		MetaData:    metaData,
@@ -154,6 +183,28 @@ func GetLikeMap(ctx context.Context, uid uint64, targetIDs []primitive.ObjectID,
 	}
 	return likeMap, nil
 }
+func GetLikeMaps(ctx context.Context, uid uint64, targetIDs []primitive.ObjectID, targetTypes []enum.LikeTargetType, preloadData bool) (map[primitive.ObjectID]*Like, error) {
+	likes := make([]*Like, 0)
+	err := db.ODM(ctx).Where(bson.M{
+		"uid":         uid,
+		"target_id":   bson.M{"$in": targetIDs},
+		"target_type": bson.M{"$in": targetTypes},
+		"deleted_at":  nil,
+	}).Find(&likes).Error
+	if err != nil {
+		return nil, err
+	}
+	if preloadData {
+		if err = PreloadLikeData(ctx, likes...); err != nil {
+			return nil, err
+		}
+	}
+	likeMap := make(map[primitive.ObjectID]*Like)
+	for _, like := range likes {
+		likeMap[like.TargetID] = like
+	}
+	return likeMap, nil
+}
 
 func ListLike(ctx context.Context, uid uint64, tp enum.LikeTargetType, pageParams *pagination.PageQuickParams) ([]*Like, pagination.Pagination, error) {
 	if pageParams == nil {
@@ -175,6 +226,42 @@ func ListLike(ctx context.Context, uid uint64, tp enum.LikeTargetType, pageParam
 	}
 	return likes, page, PreloadLikeData(ctx, likes...)
 }
+func PageLike(ctx context.Context, tp enum.LikeTargetType, params *LikeSearch) ([]*Like, pagination.Pagination, error) {
+	if params.PageParams == nil {
+		params.PageParams = pagination.DefaultQuickParams()
+	}
+	pageParams := params.PageParams
+	likes := make([]*Like, 0)
+	chain := db.ODM(ctx).Where(bson.M{"target_type": tp, "deleted_at": nil})
+	if !params.TargetID.IsZero() {
+		chain = db.ODM(ctx).Where(bson.M{"target_id": params.TargetID})
+	}
+	paginator := pagination.NewQuickPaginator(pageParams.Limit, pageParams.NextID, chain, pagination.IsCount(true))
+	page, err := paginator.Paginate(&likes)
+	if err != nil {
+		return nil, nil, err
+	}
+	return likes, page, PreloadLikeData(ctx, likes...)
+}
+
+func preloadLikeUser(ctx context.Context, likes ...*Like) error {
+	userIds := make([]uint64, 0)
+	for _, like := range likes {
+		userIds = append(userIds, like.UID)
+	}
+	users, err := FindUserByIDs(ctx, userIds...)
+	if err != nil {
+		return err
+	}
+	userMap := make(map[uint64]*User)
+	for _, user := range users {
+		userMap[user.UID] = user
+	}
+	for _, like := range likes {
+		like.User = userMap[like.UID]
+	}
+	return nil
+}
 
 func PreloadLikeData(ctx context.Context, likes ...*Like) error {
 	err := preloadLikeComment(ctx, likes...)
@@ -182,6 +269,14 @@ func PreloadLikeData(ctx context.Context, likes ...*Like) error {
 		return err
 	}
 	err = preloadLikeStatus(ctx, likes...)
+	if err != nil {
+		return err
+	}
+	err = preloadLikeNftAsset(ctx, likes...)
+	if err != nil {
+		return err
+	}
+	err = preloadLikeUser(ctx, likes...)
 	if err != nil {
 		return err
 	}
@@ -221,11 +316,39 @@ func preloadLikeStatus(ctx context.Context, likes ...*Like) error {
 	}
 	return nil
 }
+func preloadLikeNftAsset(ctx context.Context, likes ...*Like) error {
+
+	ids := make([]primitive.ObjectID, 0)
+	for _, like := range likes {
+		if like.TargetType != enum.LikeNft {
+			continue
+		}
+		ids = append(ids, like.TargetID)
+	}
+	nft_assets, err := FindNftAssetByIDs(ctx, ids...)
+	if err != nil {
+		return err
+	}
+	nftMap := make(map[primitive.ObjectID]*NftAsset)
+	for _, nft_asset := range nft_assets {
+		nftMap[nft_asset.ID] = nft_asset
+	}
+	for _, like := range likes {
+		if like.TargetType != enum.LikeNft {
+			continue
+		}
+		if nftMap[like.TargetID] != nil {
+			like.NftAsset = nftMap[like.TargetID]
+		}
+
+	}
+	return nil
+}
 
 func preloadLikeComment(ctx context.Context, likes ...*Like) error {
 	commentIDs := make([]primitive.ObjectID, 0)
 	for _, like := range likes {
-		if like.TargetType != enum.LikeComment {
+		if like.TargetType != enum.LikeComment && like.TargetType != enum.LikeNftComment {
 			continue
 		}
 		commentIDs = append(commentIDs, like.TargetID)
@@ -242,7 +365,7 @@ func preloadLikeComment(ctx context.Context, likes ...*Like) error {
 		commentMap[comment.ID] = comment
 	}
 	for _, like := range likes {
-		if like.TargetType != enum.LikeComment {
+		if like.TargetType != enum.LikeComment && like.TargetType != enum.LikeNftComment {
 			continue
 		}
 		like.Comment = commentMap[like.TargetID]

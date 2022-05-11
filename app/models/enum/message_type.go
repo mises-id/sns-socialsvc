@@ -10,15 +10,21 @@ const (
 	NewLikeComment
 	NewFans
 	NewForward
+	NewNftComment
+	NewLikeNft
+	NewLikeNftComment
 )
 
 var (
 	messageTypeMap = map[MessageType]string{
-		NewComment:     "new_comment",
-		NewLikeStatus:  "new_like_status",
-		NewLikeComment: "new_like_comment",
-		NewFans:        "new_fans",
-		NewForward:     "new_fowards",
+		NewComment:        "new_comment",
+		NewLikeStatus:     "new_like_status",
+		NewLikeComment:    "new_like_comment",
+		NewFans:           "new_fans",
+		NewForward:        "new_fowards",
+		NewNftComment:     "new_nft_comment",
+		NewLikeNft:        "new_like_nft",
+		NewLikeNftComment: "new_like_nft_comment",
 	}
 	messageTypeStringMap = map[string]MessageType{}
 )

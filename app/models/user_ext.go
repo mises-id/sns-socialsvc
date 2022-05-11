@@ -2,13 +2,17 @@ package models
 
 import (
 	"context"
-	"fmt"
+	"encoding/hex"
 	"time"
 
+	"github.com/btcsuite/btcd/btcec"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/mises-id/sns-socialsvc/app/models/search"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type (
@@ -37,6 +41,8 @@ type (
 		Following2PoolCursor      *Following2PoolCursor      `bson:"following2_cursor"`
 		CommonPoolCursor          *CommonPoolCursor          `bson:"common_cursor"`
 		Referrer                  string                     `bson:"referrer"`
+		EthAddress                string                     `bson:"eth_address"`
+		NftState                  bool                       `bson:"nft_state"`
 		CreatedAt                 time.Time                  `bson:"created_at,omitempty"`
 		UpdatedAt                 time.Time                  `bson:"updated_at,omitempty"`
 	}
@@ -44,9 +50,8 @@ type (
 
 //find or create user ext
 func FindOrCreateUserExt(ctx context.Context, uid uint64) (*UserExt, error) {
-
-	//find
 	user_ext := &UserExt{}
+	//find
 	err := db.ODM(ctx).Where(bson.M{
 		"uid": uid,
 	}).Last(user_ext).Error
@@ -59,6 +64,17 @@ func FindOrCreateUserExt(ctx context.Context, uid uint64) (*UserExt, error) {
 	}
 	return user_ext, nil
 
+}
+
+func FindUserExt(ctx context.Context, uid uint64) (*UserExt, error) {
+	user_ext := &UserExt{}
+	err := db.ODM(ctx).Where(bson.M{
+		"uid": uid,
+	}).Last(user_ext).Error
+	if err != nil {
+		return nil, err
+	}
+	return user_ext, nil
 }
 
 func UserMergeUserExt(ctx context.Context, user *User) *User {
@@ -155,8 +171,6 @@ func (m *UserExt) Update(ctx context.Context) error {
 	if m.CommonPoolCursor != nil {
 		update["common_cursor"] = m.CommonPoolCursor
 	}
-	fmt.Println("uid: ", m.UID)
-	fmt.Println("user ext common: ", m.CommonPoolCursor)
 	_, err := db.DB().Collection("userexts").UpdateOne(ctx, &bson.M{
 		"uid": m.UID,
 	}, bson.D{{
@@ -179,4 +193,36 @@ func CreateUserExt(ctx context.Context, uid uint64) (*UserExt, error) {
 	}
 
 	return user_ext, nil
+}
+
+func UpdateUserExtNftState(ctx context.Context, uid uint64, state bool) error {
+	update := bson.M{}
+	update["nft_state"] = state
+	if state {
+		user, err := FindUser(ctx, uid)
+		if err == nil {
+			//create eth_address
+			chainUser, err := FindChainUser(ctx, &search.ChainUserSearch{Misesid: user.Misesid})
+			if err == nil && chainUser.Pubkey != "" {
+				update["eth_address"] = PubkeyToEthAddress(chainUser.Pubkey)
+			}
+		}
+	}
+	update["uid"] = uid
+	opt := &options.FindOneAndUpdateOptions{}
+	opt.SetUpsert(true)
+	opt.SetReturnDocument(1)
+	result := db.DB().Collection("userexts").FindOneAndUpdate(ctx, &bson.M{"uid": uid}, bson.D{{Key: "$set", Value: update}}, opt)
+	if result.Err() != nil {
+		return result.Err()
+	}
+	return nil
+}
+
+func PubkeyToEthAddress(pubkey string) string {
+	r, _ := hex.DecodeString(pubkey)
+	btcec_pubKey, _ := btcec.ParsePubKey(r, btcec.S256())
+	a := btcec_pubKey.ToECDSA()
+	addr := crypto.PubkeyToAddress(*a)
+	return addr.Hex()
 }

@@ -5,7 +5,9 @@ import (
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/storage"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserProfileParams struct {
@@ -13,6 +15,10 @@ type UserProfileParams struct {
 	Mobile  string
 	Email   string
 	Address string
+	Intro   string
+}
+type UserConfig struct {
+	NftState bool
 }
 
 func FindUser(ctx context.Context, uid uint64) (*models.User, error) {
@@ -32,6 +38,25 @@ func FindUser(ctx context.Context, uid uint64) (*models.User, error) {
 	return user, nil
 }
 
+func UpdateUserConfig(ctx context.Context, currentUID uint64, in *UserConfig) (*UserConfig, error) {
+	err := models.UpdateUserExtNftState(ctx, currentUID, in.NftState)
+	if err != nil {
+		return nil, err
+	}
+	return GetUserConfig(ctx, currentUID, currentUID)
+}
+
+func GetUserConfig(ctx context.Context, currentUID uint64, uid uint64) (*UserConfig, error) {
+	user_ext, err := models.FindUserExt(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	user_config := &UserConfig{
+		NftState: user_ext.NftState,
+	}
+	return user_config, nil
+}
+
 func UpdateUserProfile(ctx context.Context, uid uint64, params *UserProfileParams) (*models.User, error) {
 	user, err := models.FindUser(ctx, uid)
 	if err != nil {
@@ -41,21 +66,43 @@ func UpdateUserProfile(ctx context.Context, uid uint64, params *UserProfileParam
 	user.Mobile = params.Mobile
 	user.Email = params.Email
 	user.Address = params.Address
+	user.Intro = params.Intro
 	if err = models.UpdateUserProfile(ctx, user); err != nil {
 		return nil, err
 	}
 	return user, preloadAvatar(ctx, user)
 }
 
-func UpdateUserAvatar(ctx context.Context, uid uint64, attachmentPath string) (*models.User, error) {
+func UpdateUserAvatar(ctx context.Context, uid uint64, attachmentPath string, nft_asset_id primitive.ObjectID) (*models.User, error) {
 	user, err := models.FindUser(ctx, uid)
 	if err != nil {
 		return nil, err
 	}
-	user.AvatarPath = attachmentPath
-	if err = models.UpdateUserAvatar(ctx, user); err != nil {
-		return nil, err
+	if !nft_asset_id.IsZero() {
+		nft_asset, err := models.FindNftAssetByID(ctx, nft_asset_id)
+		if err != nil {
+			return nil, err
+		}
+		if nft_asset.UID != uid {
+			return nil, codes.ErrForbidden
+		}
+		nft_avatar := &models.NftAvatar{
+			NftAssetID:        nft_asset.ID,
+			ImageURL:          nft_asset.ImageURL,
+			ImagePreviewUrl:   nft_asset.ImagePreviewUrl,
+			ImageThumbnailUrl: nft_asset.ImageThumbnailUrl,
+		}
+		user.NftAvatar = nft_avatar
+		if err = models.UpdateUserNftAvatar(ctx, user); err != nil {
+			return nil, err
+		}
+	} else {
+		user.AvatarPath = attachmentPath
+		if err = models.UpdateUserAvatar(ctx, user); err != nil {
+			return nil, err
+		}
 	}
+
 	return user, preloadAvatar(ctx, user)
 }
 

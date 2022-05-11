@@ -95,6 +95,18 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCListLikeStatusResponse,
 			serverOptions...,
 		),
+		likenftasset: grpctransport.NewServer(
+			endpoints.LikeNftAssetEndpoint,
+			DecodeGRPCLikeNftAssetRequest,
+			EncodeGRPCLikeNftAssetResponse,
+			serverOptions...,
+		),
+		unlikenftasset: grpctransport.NewServer(
+			endpoints.UnlikeNftAssetEndpoint,
+			DecodeGRPCUnlikeNftAssetRequest,
+			EncodeGRPCUnlikeNftAssetResponse,
+			serverOptions...,
+		),
 		getstatus: grpctransport.NewServer(
 			endpoints.GetStatusEndpoint,
 			DecodeGRPCGetStatusRequest,
@@ -171,6 +183,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			endpoints.ListCommentEndpoint,
 			DecodeGRPCListCommentRequest,
 			EncodeGRPCListCommentResponse,
+			serverOptions...,
+		),
+		listlike: grpctransport.NewServer(
+			endpoints.ListLikeEndpoint,
+			DecodeGRPCListLikeRequest,
+			EncodeGRPCListLikeResponse,
 			serverOptions...,
 		),
 		getcomment: grpctransport.NewServer(
@@ -305,6 +323,36 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCGetOpenseaAssetContractResponse,
 			serverOptions...,
 		),
+		pagenftasset: grpctransport.NewServer(
+			endpoints.PageNftAssetEndpoint,
+			DecodeGRPCPageNftAssetRequest,
+			EncodeGRPCPageNftAssetResponse,
+			serverOptions...,
+		),
+		getnftasset: grpctransport.NewServer(
+			endpoints.GetNftAssetEndpoint,
+			DecodeGRPCGetNftAssetRequest,
+			EncodeGRPCGetNftAssetResponse,
+			serverOptions...,
+		),
+		pagenftevent: grpctransport.NewServer(
+			endpoints.PageNftEventEndpoint,
+			DecodeGRPCPageNftEventRequest,
+			EncodeGRPCPageNftEventResponse,
+			serverOptions...,
+		),
+		updateuserconfig: grpctransport.NewServer(
+			endpoints.UpdateUserConfigEndpoint,
+			DecodeGRPCUpdateUserConfigRequest,
+			EncodeGRPCUpdateUserConfigResponse,
+			serverOptions...,
+		),
+		getuserconfig: grpctransport.NewServer(
+			endpoints.GetUserConfigEndpoint,
+			DecodeGRPCGetUserConfigRequest,
+			EncodeGRPCGetUserConfigResponse,
+			serverOptions...,
+		),
 	}
 }
 
@@ -321,6 +369,8 @@ type grpcServer struct {
 	likestatus              grpctransport.Handler
 	unlikestatus            grpctransport.Handler
 	listlikestatus          grpctransport.Handler
+	likenftasset            grpctransport.Handler
+	unlikenftasset          grpctransport.Handler
 	getstatus               grpctransport.Handler
 	liststatus              grpctransport.Handler
 	newliststatus           grpctransport.Handler
@@ -334,6 +384,7 @@ type grpcServer struct {
 	readmessage             grpctransport.Handler
 	getmessagesummary       grpctransport.Handler
 	listcomment             grpctransport.Handler
+	listlike                grpctransport.Handler
 	getcomment              grpctransport.Handler
 	newrecommendstatus      grpctransport.Handler
 	createcomment           grpctransport.Handler
@@ -356,6 +407,11 @@ type grpcServer struct {
 	getopenseaasset         grpctransport.Handler
 	listopenseaasset        grpctransport.Handler
 	getopenseaassetcontract grpctransport.Handler
+	pagenftasset            grpctransport.Handler
+	getnftasset             grpctransport.Handler
+	pagenftevent            grpctransport.Handler
+	updateuserconfig        grpctransport.Handler
+	getuserconfig           grpctransport.Handler
 }
 
 // Methods for grpcServer to implement SocialServer interface
@@ -446,6 +502,22 @@ func (s *grpcServer) ListLikeStatus(ctx context.Context, req *pb.ListLikeRequest
 		return nil, err
 	}
 	return rep.(*pb.ListLikeResponse), nil
+}
+
+func (s *grpcServer) LikeNftAsset(ctx context.Context, req *pb.LikeNftAssetRequest) (*pb.SimpleResponse, error) {
+	_, rep, err := s.likenftasset.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.SimpleResponse), nil
+}
+
+func (s *grpcServer) UnlikeNftAsset(ctx context.Context, req *pb.UnLikeNftAssetRequest) (*pb.SimpleResponse, error) {
+	_, rep, err := s.unlikenftasset.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.SimpleResponse), nil
 }
 
 func (s *grpcServer) GetStatus(ctx context.Context, req *pb.GetStatusRequest) (*pb.GetStatusResponse, error) {
@@ -550,6 +622,14 @@ func (s *grpcServer) ListComment(ctx context.Context, req *pb.ListCommentRequest
 		return nil, err
 	}
 	return rep.(*pb.ListCommentResponse), nil
+}
+
+func (s *grpcServer) ListLike(ctx context.Context, req *pb.ListLikeUserRequest) (*pb.ListLikeUserResponse, error) {
+	_, rep, err := s.listlike.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.ListLikeUserResponse), nil
 }
 
 func (s *grpcServer) GetComment(ctx context.Context, req *pb.GetCommentRequest) (*pb.GetCommentResponse, error) {
@@ -728,6 +808,46 @@ func (s *grpcServer) GetOpenseaAssetContract(ctx context.Context, req *pb.GetOpe
 	return rep.(*pb.GetOpenseaAssetContractResponse), nil
 }
 
+func (s *grpcServer) PageNftAsset(ctx context.Context, req *pb.PageNftAssetRequest) (*pb.PageNftAssetResponse, error) {
+	_, rep, err := s.pagenftasset.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.PageNftAssetResponse), nil
+}
+
+func (s *grpcServer) GetNftAsset(ctx context.Context, req *pb.GetNftAssetRequest) (*pb.GetNftAssetResponse, error) {
+	_, rep, err := s.getnftasset.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.GetNftAssetResponse), nil
+}
+
+func (s *grpcServer) PageNftEvent(ctx context.Context, req *pb.PageNftEventRequest) (*pb.PageNftEventResponse, error) {
+	_, rep, err := s.pagenftevent.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.PageNftEventResponse), nil
+}
+
+func (s *grpcServer) UpdateUserConfig(ctx context.Context, req *pb.UpdateUserConfigRequest) (*pb.UpdateUserConfigResponse, error) {
+	_, rep, err := s.updateuserconfig.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.UpdateUserConfigResponse), nil
+}
+
+func (s *grpcServer) GetUserConfig(ctx context.Context, req *pb.GetUserConfigRequest) (*pb.GetUserConfigResponse, error) {
+	_, rep, err := s.getuserconfig.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.GetUserConfigResponse), nil
+}
+
 // Server Decode
 
 // DecodeGRPCSignInRequest is a transport/grpc.DecodeRequestFunc that converts a
@@ -804,6 +924,20 @@ func DecodeGRPCUnLikeStatusRequest(_ context.Context, grpcReq interface{}) (inte
 // gRPC listlikestatus request to a user-domain listlikestatus request. Primarily useful in a server.
 func DecodeGRPCListLikeStatusRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.ListLikeRequest)
+	return req, nil
+}
+
+// DecodeGRPCLikeNftAssetRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC likenftasset request to a user-domain likenftasset request. Primarily useful in a server.
+func DecodeGRPCLikeNftAssetRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.LikeNftAssetRequest)
+	return req, nil
+}
+
+// DecodeGRPCUnlikeNftAssetRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC unlikenftasset request to a user-domain unlikenftasset request. Primarily useful in a server.
+func DecodeGRPCUnlikeNftAssetRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.UnLikeNftAssetRequest)
 	return req, nil
 }
 
@@ -895,6 +1029,13 @@ func DecodeGRPCGetMessageSummaryRequest(_ context.Context, grpcReq interface{}) 
 // gRPC listcomment request to a user-domain listcomment request. Primarily useful in a server.
 func DecodeGRPCListCommentRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*pb.ListCommentRequest)
+	return req, nil
+}
+
+// DecodeGRPCListLikeRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC listlike request to a user-domain listlike request. Primarily useful in a server.
+func DecodeGRPCListLikeRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ListLikeUserRequest)
 	return req, nil
 }
 
@@ -1052,6 +1193,41 @@ func DecodeGRPCGetOpenseaAssetContractRequest(_ context.Context, grpcReq interfa
 	return req, nil
 }
 
+// DecodeGRPCPageNftAssetRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC pagenftasset request to a user-domain pagenftasset request. Primarily useful in a server.
+func DecodeGRPCPageNftAssetRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.PageNftAssetRequest)
+	return req, nil
+}
+
+// DecodeGRPCGetNftAssetRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC getnftasset request to a user-domain getnftasset request. Primarily useful in a server.
+func DecodeGRPCGetNftAssetRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.GetNftAssetRequest)
+	return req, nil
+}
+
+// DecodeGRPCPageNftEventRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC pagenftevent request to a user-domain pagenftevent request. Primarily useful in a server.
+func DecodeGRPCPageNftEventRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.PageNftEventRequest)
+	return req, nil
+}
+
+// DecodeGRPCUpdateUserConfigRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC updateuserconfig request to a user-domain updateuserconfig request. Primarily useful in a server.
+func DecodeGRPCUpdateUserConfigRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.UpdateUserConfigRequest)
+	return req, nil
+}
+
+// DecodeGRPCGetUserConfigRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC getuserconfig request to a user-domain getuserconfig request. Primarily useful in a server.
+func DecodeGRPCGetUserConfigRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.GetUserConfigRequest)
+	return req, nil
+}
+
 // Server Encode
 
 // EncodeGRPCSignInResponse is a transport/grpc.EncodeResponseFunc that converts a
@@ -1128,6 +1304,20 @@ func EncodeGRPCUnLikeStatusResponse(_ context.Context, response interface{}) (in
 // user-domain listlikestatus response to a gRPC listlikestatus reply. Primarily useful in a server.
 func EncodeGRPCListLikeStatusResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.ListLikeResponse)
+	return resp, nil
+}
+
+// EncodeGRPCLikeNftAssetResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain likenftasset response to a gRPC likenftasset reply. Primarily useful in a server.
+func EncodeGRPCLikeNftAssetResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.SimpleResponse)
+	return resp, nil
+}
+
+// EncodeGRPCUnlikeNftAssetResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain unlikenftasset response to a gRPC unlikenftasset reply. Primarily useful in a server.
+func EncodeGRPCUnlikeNftAssetResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.SimpleResponse)
 	return resp, nil
 }
 
@@ -1219,6 +1409,13 @@ func EncodeGRPCGetMessageSummaryResponse(_ context.Context, response interface{}
 // user-domain listcomment response to a gRPC listcomment reply. Primarily useful in a server.
 func EncodeGRPCListCommentResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.ListCommentResponse)
+	return resp, nil
+}
+
+// EncodeGRPCListLikeResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain listlike response to a gRPC listlike reply. Primarily useful in a server.
+func EncodeGRPCListLikeResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.ListLikeUserResponse)
 	return resp, nil
 }
 
@@ -1373,6 +1570,41 @@ func EncodeGRPCListOpenseaAssetResponse(_ context.Context, response interface{})
 // user-domain getopenseaassetcontract response to a gRPC getopenseaassetcontract reply. Primarily useful in a server.
 func EncodeGRPCGetOpenseaAssetContractResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.GetOpenseaAssetContractResponse)
+	return resp, nil
+}
+
+// EncodeGRPCPageNftAssetResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain pagenftasset response to a gRPC pagenftasset reply. Primarily useful in a server.
+func EncodeGRPCPageNftAssetResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.PageNftAssetResponse)
+	return resp, nil
+}
+
+// EncodeGRPCGetNftAssetResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain getnftasset response to a gRPC getnftasset reply. Primarily useful in a server.
+func EncodeGRPCGetNftAssetResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.GetNftAssetResponse)
+	return resp, nil
+}
+
+// EncodeGRPCPageNftEventResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain pagenftevent response to a gRPC pagenftevent reply. Primarily useful in a server.
+func EncodeGRPCPageNftEventResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.PageNftEventResponse)
+	return resp, nil
+}
+
+// EncodeGRPCUpdateUserConfigResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain updateuserconfig response to a gRPC updateuserconfig reply. Primarily useful in a server.
+func EncodeGRPCUpdateUserConfigResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.UpdateUserConfigResponse)
+	return resp, nil
+}
+
+// EncodeGRPCGetUserConfigResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain getuserconfig response to a gRPC getuserconfig reply. Primarily useful in a server.
+func EncodeGRPCGetUserConfigResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.GetUserConfigResponse)
 	return resp, nil
 }
 

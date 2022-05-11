@@ -55,12 +55,23 @@ func DeleteComment(ctx context.Context, currentUID uint64, id primitive.ObjectID
 		deleteCommentNum += int(comment.CommentsCount)
 
 	}
-	status, err := models.FindStatus(ctx, comment.StatusID)
-	if err != nil {
-		return err
+	if !comment.StatusID.IsZero() {
+		status, err := models.FindStatus(ctx, comment.StatusID)
+		if err != nil {
+			return err
+		}
+		if err = status.IncStatusCounter(ctx, "comments_count", -deleteCommentNum); err != nil {
+			return err
+		}
 	}
-	if err = status.IncStatusCounter(ctx, "comments_count", -deleteCommentNum); err != nil {
-		return err
+	if !comment.NftAssetID.IsZero() {
+		nft_asset, err := models.FindNftAssetByID(ctx, comment.NftAssetID)
+		if err != nil {
+			return err
+		}
+		if err = nft_asset.IncNftAssetCounter(ctx, "comments_count", -deleteCommentNum); err != nil {
+			return err
+		}
 	}
 	//2.comment is comment2, delete this comment and handler group comment count
 	if !comment.GroupID.IsZero() && comment.GroupID != comment.ID {
@@ -90,24 +101,38 @@ func DeleteComment(ctx context.Context, currentUID uint64, id primitive.ObjectID
 }
 
 func CreateComment(ctx context.Context, params *CreateCommentParams) (*models.Comment, error) {
+	var err error
+	var status *models.Status
+	var nft_asset *models.NftAsset
 	commentParams := params.CreateCommentParams
-	// check status exsist
-	status, err := models.FindStatus(ctx, params.StatusID)
-	if err != nil {
-		return nil, err
+
+	if !params.NftAssetID.IsZero() {
+		nft_asset, err = models.FindNftAssetByID(ctx, params.NftAssetID)
+		if err != nil {
+			return nil, err
+		}
+		commentParams.NftAsset = nft_asset
 	}
-	//access rights
-	if status != nil && !status.IsPublic && status.UID != params.UID {
-		return nil, codes.ErrForbidden
+	if !params.StatusID.IsZero() {
+		// check status exsist
+		status, err = models.FindStatus(ctx, params.StatusID)
+		if err != nil {
+			return nil, err
+		}
+		//access rights
+		if status != nil && !status.IsPublic && status.UID != params.UID {
+			return nil, codes.ErrForbidden
+		}
+		statusBlocked, err := models.IsBlocked(ctx, status.UID, params.UID)
+		if err != nil {
+			return nil, err
+		}
+		if statusBlocked {
+			return nil, codes.ErrUserInBlacklist
+		}
+		commentParams.Status = status
 	}
-	statusBlocked, err := models.IsBlocked(ctx, status.UID, params.UID)
-	if err != nil {
-		return nil, err
-	}
-	if statusBlocked {
-		return nil, codes.ErrUserInBlacklist
-	}
-	commentParams.Status = status
+
 	var groupComment *models.Comment
 	if params.ParentID != primitive.NilObjectID {
 		parent, err := models.FindComment(ctx, params.ParentID)
@@ -140,7 +165,7 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*models.Co
 	if err = addChildrenComment(ctx, groupComment, comment); err != nil {
 		return nil, err
 	}
-	if err = incrCommentCounter(ctx, status, groupComment); err != nil {
+	if err = incrCommentCounter(ctx, status, nft_asset, groupComment); err != nil {
 		return nil, err
 	}
 	if err = models.PreloadCommentData(ctx, comment); err != nil {
@@ -154,14 +179,19 @@ func LikeComment(ctx context.Context, uid uint64, commentID primitive.ObjectID) 
 	if err != nil {
 		return nil, err
 	}
-	like, err := models.FindLike(ctx, uid, commentID, enum.LikeComment)
+	var likeTargetType enum.LikeTargetType
+	likeTargetType = enum.LikeComment
+	if comment.StatusID.IsZero() {
+		likeTargetType = enum.LikeNftComment
+	}
+	like, err := models.FindLike(ctx, uid, commentID, likeTargetType)
 	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	}
 	if err == nil {
 		return like, nil
 	}
-	like, err = models.CreateLike(ctx, uid, comment.UID, commentID, enum.LikeComment)
+	like, err = models.CreateLike(ctx, uid, comment.UID, commentID, likeTargetType)
 	if err != nil {
 		return nil, err
 	}
@@ -169,11 +199,16 @@ func LikeComment(ctx context.Context, uid uint64, commentID primitive.ObjectID) 
 }
 
 func UnlikeComment(ctx context.Context, uid uint64, commentID primitive.ObjectID) error {
-	like, err := models.FindLike(ctx, uid, commentID, enum.LikeComment)
+	comment, err := models.FindComment(ctx, commentID)
 	if err != nil {
 		return err
 	}
-	comment, err := models.FindComment(ctx, commentID)
+	var likeTargetType enum.LikeTargetType
+	likeTargetType = enum.LikeComment
+	if comment.StatusID.IsZero() {
+		likeTargetType = enum.LikeNftComment
+	}
+	like, err := models.FindLike(ctx, uid, commentID, likeTargetType)
 	if err != nil {
 		return err
 	}
@@ -183,13 +218,21 @@ func UnlikeComment(ctx context.Context, uid uint64, commentID primitive.ObjectID
 	return comment.IncCommentCounter(ctx, "likes_count", -1)
 }
 
-func incrCommentCounter(ctx context.Context, status *models.Status, comment *models.Comment) error {
-	err := status.IncStatusCounter(ctx, "comments_count")
-	if err != nil {
-		return err
+func incrCommentCounter(ctx context.Context, status *models.Status, nft_asset *models.NftAsset, comment *models.Comment) error {
+	if status != nil {
+		err := status.IncStatusCounter(ctx, "comments_count")
+		if err != nil {
+			return err
+		}
+	}
+	if nft_asset != nil {
+		err := nft_asset.IncNftAssetCounter(ctx, "comments_count")
+		if err != nil {
+			return err
+		}
 	}
 	if comment != nil {
-		err = comment.IncCommentCounter(ctx, "comments_count")
+		err := comment.IncCommentCounter(ctx, "comments_count")
 		if err != nil {
 			return err
 		}

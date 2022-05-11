@@ -9,6 +9,7 @@ import (
 
 type (
 	ChainUserSearch struct {
+		UID      uint64
 		Misesid  string
 		Misesids []string
 		Status   enum.ChainUserStatus
@@ -39,11 +40,14 @@ func (params *ChainUserSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.Statuses != nil && len(params.Statuses) > 0 {
 		chain = chain.Where(bson.M{"status": bson.M{"$in": params.Statuses}})
 	}
-	if params.Status > -1 {
+	/* if params.Status > -1 {
 		chain = chain.Where(bson.M{"status": params.Status})
-	}
+	} */
 	if params.TxID != "" {
 		chain = chain.Where(bson.M{"tx_id": params.TxID})
+	}
+	if params.UID > 0 {
+		chain = chain.Where(bson.M{"uid": params.UID})
 	}
 	if params.NotTxID {
 		chain = chain.Where(bson.M{"tx_id": ""})
