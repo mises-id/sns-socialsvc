@@ -13,6 +13,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/jinzhu/inflection v1.0.0
 	github.com/joho/godotenv v1.4.0
+	github.com/khaiql/dbcleaner v2.3.0+incompatible
 	github.com/michimani/gotwi v0.10.0
 	github.com/mises-id/sdk v0.0.0-20220422062246-abc698ec55a2
 	github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220207063000-8a91039b2f09
@@ -26,8 +27,10 @@ require (
 )
 
 require (
+	github.com/alexflint/go-filemutex v1.2.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.1.2 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
+	github.com/stretchr/objx v0.2.0 // indirect
 )
 
 require (
