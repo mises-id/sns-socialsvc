@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/lib/db"
@@ -28,12 +29,14 @@ type (
 		ID                        primitive.ObjectID         `bson:"_id,omitempty"`
 		UID                       uint64                     `bson:"uid"`
 		AirdropCoin               uint64                     `bson:"airdrop_coin"`
+		ChannelAirdropCoin        uint64                     `bson:"channel_airdrop_coin"`
 		IsLogined                 bool                       `bson:"is_logined"`
 		TwitterAirdrop            bool                       `bson:"twitter_airdrop"`
 		LastViewTime              time.Time                  `bson:"last_view_time"`
 		RecommendStatusPoolCursor *RecommendStatusPoolCursor `bson:"recommend_status_pool_cursor"`
 		Following2PoolCursor      *Following2PoolCursor      `bson:"following2_cursor"`
 		CommonPoolCursor          *CommonPoolCursor          `bson:"common_cursor"`
+		Referrer                  string                     `bson:"referrer"`
 		CreatedAt                 time.Time                  `bson:"created_at,omitempty"`
 		UpdatedAt                 time.Time                  `bson:"updated_at,omitempty"`
 	}
@@ -92,9 +95,38 @@ func (m *UserExt) UpdateAirdrop(ctx context.Context) error {
 		Value: update}})
 	return err
 }
+func (m *UserExt) UpdateChannelAirdrop(ctx context.Context) error {
+	update := bson.M{}
+	update["channel_airdrop_coin"] = m.ChannelAirdropCoin
+	_, err := db.DB().Collection("userexts").UpdateOne(ctx, &bson.M{
+		"uid": m.UID,
+	}, bson.D{{
+		Key:   "$set",
+		Value: update}})
+	return err
+}
 func (m *UserExt) updateIsLogin(ctx context.Context) error {
 	update := bson.M{}
 	update["is_logined"] = true
+	_, err := db.DB().Collection("userexts").UpdateOne(ctx, &bson.M{
+		"uid": m.UID,
+	}, bson.D{{
+		Key:   "$set",
+		Value: update}})
+	return err
+}
+
+func InsertReferrer(ctx context.Context, uid uint64, referrer string) error {
+	user_ext, err := FindOrCreateUserExt(ctx, uid)
+	if err != nil {
+		return err
+	}
+	return user_ext.updateReferrer(ctx, referrer)
+}
+
+func (m *UserExt) updateReferrer(ctx context.Context, referrer string) error {
+	update := bson.M{}
+	update["referrer"] = referrer
 	_, err := db.DB().Collection("userexts").UpdateOne(ctx, &bson.M{
 		"uid": m.UID,
 	}, bson.D{{
@@ -123,6 +155,8 @@ func (m *UserExt) Update(ctx context.Context) error {
 	if m.CommonPoolCursor != nil {
 		update["common_cursor"] = m.CommonPoolCursor
 	}
+	fmt.Println("uid: ", m.UID)
+	fmt.Println("user ext common: ", m.CommonPoolCursor)
 	_, err := db.DB().Collection("userexts").UpdateOne(ctx, &bson.M{
 		"uid": m.UID,
 	}, bson.D{{

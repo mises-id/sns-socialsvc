@@ -11,6 +11,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/lib/storage"
 	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -20,32 +21,33 @@ var (
 )
 
 type User struct {
-	UID            uint64            `bson:"_id"`
-	Username       string            `bson:"username,omitempty"`
-	Misesid        string            `bson:"misesid,omitempty"`
-	Gender         enum.Gender       `bson:"gender,misesid"`
-	Mobile         string            `bson:"mobile,omitempty"`
-	Email          string            `bson:"email,omitempty"`
-	Address        string            `bson:"address,omitempty"`
-	AvatarPath     string            `bson:"avatar_path,omitempty"`
-	FollowingCount uint32            `bson:"following_count,omitempty"`
-	FansCount      uint32            `bson:"fans_count,omitempty"`
-	LikedCount     uint32            `bson:"liked_count,omitempty"`
-	CreatedAt      time.Time         `bson:"created_at,omitempty"`
-	UpdatedAt      time.Time         `bson:"updated_at,omitempty"`
-	OnChain        bool              `bson:"on_chain,omitempty"`
-	AvatarUrl      string            `bson:"-"`
-	IsFollowed     bool              `bson:"-"`
-	IsAirdropped   bool              `bson:"-"`
-	IsLogined      bool              `bson:"-"`
-	AirdropStatus  bool              `bson:"-"`
-	IsFriend       bool              `bson:"-"`
-	Tags           []enum.TagType    `bson:"tags"`
-	IsBlocked      bool              `bson:"-"`
-	NewFansCount   uint32            `bson:"-"`
-	RelationType   enum.RelationType `bson:"-"`
-	BlockState     enum.BlockState   `bson:"-"`
-	Avatar         *Avatar           `bson:"-"`
+	UID            uint64             `bson:"_id"`
+	Username       string             `bson:"username,omitempty"`
+	Misesid        string             `bson:"misesid,omitempty"`
+	Gender         enum.Gender        `bson:"gender,misesid"`
+	Mobile         string             `bson:"mobile,omitempty"`
+	Email          string             `bson:"email,omitempty"`
+	Address        string             `bson:"address,omitempty"`
+	AvatarPath     string             `bson:"avatar_path,omitempty"`
+	FollowingCount uint32             `bson:"following_count,omitempty"`
+	FansCount      uint32             `bson:"fans_count,omitempty"`
+	LikedCount     uint32             `bson:"liked_count,omitempty"`
+	CreatedAt      time.Time          `bson:"created_at,omitempty"`
+	UpdatedAt      time.Time          `bson:"updated_at,omitempty"`
+	OnChain        bool               `bson:"on_chain,omitempty"`
+	ChannelID      primitive.ObjectID `bson:"channel_id,omitempty"`
+	AvatarUrl      string             `bson:"-"`
+	IsFollowed     bool               `bson:"-"`
+	IsAirdropped   bool               `bson:"-"`
+	IsLogined      bool               `bson:"-"`
+	AirdropStatus  bool               `bson:"-"`
+	IsFriend       bool               `bson:"-"`
+	Tags           []enum.TagType     `bson:"tags"`
+	IsBlocked      bool               `bson:"-"`
+	NewFansCount   uint32             `bson:"-"`
+	RelationType   enum.RelationType  `bson:"-"`
+	BlockState     enum.BlockState    `bson:"-"`
+	Avatar         *Avatar            `bson:"-"`
 }
 
 type Avatar struct {
@@ -188,6 +190,16 @@ func UpdateUserOnChainByMisesid(ctx context.Context, misesid string) error {
 		}}})
 	return err
 }
+func UpdateUserChannelIDByUID(ctx context.Context, uid uint64, channel_id primitive.ObjectID) error {
+	_, err := db.DB().Collection("users").UpdateOne(ctx, &bson.M{
+		"_id": uid,
+	}, bson.D{{
+		Key: "$set",
+		Value: bson.M{
+			"channel_id": channel_id,
+		}}})
+	return err
+}
 
 func createMisesUser(ctx context.Context, misesid string) (*User, error) {
 	user := &User{
@@ -216,6 +228,14 @@ func FindUserByMisesids(ctx context.Context, misesids ...string) ([]*User, error
 		return nil, err
 	}
 	return users, nil
+}
+func FindUserByMisesid(ctx context.Context, misesid string) (*User, error) {
+	user := &User{}
+	err := db.ODM(ctx).Where(bson.M{"misesid": misesid}).Last(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
 func GetUserMap(ctx context.Context, ids ...uint64) (map[uint64]*User, error) {

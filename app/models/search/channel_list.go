@@ -9,17 +9,12 @@ import (
 )
 
 type (
-	AirdropSearch struct {
+	ChannelListSearch struct {
 		ID       primitive.ObjectID
-		UID      uint64
-		UIDs     []uint64
 		Misesid  string
 		Misesids []string
-		Type     enum.AirdropType
-		Status   enum.AirdropStatus
-		Statuses []enum.AirdropStatus
-		TxID     string
-		NotTxID  bool
+		UID      uint64
+		UIDs     []uint64
 		//sort
 		SortKey  string
 		SortType enum.SortType
@@ -31,14 +26,11 @@ type (
 	}
 )
 
-func (params *AirdropSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
+func (params *ChannelListSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	//base
 	//where
-	if params.UID != 0 {
-		params.UIDs = []uint64{params.UID}
-	}
-	if params.UIDs != nil && len(params.UIDs) > 0 {
-		chain = chain.Where(bson.M{"uid": bson.M{"$in": params.UIDs}})
+	if !params.ID.IsZero() {
+		chain = chain.Where(bson.M{"_id": params.ID})
 	}
 	if params.Misesid != "" {
 		params.Misesids = []string{params.Misesid}
@@ -46,23 +38,11 @@ func (params *AirdropSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.Misesids != nil && len(params.Misesids) > 0 {
 		chain = chain.Where(bson.M{"misesid": bson.M{"$in": params.Misesids}})
 	}
-	if params.Statuses != nil && len(params.Statuses) > 0 {
-		chain = chain.Where(bson.M{"status": bson.M{"$in": params.Statuses}})
+	if params.UID > 0 {
+		params.UIDs = []uint64{params.UID}
 	}
-	if params.ID != primitive.NilObjectID {
-		chain = chain.Where(bson.M{"_id": params.ID})
-	}
-	if params.Type != "" {
-		chain = chain.Where(bson.M{"type": params.Type})
-	}
-	if params.Status > -1 {
-		chain = chain.Where(bson.M{"status": params.Status})
-	}
-	if params.TxID != "" {
-		chain = chain.Where(bson.M{"tx_id": params.TxID})
-	}
-	if params.NotTxID {
-		chain = chain.Where(bson.M{"tx_id": ""})
+	if params.UIDs != nil && len(params.UIDs) > 0 {
+		chain = chain.Where(bson.M{"uid": bson.M{"$in": params.UIDs}})
 	}
 	//sort
 	if params.SortKey != "" && params.SortType != 0 {
@@ -76,7 +56,7 @@ func (params *AirdropSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	return chain
 }
 
-func (params *AirdropSearch) GetPageParams() *pagination.TraditionalParams {
+func (params *ChannelListSearch) GetPageParams() *pagination.TraditionalParams {
 	if params.PageNum <= 0 || params.PageSize <= 0 {
 		return pagination.DefaultTraditionalParams()
 	}

@@ -2,11 +2,14 @@ package session
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/mises-id/sns-socialsvc/app/models"
+	"github.com/mises-id/sns-socialsvc/app/services/channel_user"
 	"github.com/mises-id/sns-socialsvc/config/env"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/mises"
@@ -21,9 +24,12 @@ var (
 type (
 	RegisterCallback struct {
 	}
+	referrerData struct {
+		utm_source string
+	}
 )
 
-func SignIn(ctx context.Context, auth string) (string, bool, error) {
+func SignIn(ctx context.Context, auth, referrer string) (string, bool, error) {
 	misesid, pubkey, err := misesClient.Auth(auth)
 	if err != nil {
 		logrus.Errorf("mises verify error: %v", err)
@@ -35,6 +41,22 @@ func SignIn(ctx context.Context, auth string) (string, bool, error) {
 	}
 	if !user.OnChain && len(pubkey) > 0 {
 		chainUserRegister(ctx, misesid, pubkey)
+	}
+	//referrer not empty
+	if referrer != "" && user.ChannelID.IsZero() && (user.CreatedAt.Unix()+24*60*60-time.Now().UTC().Unix()) > 0 {
+		err := models.InsertReferrer(ctx, user.UID, referrer)
+		if err != nil {
+			fmt.Println("insert referrer error: ", err.Error())
+		}
+		ref, err := handleReferrer(referrer)
+		if err != nil {
+			fmt.Printf("uid[%d], referrer[%s], error:%s\n ", user.UID, referrer, err.Error())
+		} else {
+			err = channel_user.CreateChannelUser(ctx, user.UID, ref.utm_source)
+			if err != nil {
+				fmt.Printf("uid[%d], referrer[%s], error:%s\n ", user.UID, referrer, err.Error())
+			}
+		}
 	}
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"uid":      user.UID,
@@ -62,6 +84,19 @@ func Auth(ctx context.Context, authToken string) (*models.User, error) {
 		Misesid:  mapClaims["misesid"].(string),
 		Username: mapClaims["username"].(string),
 	}, nil
+}
+
+func handleReferrer(referrer string) (*referrerData, error) {
+	referrer, _ = url.QueryUnescape(referrer)
+	ref := &referrerData{}
+	params, _ := url.ParseQuery(referrer)
+	utm_sources, ok := params["utm_source"]
+	if ok && len(utm_sources) > 0 {
+		ref.utm_source = utm_sources[0]
+	} else {
+		return nil, errors.New("invalid referrer")
+	}
+	return ref, nil
 }
 
 func chainUserRegister(ctx context.Context, misesid, pubkey string) {

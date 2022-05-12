@@ -5,6 +5,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
+	"github.com/mises-id/sns-socialsvc/app/services/opensea_api"
 	pb "github.com/mises-id/sns-socialsvc/proto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -31,6 +32,7 @@ func NewUserInfo(user *models.User) *pb.UserInfo {
 		LikedCount:      user.LikedCount,
 		NewFansCount:    user.NewFansCount,
 		IsLogined:       user.IsLogined,
+		HelpMisesid:     user.Misesid,
 	}
 	return &userinfo
 }
@@ -284,6 +286,46 @@ func NewBlacklistSlice(blacklists []*models.Blacklist) []*pb.Blacklist {
 			User:      NewUserInfo(blacklist.TargetUser),
 			CreatedAt: uint64(blacklist.CreatedAt.Unix()),
 		}
+	}
+	return result
+}
+func NewChannelUserListSlice(channel_users []*models.ChannelUser) []*pb.ChannelUserInfo {
+	result := make([]*pb.ChannelUserInfo, len(channel_users))
+	for i, channel_user := range channel_users {
+		result[i] = NewChannelUser(channel_user)
+	}
+	return result
+}
+
+func NewChannelUser(channel_user *models.ChannelUser) *pb.ChannelUserInfo {
+
+	return &pb.ChannelUserInfo{
+		Id:             channel_user.ID.Hex(),
+		ChannelId:      channel_user.ChannelID.Hex(),
+		ValidState:     int32(channel_user.ValidState),
+		Amount:         uint64(channel_user.Amount),
+		TxId:           channel_user.TxID,
+		User:           NewUserInfo(channel_user.User),
+		AirdropState:   int32(channel_user.AirdropState),
+		AirdropTime:    uint64(channel_user.AirdropTime.Unix()),
+		CreatedAt:      uint64(channel_user.CreatedAt.Unix()),
+		ChannelUid:     channel_user.ChannelUID,
+		ChannelMisesid: channel_user.ChannelMisesid,
+	}
+
+}
+func NewOpenseaAsset(in *opensea_api.AssetModel) *pb.OpenseaAsset {
+	return &pb.OpenseaAsset{
+		Id:       in.ID,
+		ImageUrl: in.ImageUrl,
+		Name:     in.Name,
+	}
+}
+
+func NewOpenseaAssetSlice(assets []*opensea_api.AssetModel) []*pb.OpenseaAsset {
+	result := make([]*pb.OpenseaAsset, len(assets))
+	for i, v := range assets {
+		result[i] = NewOpenseaAsset(v)
 	}
 	return result
 }

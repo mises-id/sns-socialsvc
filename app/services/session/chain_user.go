@@ -9,11 +9,9 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/search"
-	"github.com/mises-id/sns-socialsvc/lib/utils"
 )
 
 func UserToChain(ctx context.Context) {
-	utils.WirteLogDay("./log/user_to_chain.log")
 	runUserToChain(ctx)
 }
 

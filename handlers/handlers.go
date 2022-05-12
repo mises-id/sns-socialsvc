@@ -11,9 +11,12 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
 	airdropSVC "github.com/mises-id/sns-socialsvc/app/services/airdrop"
 	blacklistSVC "github.com/mises-id/sns-socialsvc/app/services/blacklist"
+	channelSVC "github.com/mises-id/sns-socialsvc/app/services/channel_list"
+	channelUserSVC "github.com/mises-id/sns-socialsvc/app/services/channel_user"
 	commentSVC "github.com/mises-id/sns-socialsvc/app/services/comment"
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
 	messageSVC "github.com/mises-id/sns-socialsvc/app/services/message"
+	openseaApiSVC "github.com/mises-id/sns-socialsvc/app/services/opensea_api"
 	sessionSVC "github.com/mises-id/sns-socialsvc/app/services/session"
 	statusSVC "github.com/mises-id/sns-socialsvc/app/services/status"
 	userSVC "github.com/mises-id/sns-socialsvc/app/services/user"
@@ -45,7 +48,7 @@ type socialService struct{}
 
 func (s socialService) SignIn(ctx context.Context, in *pb.SignInRequest) (*pb.SignInResponse, error) {
 	var resp pb.SignInResponse
-	jwt, created, err := sessionSVC.SignIn(ctx, in.Auth)
+	jwt, created, err := sessionSVC.SignIn(ctx, in.Auth, in.Referrer)
 	if err != nil {
 		return nil, err
 	}
@@ -351,7 +354,8 @@ func (s socialService) ListMessage(ctx context.Context, in *pb.ListMessageReques
 	var resp pb.ListMessageResponse
 	messages, page, err := messageSVC.ListMessage(ctx, &messageSVC.ListMessageParams{
 		ListMessageParams: models.ListMessageParams{
-			UID: in.GetCurrentUid(),
+			UID:   in.GetCurrentUid(),
+			State: in.State,
 			PageParams: &pagination.PageQuickParams{
 				Limit:  int64(in.Paginator.Limit),
 				NextID: in.Paginator.NextId,
@@ -703,5 +707,122 @@ func (s socialService) CreateAirdropTwitter(ctx context.Context, in *pb.CreateAi
 func (s socialService) UserToChain(ctx context.Context, in *pb.UserToChainRequest) (*pb.UserToChainResponse, error) {
 	var resp pb.UserToChainResponse
 	sessionSVC.UserToChain(ctx)
+	return &resp, nil
+}
+
+func (s socialService) AirdropChannel(ctx context.Context, in *pb.AirdropChannelRequest) (*pb.AirdropChannelResponse, error) {
+	var resp pb.AirdropChannelResponse
+	channelUserSVC.AirdropChannel(ctx)
+	return &resp, nil
+}
+
+func (s socialService) CreateChannelAirdrop(ctx context.Context, in *pb.CreateChannelAirdropRequest) (*pb.CreateChannelAirdropResponse, error) {
+	var resp pb.CreateChannelAirdropResponse
+	err := channelUserSVC.CretaeChannelAirdrop(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
+func (s socialService) PageChannelUser(ctx context.Context, in *pb.PageChannelUserRequest) (*pb.PageChannelUserResponse, error) {
+	var resp pb.PageChannelUserResponse
+	fmt.Println("in: ", in)
+	PageParams := &pagination.TraditionalParams{}
+	if in.Paginator != nil {
+		PageParams = &pagination.TraditionalParams{
+			PageNum:  int64(in.Paginator.PageNum),
+			PageSize: int64(in.Paginator.PageSize),
+		}
+	}
+	channel_users, page, err := channelUserSVC.PageChannelUser(ctx, &channelUserSVC.PageChannelUserInput{
+		Misesid:    in.Misesid,
+		PageParams: PageParams,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.ChannelUsers = factory.NewChannelUserListSlice(channel_users)
+	tradpage := page.BuildJSONResult().(*pagination.TraditionalPagination)
+	resp.Paginator = &pb.Page{
+		PageNum:      uint64(tradpage.PageNum),
+		PageSize:     uint64(tradpage.PageSize),
+		TotalPage:    uint64(tradpage.TotalPages),
+		TotalRecords: uint64(tradpage.TotalRecords),
+	}
+	return &resp, nil
+}
+
+func (s socialService) ChannelInfo(ctx context.Context, in *pb.ChannelInfoRequest) (*pb.ChannelInfoResponse, error) {
+	var resp pb.ChannelInfoResponse
+	out, err := channelSVC.ChannelInfo(ctx, &channelSVC.ChannelUrlInput{Misesid: in.Misesid, Type: in.Type, Medium: in.Medium})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Url = out.Url
+	resp.MediumUrl = out.MediumUrl
+	resp.AirdropAmount = float32(out.AirdropAmount)
+	resp.TotalChannelUser = out.TotalChannelUser
+	return &resp, nil
+}
+
+func (s socialService) GetChannelUser(ctx context.Context, in *pb.GetChannelUserRequest) (*pb.GetChannelUserResponse, error) {
+	var resp pb.GetChannelUserResponse
+	out, err := channelUserSVC.GetChannelUser(ctx, &channelUserSVC.GetCHannelUserInput{Misesid: in.Misesid})
+	if err != nil {
+		return nil, err
+	}
+	resp.ChanelUser = factory.NewChannelUser(out)
+	return &resp, nil
+}
+
+func (s socialService) GetOpenseaAsset(ctx context.Context, in *pb.GetOpenseaAssetRequest) (*pb.GetOpenseaAssetResponse, error) {
+	var resp pb.GetOpenseaAssetResponse
+
+	out, err := openseaApiSVC.GetSingleAsset(ctx, &openseaApiSVC.SingleAssetInput{
+		AssetContractAddress: in.AssetContractAddress,
+		TokenId:              in.TokenId,
+		AccountAddress:       in.AccountAddress,
+		IncludeOrders:        in.IncludeOrders,
+		Network:              in.Network,
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.OpenseaAsset = out
+	return &resp, nil
+}
+
+func (s socialService) ListOpenseaAsset(ctx context.Context, in *pb.ListOpenseaAssetRequest) (*pb.ListOpenseaAssetResponse, error) {
+	var resp pb.ListOpenseaAssetResponse
+	out, err := openseaApiSVC.ListAsset(ctx, &openseaApiSVC.ListAssetInput{
+		Owner:   in.Owner,
+		Limit:   in.Limit,
+		Cursor:  in.Cursor,
+		Network: in.Network,
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Assets = out
+	return &resp, nil
+}
+
+func (s socialService) GetOpenseaAssetContract(ctx context.Context, in *pb.GetOpenseaAssetContractRequest) (*pb.GetOpenseaAssetContractResponse, error) {
+	var resp pb.GetOpenseaAssetContractResponse
+	out, err := openseaApiSVC.GetAssetContract(ctx, &openseaApiSVC.AssetContractInput{
+		AssetContractAddress: in.AssetContractAddress,
+		Network:              in.Network,
+	})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.OpenseaAsset = out
 	return &resp, nil
 }

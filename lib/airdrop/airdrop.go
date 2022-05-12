@@ -8,16 +8,22 @@ import (
 	"github.com/mises-id/sns-socialsvc/config/env"
 )
 
+var (
+	AirdropClient IClient
+)
+
 type (
 	IClient interface {
 		SetListener(listener types.MisesAppCmdListener)
 		RunSync(uid string, pubkey string, coin int64) error
-		RunAsync(uid string, pubkey string, coin int64) error
+		RunAsync(uid string, pubkey string, coin int64, opts ...Options) error
+		SetTrackID(id string) Options
 	}
 
 	Client struct {
 		app types.MApp
 	}
+	Options func(cmd types.MisesAppCmd) types.MisesAppCmd
 )
 
 func (c Client) SetListener(listener types.MisesAppCmdListener) {
@@ -26,8 +32,18 @@ func (c Client) SetListener(listener types.MisesAppCmdListener) {
 func (c Client) RunSync(uid string, pubkey string, coin int64) error {
 	return c.app.RunSync(c.app.NewFaucetCmd(uid, pubkey, coin))
 }
-func (c Client) RunAsync(uid string, pubkey string, coin int64) error {
-	return c.app.RunAsync(c.app.NewFaucetCmd(uid, pubkey, coin), false)
+func (c Client) RunAsync(uid string, pubkey string, coin int64, opts ...Options) error {
+	appcmd := c.app.NewFaucetCmd(uid, pubkey, coin)
+	for _, opt := range opts {
+		appcmd = opt(appcmd)
+	}
+	return c.app.RunAsync(appcmd, false)
+}
+func (c Client) SetTrackID(id string) Options {
+	return func(cmd types.MisesAppCmd) types.MisesAppCmd {
+		cmd.SetTrackID(id)
+		return cmd
+	}
 }
 
 func New() IClient {
@@ -54,4 +70,8 @@ func New() IClient {
 		app: app,
 	}
 	return client
+}
+
+func SetAirdropClient() {
+	AirdropClient = New()
 }
