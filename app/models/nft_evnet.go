@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/lib/db"
+	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -52,6 +53,50 @@ func SaveNftEvent(ctx context.Context, data *AssetEvent) error {
 	result := db.DB().Collection("nftevents").FindOneAndUpdate(ctx, bson.M{"asset_event_id": data.AssetEventId, "nft_asset_id": data.NftAssetID}, bson.D{{Key: "$set", Value: data}}, opt)
 	if result.Err() != nil {
 		return result.Err()
+	}
+	return nil
+}
+
+func QuickPageNftEvent(ctx context.Context, params IAdminQuickPageParams) ([]*NftEvent, pagination.Pagination, error) {
+	out := make([]*NftEvent, 0)
+	chain := params.BuildAdminSearch(db.ODM(ctx))
+	pageParams := params.GetQuickPageParams()
+	paginator := pagination.NewQuickPaginator(pageParams.Limit, pageParams.NextID, chain)
+	page, err := paginator.Paginate(&out)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return out, page, PreloadNftEvents(ctx, out...)
+}
+func PreloadNftEvents(ctx context.Context, events ...*NftEvent) error {
+	if err := preloadNftAccountMisesUser(ctx, events...); err != nil {
+		return err
+	}
+	return nil
+}
+
+func preloadNftAccountMisesUser(ctx context.Context, events ...*NftEvent) error {
+	eth_addresses := make([]string, 0)
+	for _, event := range events {
+		if event.FromAccount != nil && event.FromAccount.Address != "" {
+			eth_addresses = append(eth_addresses, event.FromAccount.Address)
+		}
+		if event.ToAccount != nil && event.ToAccount.Address != "" {
+			eth_addresses = append(eth_addresses, event.ToAccount.Address)
+		}
+	}
+	addressMap, err := GetUserMapByEthAddresses(ctx, eth_addresses...)
+	if err != nil {
+		return err
+	}
+	for _, event := range events {
+		if event.FromAccount != nil && event.FromAccount.Address != "" {
+			event.FromAccount.MisesUser = addressMap[event.FromAccount.Address]
+		}
+		if event.ToAccount != nil && event.ToAccount.Address != "" {
+			event.ToAccount.MisesUser = addressMap[event.ToAccount.Address]
+		}
 	}
 	return nil
 }

@@ -122,6 +122,13 @@ func NewNftAssetSlice(assets []*models.NftAsset) []*pb.NftAsset {
 	}
 	return result
 }
+func NewNftEventSlice(events []*models.NftEvent) []*pb.NftEvent {
+	result := make([]*pb.NftEvent, len(events))
+	for i, event := range events {
+		result[i] = NewNftEvent(event)
+	}
+	return result
+}
 func NewLikeSlice(likes []*models.Like) []*pb.Like {
 	result := make([]*pb.Like, len(likes))
 	for i, like := range likes {
@@ -154,8 +161,46 @@ func NewCollection(in *models.NftCollection) *pb.NftCollection {
 		return nil
 	}
 	result := &pb.NftCollection{
-		Name: in.Name,
-		Slug: in.Slug,
+		Name:  in.Name,
+		Slug:  in.Slug,
+		Stats: NewStats(in.Stats),
+	}
+	if in.PaymentToken != nil {
+		result.PaymentToken = NewPaymentTokenSlice(in.PaymentToken)
+	}
+	return result
+}
+
+func NewPaymentTokenSlice(in []*models.PaymentToken) []*pb.PaymentToken {
+	result := make([]*pb.PaymentToken, len(in))
+	for i, v := range in {
+		result[i] = NewPaymentToken(v)
+	}
+	return result
+}
+
+func NewPaymentToken(in *models.PaymentToken) *pb.PaymentToken {
+	if in == nil {
+		return nil
+	}
+	result := &pb.PaymentToken{
+		Id:       uint64(in.ID),
+		Symbol:   in.Symbol,
+		Address:  in.Address,
+		Name:     in.Name,
+		EthPrice: in.ETHPrice,
+		UsdPrice: in.USDPrice,
+		Decimals: in.Decimals,
+	}
+	return result
+}
+
+func NewStats(in *models.Stats) *pb.Stats {
+	if in == nil {
+		return nil
+	}
+	result := &pb.Stats{
+		FloorPrice: in.FloorPrice,
 	}
 	return result
 }
@@ -179,6 +224,33 @@ func NewNftAsset(asset *models.NftAsset) *pb.NftAsset {
 	}
 	result.AssetContract = NewAssetContract(asset.AssetContract)
 	result.Collection = NewCollection(asset.Collection)
+	return result
+}
+
+func NewNftEvent(event *models.NftEvent) *pb.NftEvent {
+	if event == nil {
+		return nil
+	}
+	result := &pb.NftEvent{
+		Id:           docID(event.ID),
+		EventType:    event.EventType,
+		FromAccount:  NewNftAccount(event.FromAccount),
+		ToAccount:    NewNftAccount(event.ToAccount),
+		CreatedDate:  event.CreatedDate,
+		PaymentToken: NewPaymentToken(event.PaymentToken),
+	}
+	return result
+}
+
+func NewNftAccount(account *models.Account) *pb.NftAccount {
+	if account == nil {
+		return nil
+	}
+	result := &pb.NftAccount{
+		Address:       account.Address,
+		ProfileImgUrl: account.ProfileImgUrl,
+		MisesUser:     NewUserInfo(account.MisesUser),
+	}
 	return result
 }
 

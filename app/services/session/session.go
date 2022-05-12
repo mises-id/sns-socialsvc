@@ -35,7 +35,7 @@ func SignIn(ctx context.Context, auth, referrer string) (string, bool, error) {
 		logrus.Errorf("mises verify error: %v", err)
 		return "", false, codes.ErrAuthorizeFailed
 	}
-	user, created, err := models.FindOrCreateUserByMisesid(ctx, misesid)
+	user, created, err := models.FindOrCreateUserByMisesid(ctx, misesid, pubkey)
 	if err != nil {
 		return "", created, err
 	}

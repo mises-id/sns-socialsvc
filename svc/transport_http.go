@@ -5221,6 +5221,15 @@ func DecodeHTTPGetOpenseaAssetZeroRequest(_ context.Context, r *http.Request) (i
 		req.Network = NetworkGetOpenseaAsset
 	}
 
+	if CurrentUidGetOpenseaAssetStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetOpenseaAssetStr := CurrentUidGetOpenseaAssetStrArr[0]
+		CurrentUidGetOpenseaAsset, err := strconv.ParseUint(CurrentUidGetOpenseaAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetOpenseaAsset from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetOpenseaAsset
+	}
+
 	return &req, err
 }
 
@@ -5287,6 +5296,15 @@ func DecodeHTTPGetOpenseaAssetOneRequest(_ context.Context, r *http.Request) (in
 		req.Network = NetworkGetOpenseaAsset
 	}
 
+	if CurrentUidGetOpenseaAssetStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetOpenseaAssetStr := CurrentUidGetOpenseaAssetStrArr[0]
+		CurrentUidGetOpenseaAsset, err := strconv.ParseUint(CurrentUidGetOpenseaAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetOpenseaAsset from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetOpenseaAsset
+	}
+
 	return &req, err
 }
 
@@ -5350,6 +5368,15 @@ func DecodeHTTPListOpenseaAssetZeroRequest(_ context.Context, r *http.Request) (
 		req.Network = NetworkListOpenseaAsset
 	}
 
+	if CurrentUidListOpenseaAssetStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListOpenseaAssetStr := CurrentUidListOpenseaAssetStrArr[0]
+		CurrentUidListOpenseaAsset, err := strconv.ParseUint(CurrentUidListOpenseaAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListOpenseaAsset from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListOpenseaAsset
+	}
+
 	return &req, err
 }
 
@@ -5411,6 +5438,15 @@ func DecodeHTTPListOpenseaAssetOneRequest(_ context.Context, r *http.Request) (i
 		NetworkListOpenseaAssetStr := NetworkListOpenseaAssetStrArr[0]
 		NetworkListOpenseaAsset := NetworkListOpenseaAssetStr
 		req.Network = NetworkListOpenseaAsset
+	}
+
+	if CurrentUidListOpenseaAssetStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListOpenseaAssetStr := CurrentUidListOpenseaAssetStrArr[0]
+		CurrentUidListOpenseaAsset, err := strconv.ParseUint(CurrentUidListOpenseaAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListOpenseaAsset from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListOpenseaAsset
 	}
 
 	return &req, err
@@ -5479,6 +5515,15 @@ func DecodeHTTPGetOpenseaAssetContractZeroRequest(_ context.Context, r *http.Req
 		req.Network = NetworkGetOpenseaAssetContract
 	}
 
+	if CurrentUidGetOpenseaAssetContractStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetOpenseaAssetContractStr := CurrentUidGetOpenseaAssetContractStrArr[0]
+		CurrentUidGetOpenseaAssetContract, err := strconv.ParseUint(CurrentUidGetOpenseaAssetContractStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetOpenseaAssetContract from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetOpenseaAssetContract
+	}
+
 	return &req, err
 }
 
@@ -5543,6 +5588,15 @@ func DecodeHTTPGetOpenseaAssetContractOneRequest(_ context.Context, r *http.Requ
 		NetworkGetOpenseaAssetContractStr := NetworkGetOpenseaAssetContractStrArr[0]
 		NetworkGetOpenseaAssetContract := NetworkGetOpenseaAssetContractStr
 		req.Network = NetworkGetOpenseaAssetContract
+	}
+
+	if CurrentUidGetOpenseaAssetContractStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetOpenseaAssetContractStr := CurrentUidGetOpenseaAssetContractStrArr[0]
+		CurrentUidGetOpenseaAssetContract, err := strconv.ParseUint(CurrentUidGetOpenseaAssetContractStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetOpenseaAssetContract from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetOpenseaAssetContract
 	}
 
 	return &req, err
@@ -5844,13 +5898,10 @@ func DecodeHTTPPageNftEventZeroRequest(_ context.Context, r *http.Request) (inte
 		req.CurrentUid = CurrentUidPageNftEvent
 	}
 
-	if UidPageNftEventStrArr, ok := queryParams["uid"]; ok {
-		UidPageNftEventStr := UidPageNftEventStrArr[0]
-		UidPageNftEvent, err := strconv.ParseUint(UidPageNftEventStr, 10, 64)
-		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidPageNftEvent from query, queryParams: %v", queryParams))
-		}
-		req.Uid = UidPageNftEvent
+	if NftAssetIdPageNftEventStrArr, ok := queryParams["nft_asset_id"]; ok {
+		NftAssetIdPageNftEventStr := NftAssetIdPageNftEventStrArr[0]
+		NftAssetIdPageNftEvent := NftAssetIdPageNftEventStr
+		req.NftAssetId = NftAssetIdPageNftEvent
 	}
 
 	if PaginatorPageNftEventStrArr, ok := queryParams["paginator"]; ok {
@@ -5908,13 +5959,10 @@ func DecodeHTTPPageNftEventOneRequest(_ context.Context, r *http.Request) (inter
 		req.CurrentUid = CurrentUidPageNftEvent
 	}
 
-	if UidPageNftEventStrArr, ok := queryParams["uid"]; ok {
-		UidPageNftEventStr := UidPageNftEventStrArr[0]
-		UidPageNftEvent, err := strconv.ParseUint(UidPageNftEventStr, 10, 64)
-		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidPageNftEvent from query, queryParams: %v", queryParams))
-		}
-		req.Uid = UidPageNftEvent
+	if NftAssetIdPageNftEventStrArr, ok := queryParams["nft_asset_id"]; ok {
+		NftAssetIdPageNftEventStr := NftAssetIdPageNftEventStrArr[0]
+		NftAssetIdPageNftEvent := NftAssetIdPageNftEventStr
+		req.NftAssetId = NftAssetIdPageNftEvent
 	}
 
 	if PaginatorPageNftEventStrArr, ok := queryParams["paginator"]; ok {

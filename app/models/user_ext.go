@@ -2,17 +2,13 @@ package models
 
 import (
 	"context"
-	"encoding/hex"
 	"time"
 
-	"github.com/btcsuite/btcd/btcec"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/mises-id/sns-socialsvc/app/models/search"
 	"github.com/mises-id/sns-socialsvc/lib/db"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type (
@@ -195,34 +191,14 @@ func CreateUserExt(ctx context.Context, uid uint64) (*UserExt, error) {
 	return user_ext, nil
 }
 
-func UpdateUserExtNftState(ctx context.Context, uid uint64, state bool) error {
-	update := bson.M{}
-	update["nft_state"] = state
-	if state {
-		user, err := FindUser(ctx, uid)
-		if err == nil {
-			//create eth_address
-			chainUser, err := FindChainUser(ctx, &search.ChainUserSearch{Misesid: user.Misesid})
-			if err == nil && chainUser.Pubkey != "" {
-				update["eth_address"] = PubkeyToEthAddress(chainUser.Pubkey)
-			}
-		}
+func FindUserExtByEthAddress(ctx context.Context, addresses ...string) ([]*UserExt, error) {
+	for k, v := range addresses {
+		addresses[k] = utils.EthAddressToEIPAddress(v)
 	}
-	update["uid"] = uid
-	opt := &options.FindOneAndUpdateOptions{}
-	opt.SetUpsert(true)
-	opt.SetReturnDocument(1)
-	result := db.DB().Collection("userexts").FindOneAndUpdate(ctx, &bson.M{"uid": uid}, bson.D{{Key: "$set", Value: update}}, opt)
-	if result.Err() != nil {
-		return result.Err()
+	res := make([]*UserExt, 0)
+	err := db.ODM(ctx).Where(bson.M{"eth_address": bson.M{"$in": addresses}}).Find(&res).Error
+	if err != nil {
+		return nil, err
 	}
-	return nil
-}
-
-func PubkeyToEthAddress(pubkey string) string {
-	r, _ := hex.DecodeString(pubkey)
-	btcec_pubKey, _ := btcec.ParsePubKey(r, btcec.S256())
-	a := btcec_pubKey.ToECDSA()
-	addr := crypto.PubkeyToAddress(*a)
-	return addr.Hex()
+	return res, nil
 }

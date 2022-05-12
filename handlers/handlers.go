@@ -18,7 +18,6 @@ import (
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
 	messageSVC "github.com/mises-id/sns-socialsvc/app/services/message"
 	"github.com/mises-id/sns-socialsvc/app/services/nft"
-	openseaApiSVC "github.com/mises-id/sns-socialsvc/app/services/opensea_api"
 	sessionSVC "github.com/mises-id/sns-socialsvc/app/services/session"
 	statusSVC "github.com/mises-id/sns-socialsvc/app/services/status"
 	userSVC "github.com/mises-id/sns-socialsvc/app/services/user"
@@ -802,7 +801,7 @@ func (s socialService) GetChannelUser(ctx context.Context, in *pb.GetChannelUser
 func (s socialService) GetOpenseaAsset(ctx context.Context, in *pb.GetOpenseaAssetRequest) (*pb.GetOpenseaAssetResponse, error) {
 	var resp pb.GetOpenseaAssetResponse
 
-	out, err := openseaApiSVC.GetSingleAsset(ctx, &openseaApiSVC.SingleAssetInput{
+	out, err := nft.GetSingleAsset(ctx, &nft.SingleAssetInput{
 		AssetContractAddress: in.AssetContractAddress,
 		TokenId:              in.TokenId,
 		AccountAddress:       in.AccountAddress,
@@ -819,7 +818,7 @@ func (s socialService) GetOpenseaAsset(ctx context.Context, in *pb.GetOpenseaAss
 
 func (s socialService) ListOpenseaAsset(ctx context.Context, in *pb.ListOpenseaAssetRequest) (*pb.ListOpenseaAssetResponse, error) {
 	var resp pb.ListOpenseaAssetResponse
-	out, err := openseaApiSVC.ListAsset(ctx, &openseaApiSVC.ListAssetInput{
+	out, err := nft.ListAsset(ctx, in.CurrentUid, &nft.ListAssetInput{
 		Owner:   in.Owner,
 		Limit:   in.Limit,
 		Cursor:  in.Cursor,
@@ -835,7 +834,7 @@ func (s socialService) ListOpenseaAsset(ctx context.Context, in *pb.ListOpenseaA
 
 func (s socialService) GetOpenseaAssetContract(ctx context.Context, in *pb.GetOpenseaAssetContractRequest) (*pb.GetOpenseaAssetContractResponse, error) {
 	var resp pb.GetOpenseaAssetContractResponse
-	out, err := openseaApiSVC.GetAssetContract(ctx, &openseaApiSVC.AssetContractInput{
+	out, err := nft.GetAssetContract(ctx, &nft.AssetContractInput{
 		AssetContractAddress: in.AssetContractAddress,
 		Network:              in.Network,
 	})
@@ -865,6 +864,29 @@ func (s socialService) GetNftAsset(ctx context.Context, in *pb.GetNftAssetReques
 
 func (s socialService) PageNftEvent(ctx context.Context, in *pb.PageNftEventRequest) (*pb.PageNftEventResponse, error) {
 	var resp pb.PageNftEventResponse
+	params := &search.NftEventSearch{}
+	nft_asset_id, err := primitive.ObjectIDFromHex(in.NftAssetId)
+	if in.NftAssetId != "" && err != nil {
+		return nil, codes.ErrInvalidArgument
+	}
+	params.NftAssetID = nft_asset_id
+	if in.Paginator != nil {
+		params.PageParams = &pagination.PageQuickParams{
+			Limit:  int64(in.Paginator.Limit),
+			NextID: in.Paginator.NextId,
+		}
+	}
+	evnets, page, err := nft.PageNftEvent(ctx, in.CurrentUid, &nft.NftEventInput{NftEventSearch: params})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Event = factory.NewNftEventSlice(evnets)
+	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
+	resp.Paginator = &pb.PageQuick{
+		Limit:  uint64(quickpage.Limit),
+		NextId: quickpage.NextID,
+	}
 	return &resp, nil
 }
 

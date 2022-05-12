@@ -6300,6 +6300,8 @@ func EncodeHTTPGetOpenseaAssetZeroRequest(_ context.Context, r *http.Request, re
 
 	values.Add("network", fmt.Sprint(req.Network))
 
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
 	r.URL.RawQuery = values.Encode()
 	return nil
 }
@@ -6344,6 +6346,8 @@ func EncodeHTTPGetOpenseaAssetOneRequest(_ context.Context, r *http.Request, req
 
 	values.Add("network", fmt.Sprint(req.Network))
 
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
 	r.URL.RawQuery = values.Encode()
 	return nil
 }
@@ -6387,6 +6391,8 @@ func EncodeHTTPListOpenseaAssetZeroRequest(_ context.Context, r *http.Request, r
 
 	values.Add("network", fmt.Sprint(req.Network))
 
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
 	r.URL.RawQuery = values.Encode()
 	return nil
 }
@@ -6428,6 +6434,8 @@ func EncodeHTTPListOpenseaAssetOneRequest(_ context.Context, r *http.Request, re
 	values.Add("cursor", fmt.Sprint(req.Cursor))
 
 	values.Add("network", fmt.Sprint(req.Network))
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
 
 	r.URL.RawQuery = values.Encode()
 	return nil
@@ -6474,6 +6482,8 @@ func EncodeHTTPGetOpenseaAssetContractZeroRequest(_ context.Context, r *http.Req
 
 	values.Add("network", fmt.Sprint(req.Network))
 
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
 	r.URL.RawQuery = values.Encode()
 	return nil
 }
@@ -6517,6 +6527,8 @@ func EncodeHTTPGetOpenseaAssetContractOneRequest(_ context.Context, r *http.Requ
 	values.Add("include_orders", fmt.Sprint(req.IncludeOrders))
 
 	values.Add("network", fmt.Sprint(req.Network))
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
 
 	r.URL.RawQuery = values.Encode()
 	return nil
@@ -6731,7 +6743,7 @@ func EncodeHTTPPageNftEventZeroRequest(_ context.Context, r *http.Request, reque
 
 	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
 
-	values.Add("uid", fmt.Sprint(req.Uid))
+	values.Add("nft_asset_id", fmt.Sprint(req.NftAssetId))
 
 	tmp, err = json.Marshal(req.Paginator)
 	if err != nil {
@@ -6776,7 +6788,7 @@ func EncodeHTTPPageNftEventOneRequest(_ context.Context, r *http.Request, reques
 
 	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
 
-	values.Add("uid", fmt.Sprint(req.Uid))
+	values.Add("nft_asset_id", fmt.Sprint(req.NftAssetId))
 
 	tmp, err = json.Marshal(req.Paginator)
 	if err != nil {

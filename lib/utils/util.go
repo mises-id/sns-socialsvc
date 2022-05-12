@@ -1,18 +1,21 @@
 package utils
 
 import (
+	"fmt"
 	"io"
 	"math/rand"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var (
 	misesidPrefix    = "did:mises:"
 	channelUrlPrefix = "ch_"
+	ethEmptyAddress  = "0x0000000000000000000000000000000000000000"
 )
 
 func InArrayObject(elem primitive.ObjectID, arr []primitive.ObjectID) int {
@@ -25,6 +28,34 @@ func InArrayObject(elem primitive.ObjectID, arr []primitive.ObjectID) int {
 		}
 	}
 	return index
+}
+
+func EthAddressToEIPAddress(address string) string {
+	addrLowerStr := strings.ToLower(address)
+	if strings.HasPrefix(addrLowerStr, "0x") {
+		addrLowerStr = addrLowerStr[2:]
+		address = address[2:]
+	}
+	var binaryStr string
+	addrBytes := []byte(addrLowerStr)
+	hash256 := crypto.Keccak256Hash([]byte(addrLowerStr))
+
+	for i, e := range addrLowerStr {
+		if e >= '0' && e <= '9' {
+			continue
+		} else {
+			binaryStr = fmt.Sprintf("%08b", hash256[i/2])
+			if binaryStr[4*(i%2)] == '1' {
+				addrBytes[i] -= 32
+			}
+		}
+	}
+
+	return "0x" + string(addrBytes)
+}
+
+func EthAddressIsEmpty(eth_addresses string) bool {
+	return eth_addresses == ethEmptyAddress
 }
 
 func UMisesToMises(umises uint64) (mises float64) {

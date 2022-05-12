@@ -1308,6 +1308,7 @@ message GetOpenseaAssetRequest {
   string account_address = 3;
   string include_orders = 4;
   string network = 5;
+  uint64 current_uid = 6;
 }
 
 message GetOpenseaAssetResponse {
@@ -1321,6 +1322,7 @@ message GetOpenseaAssetContractRequest {
   string account_address = 3;
   string include_orders = 4;
   string network = 5;
+  uint64 current_uid = 6;
 }
 
 message GetOpenseaAssetContractResponse {
@@ -1333,6 +1335,7 @@ message ListOpenseaAssetRequest {
   uint64 limit = 2;
   string cursor = 3;
   string network = 4;
+  uint64 current_uid = 5;
 }
 
 message ListOpenseaAssetResponse {
@@ -1346,16 +1349,12 @@ message NftCollection {
   string id = 1;
   string name = 2;
   string slug = 3;
+  Stats stats = 4;
+  repeated PaymentToken payment_token = 5;
 }
 
 message AssetContract {
   string address = 1;
-}
-
-message SaleInfo {
-  string state = 1;
-  string symbol = 2;
-  string prices = 3;
 }
 
 message NftAsset {
@@ -1370,9 +1369,8 @@ message NftAsset {
   string name = 9;
   NftCollection collection = 10;
   AssetContract asset_contract = 11;
-  SaleInfo sale_info = 12;
-  bool is_liked = 13;
-  UserInfo user = 14;
+  bool is_liked = 12;
+  UserInfo user = 13;
 }
 
 message PageNftAssetRequest {
@@ -1419,23 +1417,38 @@ message GetUserConfigResponse {
   UserConfig config = 2;
 }
 
-message NftAcount {
+message NftAccount {
   string address = 1;
   UserInfo mises_user = 2;
   string profile_img_url = 3;
 }
 
+message PaymentToken {
+  uint64 id = 1;
+  string symbol = 2;
+  string address = 3;
+  string name = 4;
+  string eth_price = 5;
+  string usd_price = 6;
+  int64 decimals = 7;
+}
+
+message Stats {
+  string floor_price = 1;
+}
+
 message NftEvent {
   string id = 1;
   string event_type = 2;
-  NftAcount from_account = 3;
-  NftAcount to_account = 4;
+  NftAccount from_account = 3;
+  NftAccount to_account = 4;
   string created_date = 5;
+  PaymentToken payment_token = 6;
 }
 
 message PageNftEventRequest {
   uint64 current_uid = 1;
-  uint64 uid = 2;
+  string nft_asset_id = 2;
   PageQuick paginator = 3;
 }
 
