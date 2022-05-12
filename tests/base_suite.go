@@ -25,10 +25,12 @@ func init() {
 type BaseTestSuite struct {
 	suite.Suite
 	dbcleaner.DbCleaner
+	Collections []string
 }
 
 func (suite *BaseTestSuite) SetupSuite() {
 	suite.DbCleaner = dbcleaner.New()
+	suite.Acquire(suite.Collections)
 	// TODO the env should read through api
 	duration, _ := time.ParseDuration("24h")
 	env.Envs = &env.Env{
@@ -40,25 +42,31 @@ func (suite *BaseTestSuite) SetupSuite() {
 		TokenDuration:    duration,
 	}
 	db.SetupMongo(context.Background())
+
 	models.EnsureIndex()
 	session.SetupMisesClient()
 	storage.SetupImageStorage("127.0.0.1", "xxx", "xx")
+	fmt.Println("SetupSuite")
 
 }
 
 func (suite *BaseTestSuite) TearDownSuite() {
+	fmt.Println("TearDownSuite")
+	suite.Clean(suite.Collections)
 }
 
 func (suite *BaseTestSuite) Clean(collections []string) {
 	sort.Strings(collections)
-	suite.DbCleaner.Acquire(collections...)
 	for _, collection := range collections {
 		_ = db.DB().Collection(collection).Drop(context.Background())
 	}
-	models.EnsureIndex()
+
+	suite.DbCleaner.Clean(collections...)
+	suite.DbCleaner.Close()
+	// models.EnsureIndex()
 }
 
-func (suite *BaseTestSuite) Acquire(collections ...string) {
+func (suite *BaseTestSuite) Acquire(collections []string) {
 	sort.Strings(collections)
 	suite.DbCleaner.Acquire(collections...)
 }

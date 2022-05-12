@@ -20,20 +20,19 @@ import (
 
 type CommentServerSuite struct {
 	tests.BaseTestSuite
-	collections []string
-	statuses    []*models.Status
+	statuses []*models.Status
 }
 
 func (suite *CommentServerSuite) SetupSuite() {
+	suite.Collections = []string{"users", "statuses", "comments"}
+
 	suite.BaseTestSuite.SetupSuite()
-	suite.collections = []string{"users", "statuses", "comments"}
 	suite.CreateTestUsers(10)
 
 }
 
 func (suite *CommentServerSuite) TearDownSuite() {
 	suite.BaseTestSuite.TearDownSuite()
-	suite.Clean(suite.collections)
 }
 
 func TestCommentServer(t *testing.T) {

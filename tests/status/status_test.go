@@ -18,13 +18,14 @@ import (
 
 type StatusServerSuite struct {
 	tests.BaseTestSuite
-	collections []string
-	statuses    []*models.Status
+
+	statuses []*models.Status
 }
 
 func (suite *StatusServerSuite) SetupSuite() {
+	suite.Collections = []string{"counters", "users", "follows", "statuses", "likes"}
+
 	suite.BaseTestSuite.SetupSuite()
-	suite.collections = []string{"counters", "users", "follows", "statuses", "likes"}
 	suite.CreateTestUsers(10)
 	for i := 0; i < 20; i++ {
 		db.ODM(context.Background()).Create(&models.Status{
@@ -53,7 +54,6 @@ func (suite *StatusServerSuite) SetupSuite() {
 
 func (suite *StatusServerSuite) TearDownSuite() {
 	suite.BaseTestSuite.TearDownSuite()
-	suite.Clean(suite.collections)
 }
 
 func TestStatusServer(t *testing.T) {

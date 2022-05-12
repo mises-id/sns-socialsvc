@@ -17,26 +17,15 @@ import (
 
 type BlacklistServerSuite struct {
 	tests.BaseTestSuite
-	collections []string
-	statuses    []*models.Status
+	statuses []*models.Status
 }
 
 func (suite *BlacklistServerSuite) SetupSuite() {
+	suite.Collections = []string{"users", "blacklists"}
+
 	suite.BaseTestSuite.SetupSuite()
-	suite.collections = []string{"users", "blacklists"}
 	suite.CreateTestUsers(10)
-}
 
-func (suite *BlacklistServerSuite) TearDownSuite() {
-	suite.BaseTestSuite.TearDownSuite()
-	suite.Clean(suite.collections)
-}
-
-func TestBlacklistServer(t *testing.T) {
-	suite.Run(t, &BlacklistServerSuite{})
-}
-
-func (suite *BlacklistServerSuite) TestListBlacklist() {
 	blacklistMap := map[uint64][]uint64{
 		1: {2, 3, 4, 5, 6, 7, 8},
 		2: {4},
@@ -50,6 +39,18 @@ func (suite *BlacklistServerSuite) TestListBlacklist() {
 			})
 		}
 	}
+
+}
+
+func (suite *BlacklistServerSuite) TearDownSuite() {
+	suite.BaseTestSuite.TearDownSuite()
+}
+
+func TestBlacklistServer(t *testing.T) {
+	suite.Run(t, &BlacklistServerSuite{})
+}
+
+func (suite *BlacklistServerSuite) TestListBlacklist() {
 
 	suite.T().Run("list blacklist first page", func(t *testing.T) {
 		blacklists, page, err := service.ListBlacklist(context.TODO(), &service.ListBlacklistParams{UID: 1, PageParams: &pagination.PageQuickParams{
@@ -68,6 +69,7 @@ func (suite *BlacklistServerSuite) TestListBlacklist() {
 		}})
 		suite.Nil(err)
 		quickPage := page.BuildJSONResult().(*pagination.QuickPagination)
+		suite.NotEmpty(quickPage.NextID)
 		_, page, err = service.ListBlacklist(context.TODO(), &service.ListBlacklistParams{UID: 1, PageParams: &pagination.PageQuickParams{
 			Limit:  5,
 			NextID: quickPage.NextID,
@@ -79,20 +81,6 @@ func (suite *BlacklistServerSuite) TestListBlacklist() {
 }
 
 func (suite *BlacklistServerSuite) TestCreateBlacklist() {
-
-	blacklistMap := map[uint64][]uint64{
-		1: {2, 3, 4, 5, 6, 7, 8},
-		2: {4},
-		4: {3},
-	}
-	for uid, targetIDs := range blacklistMap {
-		for _, targetID := range targetIDs {
-			db.ODM(context.Background()).Create(&models.Blacklist{
-				UID:       uid,
-				TargetUID: targetID,
-			})
-		}
-	}
 
 	suite.T().Run("create exsist blacklist", func(t *testing.T) {
 		_, err := service.CreateBlacklist(context.TODO(), 1, 2)
