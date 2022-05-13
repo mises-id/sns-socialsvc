@@ -39,20 +39,12 @@ func FindUser(ctx context.Context, uid uint64) (*models.User, error) {
 }
 
 func UpdateUserConfig(ctx context.Context, currentUID uint64, in *UserConfig) (*UserConfig, error) {
-	err := models.UpdateUserExtNftState(ctx, currentUID, in.NftState)
-	if err != nil {
-		return nil, err
-	}
 	return GetUserConfig(ctx, currentUID, currentUID)
 }
 
 func GetUserConfig(ctx context.Context, currentUID uint64, uid uint64) (*UserConfig, error) {
-	user_ext, err := models.FindUserExt(ctx, uid)
-	if err != nil {
-		return nil, err
-	}
 	user_config := &UserConfig{
-		NftState: user_ext.NftState,
+		NftState: true,
 	}
 	return user_config, nil
 }

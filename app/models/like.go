@@ -234,7 +234,7 @@ func PageLike(ctx context.Context, tp enum.LikeTargetType, params *LikeSearch) (
 	likes := make([]*Like, 0)
 	chain := db.ODM(ctx).Where(bson.M{"target_type": tp, "deleted_at": nil})
 	if !params.TargetID.IsZero() {
-		chain = db.ODM(ctx).Where(bson.M{"target_id": params.TargetID})
+		chain = chain.Where(bson.M{"target_id": params.TargetID})
 	}
 	paginator := pagination.NewQuickPaginator(pageParams.Limit, pageParams.NextID, chain, pagination.IsCount(true))
 	page, err := paginator.Paginate(&likes)

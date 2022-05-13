@@ -15,30 +15,30 @@ import (
 
 type (
 	Asset struct {
-		UID               uint64         `bson:"uid"`
-		Blockchains       string         `bson:"blockchains"`
-		AssetId           int64          `bson:"asset_id" json:"id"`
-		TokenId           string         `json:"token_id" bson:"token_id"`
-		NumSales          int64          `json:"num_sales" bson:"num_sales"`
-		ImageURL          string         `json:"image_url" bson:"image_url"`
-		ImagePreviewUrl   string         `json:"image_preview_url" bson:"image_preview_url"`
-		ImageThumbnailUrl string         `json:"image_thumbnail_url" bson:"image_thumbnail_url"`
-		AnimationUrl      string         `json:"animation_url" bson:"animation_url"`
-		BackgroundColor   string         `json:"background_color" bson:"background_color"`
-		Name              string         `json:"name" bson:"name"`
-		Description       string         `json:"description" bson:"description"`
-		ExternalLink      string         `json:"external_link" bson:"external_link"`
-		AssetContract     *AssetContract `json:"asset_contract" bson:"asset_contract"`
-		PermaLink         string         `json:"permalink" bson:"perma_link"`
-		Collection        *NftCollection `json:"collection" bson:"collection"`
-		Decimals          int64          `json:"decimals" bson:"decimals"`
-		TokenMetaData     string         `json:"token_meta_data" bson:"token_meta_data"`
-		Owner             Account        `json:"owner" bson:"owner"`
-		Creator           Account        `json:"creator" bson:"creator"`
-		LastSale          *Sale          `json:"last_sale" bson:"last_sale"`
-		ListingDate       string         `json:"listing_date" bson:"listing_date"`
-		IsPresale         bool           `json:"is_presale" bson:"is_presale"`
-		UpdatedAt         time.Time      `bson:"updated_at,omitempty"`
+		UID               uint64           `bson:"uid"`
+		Blockchains       enum.Blockchains `bson:"blockchains"`
+		AssetId           int64            `bson:"asset_id" json:"id"`
+		TokenId           string           `json:"token_id" bson:"token_id"`
+		NumSales          int64            `json:"num_sales" bson:"num_sales"`
+		ImageURL          string           `json:"image_url" bson:"image_url"`
+		ImagePreviewUrl   string           `json:"image_preview_url" bson:"image_preview_url"`
+		ImageThumbnailUrl string           `json:"image_thumbnail_url" bson:"image_thumbnail_url"`
+		AnimationUrl      string           `json:"animation_url" bson:"animation_url"`
+		BackgroundColor   string           `json:"background_color" bson:"background_color"`
+		Name              string           `json:"name" bson:"name"`
+		Description       string           `json:"description" bson:"description"`
+		ExternalLink      string           `json:"external_link" bson:"external_link"`
+		AssetContract     *AssetContract   `json:"asset_contract" bson:"asset_contract"`
+		PermaLink         string           `json:"permalink" bson:"perma_link"`
+		Collection        *NftCollection   `json:"collection" bson:"collection"`
+		Decimals          int64            `json:"decimals" bson:"decimals"`
+		TokenMetaData     string           `json:"token_meta_data" bson:"token_meta_data"`
+		Owner             Account          `json:"owner" bson:"owner"`
+		Creator           Account          `json:"creator" bson:"creator"`
+		LastSale          *Sale            `json:"last_sale" bson:"last_sale"`
+		ListingDate       string           `json:"listing_date" bson:"listing_date"`
+		IsPresale         bool             `json:"is_presale" bson:"is_presale"`
+		UpdatedAt         time.Time        `bson:"updated_at,omitempty"`
 	}
 )
 type SaleInfo struct {

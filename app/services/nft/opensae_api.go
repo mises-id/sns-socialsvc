@@ -1,11 +1,13 @@
-package opensea_api
+package nft
 
 import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"path"
 	"strconv"
 
@@ -82,12 +84,21 @@ func init() {
 	xApiKey = "a5c5d9c4d27f463e9baf74972266f666"
 }
 
-func ListAsset(ctx context.Context, in *ListAssetInput) (string, error) {
+func ListAsset(ctx context.Context, currentUID uint64, in *ListAssetInput) (string, error) {
 	out, err := ListAssetApi(ctx, in)
 	if err != nil {
 		return "", codes.ErrTooManyRequests.Newf(err.Error())
 	}
+	AfterListAsset(ctx, currentUID)
 	return out.String(), nil
+}
+func AfterListAsset(ctx context.Context, currentUID uint64) error {
+
+	err := InitUserNftAssets(ctx, currentUID)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	return err
 }
 func ListAssetOut(ctx context.Context, in *ListAssetInput) (*ListAssetOutput, error) {
 	res := &ListAssetOutput{}
@@ -172,9 +183,9 @@ func GetAssetContract(ctx context.Context, in *AssetContractInput) (string, erro
 	return out.String(), nil
 }
 
-func GetSingleAsset(ctx context.Context, in *SingleAssetInput) (string, error) {
+func GetSingleAssetApi(ctx context.Context, in *SingleAssetInput) (*HttpResult, error) {
 	if in.AssetContractAddress == "" {
-		return "", codes.ErrInvalidArgument.Newf("invalid asset_contract_address params")
+		return nil, codes.ErrInvalidArgument.Newf("invalid asset_contract_address params")
 	}
 	token_id := in.TokenId
 	if token_id == "" {
@@ -193,18 +204,36 @@ func GetSingleAsset(ctx context.Context, in *SingleAssetInput) (string, error) {
 	apiUrl := api + path.Join(apiStr, in.AssetContractAddress, token_id, queryParams)
 	out, err := doOpenseaApi(ctx, apiUrl, in.Network)
 	if err != nil {
+		return nil, codes.ErrTooManyRequests.Newf(err.Error())
+	}
+	return out, nil
+}
+
+func GetSingleAssetOut(ctx context.Context, in *SingleAssetInput) (*models.Asset, error) {
+	res := &models.Asset{}
+	out, err := GetSingleAssetApi(ctx, in)
+	if err != nil {
+		return nil, codes.ErrTooManyRequests.Newf(err.Error())
+	}
+	out.Restult(res)
+	return res, nil
+}
+
+func GetSingleAsset(ctx context.Context, in *SingleAssetInput) (string, error) {
+	out, err := GetSingleAssetApi(ctx, in)
+	if err != nil {
 		return "", codes.ErrTooManyRequests.Newf(err.Error())
 	}
 	return out.String(), nil
 }
 
 func doOpenseaApi(ctx context.Context, api string, network string) (*HttpResult, error) {
-	/* proxy := func(_ *http.Request) (*url.URL, error) {
+	proxy := func(_ *http.Request) (*url.URL, error) {
 		return url.Parse("http://127.0.0.1:1087")
 	}
 	transport := &http.Transport{Proxy: proxy}
-	client := &http.Client{Transport: transport} */
-	client := http.DefaultClient
+	client := &http.Client{Transport: transport}
+	//client := http.DefaultClient
 	req, _ := http.NewRequest("GET", api, nil)
 
 	if network != "test" {

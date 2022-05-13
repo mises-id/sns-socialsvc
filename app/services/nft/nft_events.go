@@ -7,7 +7,8 @@ import (
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/search"
-	"github.com/mises-id/sns-socialsvc/app/services/opensea_api"
+	"github.com/mises-id/sns-socialsvc/lib/pagination"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -15,6 +16,17 @@ var (
 	eventListNum = 50
 	eventLastID  primitive.ObjectID
 )
+
+type (
+	NftEventInput struct {
+		*search.NftEventSearch
+	}
+)
+
+func PageNftEvent(ctx context.Context, currentUID uint64, in *NftEventInput) ([]*models.NftEvent, pagination.Pagination, error) {
+	ctxWithUID := context.WithValue(ctx, utils.CurrentUIDKey{}, currentUID)
+	return models.QuickPageNftEvent(ctxWithUID, in.NftEventSearch)
+}
 
 func InitNftEvent(ctx context.Context) error {
 
@@ -51,12 +63,12 @@ func initNftEvent(ctx context.Context) error {
 	return nil
 }
 func initNftEventOne(ctx context.Context, asset *models.NftAsset) error {
-	params := &opensea_api.OpensaeInput{
+	params := &OpensaeInput{
 		AssetContractAddress: asset.AssetContract.Address,
 		TokenId:              asset.TokenId,
 	}
 	for i := 0; i < 100; i++ {
-		out, err := opensea_api.ListEventOut(ctx, params)
+		out, err := ListEventOut(ctx, params)
 		if err != nil {
 			fmt.Println("list err: ", err.Error())
 			return err

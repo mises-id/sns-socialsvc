@@ -46,6 +46,7 @@ type Account struct {
 	ProfileImgUrl string      `json:"profile_img_url" bson:"profile_img_url"`
 	User          interface{} `json:"user" bson:"user"`
 	Config        string      `json:"config" bson:"config"`
+	MisesUser     *User       `bson:"-"`
 }
 
 type Bundle struct {
@@ -82,7 +83,7 @@ type Stats struct {
 	AveragePrice          float64 `json:"average_price" bson:"average_price"`
 	NumReports            int64   `json:"num_reports" bson:"num_reports"`
 	MarketCap             float64 `json:"market_cap" bson:"market_cap"`
-	FloorPrice            float64 `json:"floor_price" bson:"floor_price"`
+	FloorPrice            string  `json:"floor_price" bson:"floor_price"`
 }
 
 type DisplayData struct {

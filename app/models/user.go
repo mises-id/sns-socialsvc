@@ -2,10 +2,16 @@ package models
 
 import (
 	"context"
+	"encoding/hex"
+	"fmt"
 	"regexp"
+	"strings"
 	"time"
 
+	"github.com/btcsuite/btcd/btcec"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/search"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/mises-id/sns-socialsvc/lib/storage"
@@ -50,6 +56,8 @@ type User struct {
 	RelationType   enum.RelationType  `bson:"-"`
 	BlockState     enum.BlockState    `bson:"-"`
 	Avatar         *Avatar            `bson:"-"`
+	Pubkey         string             `bson:"pubkey,omitempty"`
+	EthAddress     string             `bson:"eth_address,omitempty"`
 }
 
 type NftAvatar struct {
@@ -126,14 +134,14 @@ func FindUser(ctx context.Context, uid uint64) (*User, error) {
 	return user, result.Decode(user)
 }
 
-func FindOrCreateUserByMisesid(ctx context.Context, misesid string) (*User, bool, error) {
+func FindOrCreateUserByMisesid(ctx context.Context, misesid, pubkey string) (*User, bool, error) {
 	user := &User{}
 	result := db.DB().Collection("users").FindOne(ctx, &bson.M{
 		"misesid": misesid,
 	})
 	err := result.Err()
 	if err == mongo.ErrNoDocuments {
-		created, err := createMisesUser(ctx, misesid)
+		created, err := createMisesUser(ctx, misesid, pubkey)
 		return created, true, err
 	}
 	if err != nil {
@@ -158,6 +166,22 @@ func UpdateUserProfile(ctx context.Context, user *User) error {
 			"address":    user.Address,
 			"intro":      user.Intro,
 			"updated_at": time.Now(),
+		}}})
+	return err
+}
+func UpdateUserEthAdress(ctx context.Context, user *User) error {
+	err := user.BeforeUpdate(ctx)
+	if err != nil {
+		return err
+	}
+	_, err = db.DB().Collection("users").UpdateOne(ctx, &bson.M{
+		"_id": user.UID,
+	}, bson.D{{
+		Key: "$set",
+		Value: bson.M{
+			"pubkey":      user.Pubkey,
+			"eth_address": user.EthAddress,
+			"updated_at":  time.Now(),
 		}}})
 	return err
 }
@@ -221,16 +245,54 @@ func UpdateUserChannelIDByUID(ctx context.Context, uid uint64, channel_id primit
 	return err
 }
 
-func createMisesUser(ctx context.Context, misesid string) (*User, error) {
+func createMisesUser(ctx context.Context, misesid, pubkey string) (*User, error) {
 	user := &User{
 		Misesid: misesid,
+		Pubkey:  pubkey,
 	}
 	err := user.BeforeCreate(ctx)
 	if err != nil {
 		return nil, err
 	}
+	address, err := PubkeyToEthAddress(pubkey)
+	if err == nil {
+		user.EthAddress = address
+	}
 	_, err = db.DB().Collection("users").InsertOne(ctx, user)
 	return user, err
+}
+func FindUserEthAddress(ctx context.Context, uid uint64) (*User, error) {
+	user, err := FindUser(ctx, uid)
+	if err != nil {
+		return nil, err
+	}
+	if user.EthAddress == "" {
+		chainUser, err := FindChainUser(ctx, &search.ChainUserSearch{Misesid: user.Misesid})
+		if err != nil {
+			return nil, err
+		}
+		address, err := PubkeyToEthAddress(chainUser.Pubkey)
+		if err != nil {
+			return nil, err
+		}
+		user.EthAddress = address
+		user.Pubkey = chainUser.Pubkey
+	}
+	return user, UpdateUserEthAdress(ctx, user)
+}
+
+func PubkeyToEthAddress(pubkey string) (string, error) {
+	r, err := hex.DecodeString(pubkey)
+	if err != nil {
+		return "", err
+	}
+	btcec_pubKey, err := btcec.ParsePubKey(r, btcec.S256())
+	if err != nil {
+		return "", err
+	}
+	a := btcec_pubKey.ToECDSA()
+	addr := crypto.PubkeyToAddress(*a)
+	return addr.Hex(), nil
 }
 
 func FindUserByIDs(ctx context.Context, ids ...uint64) ([]*User, error) {
@@ -256,6 +318,37 @@ func FindUserByMisesid(ctx context.Context, misesid string) (*User, error) {
 		return nil, err
 	}
 	return user, nil
+}
+func FindUserByEthAddress(ctx context.Context, address string) (*User, error) {
+	user := &User{}
+	err := db.ODM(ctx).Where(bson.M{"eth_address": utils.EthAddressToEIPAddress(address)}).Last(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+func FindUserByEthAddresses(ctx context.Context, addresses ...string) ([]*User, error) {
+	for k, v := range addresses {
+		addresses[k] = utils.EthAddressToEIPAddress(v)
+	}
+	fmt.Println(addresses)
+	res := make([]*User, 0)
+	err := db.ODM(ctx).Where(bson.M{"eth_address": bson.M{"$in": addresses}}).Find(&res).Error
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+func GetUserMapByEthAddresses(ctx context.Context, addresses ...string) (map[string]*User, error) {
+	users, err := FindUserByEthAddresses(ctx, addresses...)
+	if err != nil {
+		return nil, err
+	}
+	addressMap := make(map[string]*User)
+	for _, user := range users {
+		addressMap[strings.ToLower(user.EthAddress)] = user
+	}
+	return addressMap, nil
 }
 
 func GetUserMap(ctx context.Context, ids ...uint64) (map[uint64]*User, error) {

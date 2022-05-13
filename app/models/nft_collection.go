@@ -8,6 +8,7 @@ type NftCollection struct {
 	ID                      primitive.ObjectID `bson:"_id,omitempty"`
 	PrimaryAssetContracts   []*AssetContract   `json:"primary_asset_contracts" bson:"primary_asset_contracts"`
 	Stats                   *Stats             `json:"stats" bson:"stats"`
+	PaymentToken            []*PaymentToken    `json:"payment_token" bson:"payment_token"           `
 	BannerImageUrl          string             `json:"banner_image_url" bson:"banner_image_url"`
 	ChatUrl                 string             `json:"chat_url" bson:"chat_url"`
 	CreatedDate             string             `json:"created_date" bson:"created_date"`
