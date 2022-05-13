@@ -200,7 +200,7 @@ func NewStats(in *models.Stats) *pb.Stats {
 		return nil
 	}
 	result := &pb.Stats{
-		FloorPrice: in.FloorPrice,
+		FloorPrice: float32(in.FloorPrice),
 	}
 	return result
 }

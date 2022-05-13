@@ -1434,7 +1434,7 @@ message PaymentToken {
 }
 
 message Stats {
-  string floor_price = 1;
+  float floor_price = 1;
 }
 
 message NftEvent {

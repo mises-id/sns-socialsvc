@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"path"
 	"strconv"
 
@@ -228,12 +227,12 @@ func GetSingleAsset(ctx context.Context, in *SingleAssetInput) (string, error) {
 }
 
 func doOpenseaApi(ctx context.Context, api string, network string) (*HttpResult, error) {
-	proxy := func(_ *http.Request) (*url.URL, error) {
+	/* proxy := func(_ *http.Request) (*url.URL, error) {
 		return url.Parse("http://127.0.0.1:1087")
 	}
 	transport := &http.Transport{Proxy: proxy}
-	client := &http.Client{Transport: transport}
-	//client := http.DefaultClient
+	client := &http.Client{Transport: transport} */
+	client := http.DefaultClient
 	req, _ := http.NewRequest("GET", api, nil)
 
 	if network != "test" {
