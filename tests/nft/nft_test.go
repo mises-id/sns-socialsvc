@@ -89,10 +89,13 @@ func (suite *NftServerSuite) TestListNft() {
 		suite.Nil(err)
 		quickPage := page.BuildJSONResult().(*pagination.QuickPagination)
 		suite.NotEmpty(quickPage.NextID)
-		_, page, err = service.PageNftAsset(context.TODO(), 1, &service.NftAssetInput{NftAssetSearch: &search.NftAssetSearch{PageParams: &pagination.PageQuickParams{
-			Limit:  5,
-			NextID: quickPage.NextID,
-		}}})
+		_, page, err = service.PageNftAsset(context.TODO(), 1, &service.NftAssetInput{NftAssetSearch: &search.NftAssetSearch{
+			UID: 1,
+			PageParams: &pagination.PageQuickParams{
+				Limit:  5,
+				NextID: quickPage.NextID,
+			},
+		}})
 		suite.Nil(err)
 		quickPage = page.BuildJSONResult().(*pagination.QuickPagination)
 		suite.Empty(quickPage.NextID)
