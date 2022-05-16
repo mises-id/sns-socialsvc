@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
+	"github.com/mises-id/sns-socialsvc/config/env"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/sirupsen/logrus"
 )
@@ -80,7 +81,7 @@ var (
 
 func init() {
 	defaultTokenID = "1"
-	xApiKey = "a5c5d9c4d27f463e9baf74972266f666"
+	xApiKey = env.Envs.OpenseaApiKey
 }
 
 func ListAsset(ctx context.Context, currentUID uint64, in *ListAssetInput) (string, error) {
@@ -236,6 +237,9 @@ func doOpenseaApi(ctx context.Context, api string, network string) (*HttpResult,
 	req, _ := http.NewRequest("GET", api, nil)
 
 	if network != "test" {
+		if xApiKey == "" {
+			return nil, errors.New("invalid api")
+		}
 		req.Header.Add("X-API-KEY", xApiKey)
 	}
 	res, err := client.Do(req)
