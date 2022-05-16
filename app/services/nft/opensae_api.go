@@ -100,8 +100,7 @@ func ListAsset(ctx context.Context, currentUID uint64, in *ListAssetInput) (stri
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
 		db.SetupMongo(ctx)
-		err2 := AfterListAsset(ctx, currentUID, out)
-		if err != nil {
+		if err2 := AfterListAsset(ctx, currentUID, out); err2 != nil {
 			logrus.Errorln("after_list_asset err: ", err2.Error())
 		}
 	}()
