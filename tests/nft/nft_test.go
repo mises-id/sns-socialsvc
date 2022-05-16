@@ -5,6 +5,7 @@ package nft
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
@@ -35,9 +36,14 @@ func (suite *NftServerSuite) SetupSuite() {
 	}
 	for uid, targetIDs := range nftMap {
 		for _, targetID := range targetIDs {
+
+			contract := models.AssetContract{
+				Address: fmt.Sprintf("0xaddress%d", targetID),
+			}
 			ass := models.Asset{
-				UID:     uid,
-				AssetId: targetID,
+				UID:           uid,
+				AssetId:       targetID,
+				AssetContract: &contract,
 			}
 			nft := &models.NftAsset{
 				Asset: ass,

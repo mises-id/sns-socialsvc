@@ -41,15 +41,9 @@ type (
 		UpdatedAt         time.Time        `bson:"updated_at,omitempty"`
 	}
 )
-type SaleInfo struct {
-	SaleState string `bson:"sale_state"`
-	Symbol    string `bson:"symbol"`
-	Prices    string `bson:"prices"`
-}
 type NftAsset struct {
 	ID            primitive.ObjectID `bson:"_id,omitempty"`
 	Asset         `bson:"inline"`
-	SaleInfo      *SaleInfo
 	CommentsCount uint64    `bson:"comments_count,omitempty"`
 	LikesCount    uint64    `bson:"likes_count,omitempty"`
 	ForwardsCount uint64    `bson:"forwards_count,omitempty"`
@@ -58,14 +52,26 @@ type NftAsset struct {
 	CreatedAt     time.Time `bson:"created_at,omitempty"`
 }
 
-func SaveNftAsset(ctx context.Context, data *Asset) error {
+func CreateNftAsset(ctx context.Context, data *NftAsset) (*NftAsset, error) {
+	data.CreatedAt = time.Now()
 	data.UpdatedAt = time.Now()
 	opt := &options.FindOneAndUpdateOptions{}
 	opt.SetUpsert(true)
 	opt.SetReturnDocument(1)
 	result := db.DB().Collection("nftassets").FindOneAndUpdate(ctx, bson.M{"asset_contract.address": data.AssetContract.Address, "token_id": data.TokenId}, bson.D{{Key: "$set", Value: data}}, opt)
 	if result.Err() != nil {
-		return result.Err()
+		return nil, result.Err()
+	}
+	return data, result.Decode(data)
+}
+
+func UpdateNftAsset(ctx context.Context, data *Asset) error {
+	data.UpdatedAt = time.Now()
+	_, err := db.DB().Collection("nftassets").UpdateOne(ctx,
+		bson.M{"asset_contract.address": data.AssetContract.Address, "token_id": data.TokenId},
+		bson.D{{Key: "$set", Value: data}})
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -92,6 +98,18 @@ func FindNftAsset(ctx context.Context, params IAdminParams) (*NftAsset, error) {
 	}
 	return res, nil
 }
+
+func FindNftAssetByAddressAndToken(ctx context.Context, asset_contract_address, token_id string) (*NftAsset, error) {
+	res := &NftAsset{}
+	result := db.DB().Collection("nftassets").FindOne(ctx,
+		bson.M{"asset_contract.address": asset_contract_address, "token_id": token_id},
+	)
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	return res, result.Decode(res)
+}
+
 func FindNftAssetByID(ctx context.Context, id primitive.ObjectID) (*NftAsset, error) {
 
 	res := &NftAsset{}

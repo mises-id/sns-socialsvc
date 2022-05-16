@@ -9,9 +9,11 @@ import (
 
 type (
 	NftAssetSearch struct {
-		ID     primitive.ObjectID
-		UID    uint64
-		LastID primitive.ObjectID
+		ID                   primitive.ObjectID
+		UID                  uint64
+		LastID               primitive.ObjectID
+		TokenId              string
+		AssetContractAddress string
 		//sort
 		SortBy string
 		//limit
@@ -32,6 +34,12 @@ func (params *NftAssetSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	}
 	if params.UID > 0 {
 		chain = chain.Where(bson.M{"uid": params.UID})
+	}
+	if params.TokenId != "" {
+		chain = chain.Where(bson.M{"token_id": params.TokenId})
+	}
+	if params.AssetContractAddress != "" {
+		chain = chain.Where(bson.M{"asset_contract.address": params.AssetContractAddress})
 	}
 	if !params.LastID.IsZero() {
 		chain = chain.Where(bson.M{"_id": bson.M{"$lte": params.LastID}})

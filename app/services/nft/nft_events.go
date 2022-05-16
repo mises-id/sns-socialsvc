@@ -2,6 +2,7 @@ package nft
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 
@@ -54,7 +55,7 @@ func initNftEvent(ctx context.Context) error {
 		return err
 	}
 	for _, v := range lists {
-		err := initNftEventOne(ctx, v)
+		err := updateNftAssetOneEvent(ctx, v)
 		if err != nil {
 			fmt.Println("init nft_event one err: ", err.Error())
 		}
@@ -62,7 +63,10 @@ func initNftEvent(ctx context.Context) error {
 	eventLastID = lists[len(lists)-1].ID
 	return nil
 }
-func initNftEventOne(ctx context.Context, asset *models.NftAsset) error {
+func updateNftAssetOneEvent(ctx context.Context, asset *models.NftAsset) error {
+	if asset == nil {
+		return errors.New("updateNftAssetOneEvent asset is nil")
+	}
 	params := &OpensaeInput{
 		AssetContractAddress: asset.AssetContract.Address,
 		TokenId:              asset.TokenId,
@@ -87,6 +91,9 @@ func initNftEventOne(ctx context.Context, asset *models.NftAsset) error {
 }
 
 func updateNftEvent(ctx context.Context, asset *models.NftAsset, events []*models.AssetEvent) error {
+	if asset == nil {
+		return nil
+	}
 	for _, event := range events {
 		event.NftAssetID = asset.ID
 		err := models.SaveNftEvent(ctx, event)

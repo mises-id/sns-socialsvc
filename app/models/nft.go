@@ -83,7 +83,7 @@ type Stats struct {
 	AveragePrice          float64 `json:"average_price" bson:"average_price"`
 	NumReports            int64   `json:"num_reports" bson:"num_reports"`
 	MarketCap             float64 `json:"market_cap" bson:"market_cap"`
-	FloorPrice            string  `json:"floor_price" bson:"floor_price"`
+	FloorPrice            float64 `json:"floor_price" bson:"floor_price"`
 }
 
 type DisplayData struct {
