@@ -89,6 +89,13 @@ func Run(ctx context.Context) error {
 	return nil
 }
 
+func SaveUserNftAsset(ctx context.Context, uid uint64, assets []*models.Asset) error {
+	if err := SaveUserNftLog(ctx, uid); err != nil {
+		return err
+	}
+	return updateOrCreateNftAssets(ctx, uid, assets)
+}
+
 func SaveUserNftLog(ctx context.Context, uid uint64) error {
 	types := enum.NftTagableTypeOwner
 	object_id := strconv.Itoa(int(uid))
