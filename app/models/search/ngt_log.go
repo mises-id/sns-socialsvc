@@ -1,6 +1,8 @@
 package search
 
 import (
+	"time"
+
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/lib/db/odm"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
@@ -10,10 +12,13 @@ import (
 
 type (
 	NftLogSearch struct {
-		ID             primitive.ObjectID
-		NftTagableType enum.NftTagableType
-		ObjectID       string
-		LastID         primitive.ObjectID
+		ID               primitive.ObjectID
+		NftTagableType   enum.NftTagableType
+		ObjectID         string
+		LastID           primitive.ObjectID
+		NeedUpdate       bool
+		ForceUpdateState string
+		UpdatedAt        *time.Time
 		//sort
 		SortBy string
 		//limit
@@ -38,8 +43,22 @@ func (params *NftLogSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.ObjectID != "" {
 		chain = chain.Where(bson.M{"object_id": params.ObjectID})
 	}
+	if params.ForceUpdateState == "true" {
+		chain = chain.Where(bson.M{"force_update": true})
+	}
+	/* if params.UpdatedAt != nil {
+		chain = chain.Where(bson.M{"updated_at": bson.M{"$lte": params.UpdatedAt}})
+	} */
 	if !params.LastID.IsZero() {
 		chain = chain.Where(bson.M{"_id": bson.M{"$lte": params.LastID}})
+	}
+	if params.NeedUpdate {
+		needUpdateOr := bson.A{}
+		needUpdateOr = append(needUpdateOr, bson.M{"force_update": true})
+		if params.UpdatedAt != nil {
+			needUpdateOr = append(needUpdateOr, bson.M{"updated_at": bson.M{"$lte": params.UpdatedAt}})
+		}
+		chain = chain.Where(bson.M{"$or": needUpdateOr})
 	}
 	//sort
 

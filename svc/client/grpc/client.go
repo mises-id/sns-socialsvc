@@ -738,6 +738,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var updateopenseanftEndpoint endpoint.Endpoint
+	{
+		updateopenseanftEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"UpdateOpenseaNft",
+			EncodeGRPCUpdateOpenseaNftRequest,
+			DecodeGRPCUpdateOpenseaNftResponse,
+			pb.UpdateOpenseaNftResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	return svc.Endpoints{
 		SignInEndpoint:                  signinEndpoint,
 		FindUserEndpoint:                finduserEndpoint,
@@ -793,6 +806,7 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		PageNftEventEndpoint:            pagenfteventEndpoint,
 		UpdateUserConfigEndpoint:        updateuserconfigEndpoint,
 		GetUserConfigEndpoint:           getuserconfigEndpoint,
+		UpdateOpenseaNftEndpoint:        updateopenseanftEndpoint,
 	}, nil
 }
 
@@ -1176,6 +1190,13 @@ func DecodeGRPCGetUserConfigResponse(_ context.Context, grpcReply interface{}) (
 	return reply, nil
 }
 
+// DecodeGRPCUpdateOpenseaNftResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC updateopenseanft reply to a user-domain updateopenseanft response. Primarily useful in a client.
+func DecodeGRPCUpdateOpenseaNftResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.UpdateOpenseaNftResponse)
+	return reply, nil
+}
+
 // GRPC Client Encode
 
 // EncodeGRPCSignInRequest is a transport/grpc.EncodeRequestFunc that converts a
@@ -1553,6 +1574,13 @@ func EncodeGRPCUpdateUserConfigRequest(_ context.Context, request interface{}) (
 // user-domain getuserconfig request to a gRPC getuserconfig request. Primarily useful in a client.
 func EncodeGRPCGetUserConfigRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.GetUserConfigRequest)
+	return req, nil
+}
+
+// EncodeGRPCUpdateOpenseaNftRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain updateopenseanft request to a gRPC updateopenseanft request. Primarily useful in a client.
+func EncodeGRPCUpdateOpenseaNftRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.UpdateOpenseaNftRequest)
 	return req, nil
 }
 

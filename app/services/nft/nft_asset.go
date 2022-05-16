@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
@@ -88,10 +89,11 @@ func Run(ctx context.Context) error {
 	return nil
 }
 
-func InitUserNftAssets(ctx context.Context, uid uint64) error {
+func SaveUserNftLog(ctx context.Context, uid uint64) error {
 	types := enum.NftTagableTypeOwner
 	object_id := strconv.Itoa(int(uid))
-	params := &search.NftLogSearch{NftTagableType: types, ObjectID: object_id}
+
+	/* params := &search.NftLogSearch{NftTagableType: types, ObjectID: object_id}
 	_, err := models.FindNftLog(ctx, params)
 	if err == nil {
 		return nil
@@ -102,8 +104,36 @@ func InitUserNftAssets(ctx context.Context, uid uint64) error {
 			return err2
 		}
 		return models.CreateNftLog(ctx, types, object_id)
+	} */
+	return models.SaveNftLog(ctx, types, object_id)
+}
+
+func UpdateOpenseaNft(ctx context.Context) error {
+	sh, _ := time.ParseDuration("-1m")
+	st := time.Now().UTC().Add(sh)
+	logs, err := models.ListNftLog(ctx, &search.NftLogSearch{
+		NeedUpdate:     true,
+		UpdatedAt:      &st,
+		NftTagableType: enum.NftTagableTypeOwner,
+		ListNum:        20,
+	})
+	if err != nil {
+		return err
 	}
-	return err
+	for _, log := range logs {
+		uid, err := strconv.ParseUint(log.ObjectID, 10, 64)
+		if err != nil {
+			continue
+		}
+		err = UpdateUserNftAssets(ctx, uid)
+		if err != nil {
+			fmt.Println("update user nft assets error: ", err.Error())
+			continue
+		}
+		log.ForceUpdate = false
+		models.UpdateNftLog(ctx, log)
+	}
+	return nil
 }
 
 //update nft assets by uid

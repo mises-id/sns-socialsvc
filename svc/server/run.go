@@ -107,6 +107,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		pagenfteventEndpoint            = svc.MakePageNftEventEndpoint(service)
 		updateuserconfigEndpoint        = svc.MakeUpdateUserConfigEndpoint(service)
 		getuserconfigEndpoint           = svc.MakeGetUserConfigEndpoint(service)
+		updateopenseanftEndpoint        = svc.MakeUpdateOpenseaNftEndpoint(service)
 	)
 
 	endpoints := svc.Endpoints{
@@ -164,6 +165,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		PageNftEventEndpoint:            pagenfteventEndpoint,
 		UpdateUserConfigEndpoint:        updateuserconfigEndpoint,
 		GetUserConfigEndpoint:           getuserconfigEndpoint,
+		UpdateOpenseaNftEndpoint:        updateopenseanftEndpoint,
 	}
 
 	// Wrap selected Endpoints with middlewares. See handlers/middlewares.go

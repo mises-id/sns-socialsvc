@@ -591,6 +591,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var UpdateOpenseaNftZeroEndpoint endpoint.Endpoint
+	{
+		UpdateOpenseaNftZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/nft/update/"),
+			EncodeHTTPUpdateOpenseaNftZeroRequest,
+			DecodeHTTPUpdateOpenseaNftResponse,
+			options...,
+		).Endpoint()
+	}
 
 	return svc.Endpoints{
 		SignInEndpoint:                  SignInZeroEndpoint,
@@ -647,6 +657,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		PageNftEventEndpoint:            PageNftEventZeroEndpoint,
 		UpdateUserConfigEndpoint:        UpdateUserConfigZeroEndpoint,
 		GetUserConfigEndpoint:           GetUserConfigZeroEndpoint,
+		UpdateOpenseaNftEndpoint:        UpdateOpenseaNftZeroEndpoint,
 	}, nil
 }
 
@@ -2124,6 +2135,33 @@ func DecodeHTTPGetUserConfigResponse(_ context.Context, r *http.Response) (inter
 	}
 
 	var resp pb.GetUserConfigResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPUpdateOpenseaNftResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded UpdateOpenseaNftResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPUpdateOpenseaNftResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.UpdateOpenseaNftResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -6970,6 +7008,75 @@ func EncodeHTTPGetUserConfigOneRequest(_ context.Context, r *http.Request, reque
 	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
 
 	values.Add("uid", fmt.Sprint(req.Uid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPUpdateOpenseaNftZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a updateopenseanft request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUpdateOpenseaNftZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UpdateOpenseaNftRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"nft",
+		"update",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPUpdateOpenseaNftOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a updateopenseanft request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPUpdateOpenseaNftOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.UpdateOpenseaNftRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"nft",
+		"update",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
 
 	r.URL.RawQuery = values.Encode()
 	return nil

@@ -93,7 +93,7 @@ func ListAsset(ctx context.Context, currentUID uint64, in *ListAssetInput) (stri
 }
 func AfterListAsset(ctx context.Context, currentUID uint64) error {
 
-	err := InitUserNftAssets(ctx, currentUID)
+	err := SaveUserNftLog(ctx, currentUID)
 	if err != nil {
 		fmt.Println(err.Error())
 	}

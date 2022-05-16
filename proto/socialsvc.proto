@@ -703,6 +703,17 @@ service Social {
       }
     };
   }
+  rpc UpdateOpenseaNft (UpdateOpenseaNftRequest) returns (UpdateOpenseaNftResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/nft/update"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/nft/update/"
+      }
+    };
+  }
   
 }
 
@@ -1456,4 +1467,10 @@ message PageNftEventResponse {
   uint64 code = 1;
   repeated NftEvent event = 2;
   PageQuick paginator = 3;
+}
+message UpdateOpenseaNftRequest {
+
+}
+message UpdateOpenseaNftResponse {
+  uint64 code = 1;
 }

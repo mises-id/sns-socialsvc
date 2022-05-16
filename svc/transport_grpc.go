@@ -353,6 +353,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCGetUserConfigResponse,
 			serverOptions...,
 		),
+		updateopenseanft: grpctransport.NewServer(
+			endpoints.UpdateOpenseaNftEndpoint,
+			DecodeGRPCUpdateOpenseaNftRequest,
+			EncodeGRPCUpdateOpenseaNftResponse,
+			serverOptions...,
+		),
 	}
 }
 
@@ -412,6 +418,7 @@ type grpcServer struct {
 	pagenftevent            grpctransport.Handler
 	updateuserconfig        grpctransport.Handler
 	getuserconfig           grpctransport.Handler
+	updateopenseanft        grpctransport.Handler
 }
 
 // Methods for grpcServer to implement SocialServer interface
@@ -848,6 +855,14 @@ func (s *grpcServer) GetUserConfig(ctx context.Context, req *pb.GetUserConfigReq
 	return rep.(*pb.GetUserConfigResponse), nil
 }
 
+func (s *grpcServer) UpdateOpenseaNft(ctx context.Context, req *pb.UpdateOpenseaNftRequest) (*pb.UpdateOpenseaNftResponse, error) {
+	_, rep, err := s.updateopenseanft.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.UpdateOpenseaNftResponse), nil
+}
+
 // Server Decode
 
 // DecodeGRPCSignInRequest is a transport/grpc.DecodeRequestFunc that converts a
@@ -1228,6 +1243,13 @@ func DecodeGRPCGetUserConfigRequest(_ context.Context, grpcReq interface{}) (int
 	return req, nil
 }
 
+// DecodeGRPCUpdateOpenseaNftRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC updateopenseanft request to a user-domain updateopenseanft request. Primarily useful in a server.
+func DecodeGRPCUpdateOpenseaNftRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.UpdateOpenseaNftRequest)
+	return req, nil
+}
+
 // Server Encode
 
 // EncodeGRPCSignInResponse is a transport/grpc.EncodeResponseFunc that converts a
@@ -1605,6 +1627,13 @@ func EncodeGRPCUpdateUserConfigResponse(_ context.Context, response interface{})
 // user-domain getuserconfig response to a gRPC getuserconfig reply. Primarily useful in a server.
 func EncodeGRPCGetUserConfigResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.GetUserConfigResponse)
+	return resp, nil
+}
+
+// EncodeGRPCUpdateOpenseaNftResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain updateopenseanft response to a gRPC updateopenseanft reply. Primarily useful in a server.
+func EncodeGRPCUpdateOpenseaNftResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.UpdateOpenseaNftResponse)
 	return resp, nil
 }
 

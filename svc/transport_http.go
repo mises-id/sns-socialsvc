@@ -759,6 +759,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		responseEncoder,
 		serverOptions...,
 	))
+
+	m.Methods("GET").Path("/nft/update/").Handler(httptransport.NewServer(
+		endpoints.UpdateOpenseaNftEndpoint,
+		DecodeHTTPUpdateOpenseaNftZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/nft/update").Handler(httptransport.NewServer(
+		endpoints.UpdateOpenseaNftEndpoint,
+		DecodeHTTPUpdateOpenseaNftOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
 	return m
 }
 
@@ -6154,6 +6167,78 @@ func DecodeHTTPGetUserConfigOneRequest(_ context.Context, r *http.Request) (inte
 		}
 		req.Uid = UidGetUserConfig
 	}
+
+	return &req, err
+}
+
+// DecodeHTTPUpdateOpenseaNftZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded updateopenseanft request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUpdateOpenseaNftZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UpdateOpenseaNftRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPUpdateOpenseaNftOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded updateopenseanft request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUpdateOpenseaNftOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UpdateOpenseaNftRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
 
 	return &req, err
 }

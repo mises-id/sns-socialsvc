@@ -998,3 +998,13 @@ func (s socialService) ListLike(ctx context.Context, in *pb.ListLikeUserRequest)
 
 	return &resp, nil
 }
+
+func (s socialService) UpdateOpenseaNft(ctx context.Context, in *pb.UpdateOpenseaNftRequest) (*pb.UpdateOpenseaNftResponse, error) {
+	var resp pb.UpdateOpenseaNftResponse
+	err := nft.UpdateOpenseaNft(ctx)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	return &resp, nil
+}

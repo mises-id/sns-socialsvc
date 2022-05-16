@@ -87,6 +87,7 @@ type Endpoints struct {
 	PageNftEventEndpoint            endpoint.Endpoint
 	UpdateUserConfigEndpoint        endpoint.Endpoint
 	GetUserConfigEndpoint           endpoint.Endpoint
+	UpdateOpenseaNftEndpoint        endpoint.Endpoint
 }
 
 // Endpoints
@@ -521,6 +522,14 @@ func (e Endpoints) GetUserConfig(ctx context.Context, in *pb.GetUserConfigReques
 		return nil, err
 	}
 	return response.(*pb.GetUserConfigResponse), nil
+}
+
+func (e Endpoints) UpdateOpenseaNft(ctx context.Context, in *pb.UpdateOpenseaNftRequest) (*pb.UpdateOpenseaNftResponse, error) {
+	response, err := e.UpdateOpenseaNftEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.UpdateOpenseaNftResponse), nil
 }
 
 // Make Endpoints
@@ -1119,6 +1128,17 @@ func MakeGetUserConfigEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeUpdateOpenseaNftEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.UpdateOpenseaNftRequest)
+		v, err := s.UpdateOpenseaNft(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 // WrapAllExcept wraps each Endpoint field of struct Endpoints with a
 // go-kit/kit/endpoint.Middleware.
 // Use this for applying a set of middlewares to every endpoint in the service.
@@ -1180,6 +1200,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"PageNftEvent":            {},
 		"UpdateUserConfig":        {},
 		"GetUserConfig":           {},
+		"UpdateOpenseaNft":        {},
 	}
 
 	for _, ex := range excluded {
@@ -1352,6 +1373,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "GetUserConfig" {
 			e.GetUserConfigEndpoint = middleware(e.GetUserConfigEndpoint)
 		}
+		if inc == "UpdateOpenseaNft" {
+			e.UpdateOpenseaNftEndpoint = middleware(e.UpdateOpenseaNftEndpoint)
+		}
 	}
 }
 
@@ -1420,6 +1444,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"PageNftEvent":            {},
 		"UpdateUserConfig":        {},
 		"GetUserConfig":           {},
+		"UpdateOpenseaNft":        {},
 	}
 
 	for _, ex := range excluded {
@@ -1591,6 +1616,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "GetUserConfig" {
 			e.GetUserConfigEndpoint = middleware("GetUserConfig", e.GetUserConfigEndpoint)
+		}
+		if inc == "UpdateOpenseaNft" {
+			e.UpdateOpenseaNftEndpoint = middleware("UpdateOpenseaNft", e.UpdateOpenseaNftEndpoint)
 		}
 	}
 }
