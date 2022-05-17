@@ -298,7 +298,34 @@ func newCommentMeta(meta *message.CommentMeta) *pb.NewCommentMeta {
 		StatusImageUrl:       meta.StatusImageURL,
 	}
 }
+func newNftCommentMeta(meta *message.NftAssetCommentMeta) *pb.NewNftCommentMeta {
+	if meta == nil {
+		return &pb.NewNftCommentMeta{}
+	}
+	return &pb.NewNftCommentMeta{
+		Uid:            meta.UID,
+		GroupId:        docID(meta.GroupID),
+		CommentId:      docID(meta.CommentID),
+		Content:        meta.Content,
+		ParentContent:  meta.ParentContent,
+		ParentUserName: meta.ParentUsername,
+		NftAssetName:   meta.NftAssetName,
+		NftAssetImage:  meta.NftAssetImage,
+	}
+}
 
+func newLikeNftMeta(meta *message.LikeNftAssetMeta) *pb.NewLikeNftMeta {
+	if meta == nil {
+		return &pb.NewLikeNftMeta{}
+	}
+	return &pb.NewLikeNftMeta{
+		Uid:           meta.UID,
+		NftAssetId:    meta.NftAssetID.Hex(),
+		NftAssetName:  meta.NftAssetName,
+		NftAssetImage: meta.NftAssetImage,
+	}
+
+}
 func newLikeStatusMeta(meta *message.LikeStatusMeta) *pb.NewLikeStatusMeta {
 	if meta == nil {
 		return &pb.NewLikeStatusMeta{}
@@ -317,6 +344,17 @@ func newLikeCommentMeta(meta *message.LikeCommentMeta) *pb.NewLikeCommentMeta {
 		return &pb.NewLikeCommentMeta{}
 	}
 	return &pb.NewLikeCommentMeta{
+		Uid:             meta.UID,
+		CommentId:       meta.CommentID.Hex(),
+		CommentUsername: meta.CommentUsername,
+		CommentContent:  meta.CommentContent,
+	}
+}
+func newLikeNftCommentMeta(meta *message.LikeNftAssetCommentMeta) *pb.NewLikeNftCommentMeta {
+	if meta == nil {
+		return &pb.NewLikeNftCommentMeta{}
+	}
+	return &pb.NewLikeNftCommentMeta{
 		Uid:             meta.UID,
 		CommentId:       meta.CommentID.Hex(),
 		CommentUsername: meta.CommentUsername,
@@ -357,6 +395,7 @@ func NewMessage(message *models.Message) *pb.Message {
 		FromUser:         NewUserInfo(message.FromUser),
 		State:            message.State(),
 		Status:           NewStatusInfo(message.Status),
+		NftAsset:         NewNftAsset(message.NftAsset),
 		CreatedAt:        uint64(message.CreatedAt.Unix()),
 		StatusIsDeleted:  message.StatusIsDeleted,
 		CommentIsDeleted: message.CommentIsDeleted,
@@ -368,6 +407,12 @@ func NewMessage(message *models.Message) *pb.Message {
 		result.NewLikeStatusMeta = newLikeStatusMeta(message.LikeStatusMeta)
 	case enum.NewLikeComment:
 		result.NewLikeCommentMeta = newLikeCommentMeta(message.LikeCommentMeta)
+	case enum.NewNftComment:
+		result.NewNftComment = newNftCommentMeta(message.NftCommentMeta)
+	case enum.NewLikeNftComment:
+		result.NewLikeNftCommentMeta = newLikeNftCommentMeta(message.LikeNftCommentMeta)
+	case enum.NewLikeNft:
+		result.NewLikeNft = newLikeNftMeta(message.LikeNftMeta)
 	case enum.NewFans:
 		result.NewFansMeta = newFansMeta(message.FansMeta)
 	case enum.NewForward:

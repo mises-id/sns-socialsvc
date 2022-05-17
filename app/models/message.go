@@ -150,6 +150,9 @@ func PreloadMessageData(ctx context.Context, messages ...*Message) error {
 	if err := preloadMessageComment(ctx, messages...); err != nil {
 		return err
 	}
+	if err := preloadMessageNftAsset(ctx, messages...); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -189,6 +192,28 @@ func preloadMessageStatus(ctx context.Context, messages ...*Message) error {
 			if message.Status == nil {
 				message.StatusIsDeleted = true
 			}
+		}
+	}
+	return nil
+}
+func preloadMessageNftAsset(ctx context.Context, messages ...*Message) error {
+	ids := make([]primitive.ObjectID, 0)
+	for _, message := range messages {
+		if !message.NftAssetID.IsZero() {
+			ids = append(ids, message.NftAssetID)
+		}
+	}
+	nft_assets, err := FindNftAssetByIDs(ctx, ids...)
+	if err != nil {
+		return err
+	}
+	nftAssetMap := map[primitive.ObjectID]*NftAsset{}
+	for _, nft_asset := range nft_assets {
+		nftAssetMap[nft_asset.ID] = nft_asset
+	}
+	for _, message := range messages {
+		if !message.NftAssetID.IsZero() {
+			message.NftAsset = nftAssetMap[message.NftAssetID]
 		}
 	}
 	return nil

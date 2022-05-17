@@ -1098,11 +1098,35 @@ message NewCommentMeta {
   string status_image_url=8;
 }
 
+message NewNftCommentMeta {
+  uint64 uid = 1;
+  string group_id=2;
+  string comment_id=3;
+  string content=4;
+  string parent_content=5;
+  string parent_user_name=6;
+  string nft_asset_name=7;
+  string nft_asset_image=8;
+}
+
+message NewLikeNftCommentMeta {
+  uint64 uid = 1;
+  string comment_id=2;
+  string comment_username=3;
+  string comment_content=4;
+}
 message NewLikeCommentMeta {
   uint64 uid = 1;
   string comment_id=2;
   string comment_username=3;
   string comment_content=4;
+}
+
+message NewLikeNftMeta {
+  uint64 uid = 1;
+  string nft_asset_id=2;
+  string nft_asset_name=3;
+  string nft_asset_image=4;
 }
 
 message NewLikeStatusMeta {
@@ -1140,6 +1164,10 @@ message Message {
   NewFansMeta new_fans_meta = 23;
   NewForwardMeta new_forward_meta = 24;
   NewLikeCommentMeta new_like_comment_meta = 25;
+  NewNftCommentMeta new_nft_comment = 26;
+  NewLikeNftMeta new_like_nft = 27;
+  NewLikeNftCommentMeta new_like_nft_comment_meta = 28;
+  NftAsset nft_asset = 29;
 }
 
 message ListMessageRequest {
