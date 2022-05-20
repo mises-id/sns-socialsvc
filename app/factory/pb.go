@@ -37,8 +37,8 @@ func NewUserInfo(user *models.User) *pb.UserInfo {
 	if user.NftAvatar != nil {
 		userinfo.AvatarUrl = &pb.UserAvatar{
 			Small:      user.NftAvatar.ImageThumbnailUrl,
-			Medium:     user.NftAvatar.ImageURL,
-			Large:      user.NftAvatar.ImagePreviewUrl,
+			Medium:     user.NftAvatar.ImagePreviewUrl,
+			Large:      user.NftAvatar.ImageURL,
 			NftAssetId: user.NftAvatar.NftAssetID.Hex(),
 		}
 	} else {
@@ -47,6 +47,10 @@ func NewUserInfo(user *models.User) *pb.UserInfo {
 			Medium:     user.AvatarUrl,
 			Large:      user.AvatarUrl,
 			NftAssetId: "",
+		}
+		if user.Avatar != nil {
+			userinfo.AvatarUrl.Small = user.Avatar.Small
+			userinfo.AvatarUrl.Medium = user.Avatar.Medium
 		}
 	}
 	return &userinfo

@@ -12,6 +12,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/search"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"github.com/mises-id/sns-socialsvc/lib/utils"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -116,13 +117,13 @@ func SaveUserNftLog(ctx context.Context, uid uint64) error {
 }
 
 func UpdateOpenseaNft(ctx context.Context) error {
-	sh, _ := time.ParseDuration("-1m")
+	sh, _ := time.ParseDuration("-8h")
 	st := time.Now().UTC().Add(sh)
 	logs, err := models.ListNftLog(ctx, &search.NftLogSearch{
 		NeedUpdate:     true,
 		UpdatedAt:      &st,
 		NftTagableType: enum.NftTagableTypeOwner,
-		ListNum:        20,
+		ListNum:        10,
 	})
 	if err != nil {
 		return err
@@ -161,6 +162,7 @@ func updateUserNftAssets(ctx context.Context, uid uint64, address string) error 
 		Owner: address,
 	}
 	for i := 0; i < 100; i++ {
+		time.Sleep(time.Second * 1)
 		out, err := ListAssetOut(ctx, params)
 		if err != nil {
 			return err
@@ -183,10 +185,12 @@ func updateOrCreateNftAssets(ctx context.Context, uid uint64, assets []*models.A
 		asset.Blockchains = enum.EthMain
 		nft_asset, err := saveUserNftAssetOne(ctx, uid, asset)
 		if err != nil {
+			logrus.Printf("save user nft_asset one err: %s", err.Error())
 			return err
 		}
 		//save event
 		if err = updateNftAssetOneEvent(ctx, nft_asset); err != nil {
+			logrus.Printf("update nft_asset one event err: %s", err.Error())
 			return err
 		}
 	}
@@ -194,6 +198,7 @@ func updateOrCreateNftAssets(ctx context.Context, uid uint64, assets []*models.A
 }
 
 func saveUserNftAssetOne(ctx context.Context, uid uint64, asset *models.Asset) (*models.NftAsset, error) {
+	time.Sleep(time.Second * 1)
 	if asset == nil {
 		return nil, errors.New("saveUserNftAssetOne asset is nil")
 	}
@@ -223,6 +228,9 @@ func updateNftAssetOne(ctx context.Context, nft_asset *models.NftAsset, new_asse
 	if nft_asset == nil {
 		return errors.New("updateNftAssetOne nft_asset is nil")
 	}
+	if new_asset.AssetContract == nil {
+		return errors.New("updateNftAssetOne new_asset is nil")
+	}
 	uid := nft_asset.UID
 	new_asset.Blockchains = nft_asset.Blockchains
 	new_asset.UID = nft_asset.UID
@@ -246,10 +254,10 @@ func updateNftAssetOne(ctx context.Context, nft_asset *models.NftAsset, new_asse
 			new_asset.UID = new_owner_user.UID
 		}
 	}
-
-	if err := models.UpdateNftAsset(ctx, new_asset); err != nil {
+	nft_asset.Asset = *new_asset
+	if err := models.UpdateNftAsset(ctx, nft_asset); err != nil {
 		return err
 	}
-	nft_asset.Asset = *new_asset
+
 	return nil
 }

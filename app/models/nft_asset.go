@@ -2,6 +2,7 @@ package models
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
@@ -53,6 +54,9 @@ type NftAsset struct {
 }
 
 func CreateNftAsset(ctx context.Context, data *NftAsset) (*NftAsset, error) {
+	if data.AssetContract == nil {
+		return nil, errors.New("create nft_asset asset_contract is nil")
+	}
 	data.CreatedAt = time.Now()
 	data.UpdatedAt = time.Now()
 	opt := &options.FindOneAndUpdateOptions{}
@@ -65,11 +69,14 @@ func CreateNftAsset(ctx context.Context, data *NftAsset) (*NftAsset, error) {
 	return data, result.Decode(data)
 }
 
-func UpdateNftAsset(ctx context.Context, data *Asset) error {
-	data.UpdatedAt = time.Now()
-	_, err := db.DB().Collection("nftassets").UpdateOne(ctx,
-		bson.M{"asset_contract.address": data.AssetContract.Address, "token_id": data.TokenId},
-		bson.D{{Key: "$set", Value: data}})
+func UpdateNftAsset(ctx context.Context, data *NftAsset) error {
+	if data.AssetContract == nil {
+		return errors.New("update nft_asset asset_contract is nil")
+	}
+	data.Asset.UpdatedAt = time.Now()
+	_, err := db.DB().Collection("nftassets").UpdateByID(ctx,
+		data.ID,
+		bson.D{{Key: "$set", Value: data.Asset}})
 	if err != nil {
 		return err
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"time"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/search"
@@ -67,11 +68,15 @@ func updateNftAssetOneEvent(ctx context.Context, asset *models.NftAsset) error {
 	if asset == nil {
 		return errors.New("updateNftAssetOneEvent asset is nil")
 	}
+	if asset.Asset.AssetContract == nil {
+		return errors.New("updateNftAssetOneEvent asset_contract is nil")
+	}
 	params := &OpensaeInput{
-		AssetContractAddress: asset.AssetContract.Address,
+		AssetContractAddress: asset.Asset.AssetContract.Address,
 		TokenId:              asset.TokenId,
 	}
 	for i := 0; i < 100; i++ {
+		time.Sleep(time.Second * 1)
 		out, err := ListEventOut(ctx, params)
 		if err != nil {
 			fmt.Println("list err: ", err.Error())

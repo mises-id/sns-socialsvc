@@ -387,8 +387,22 @@ func preloadUserAvatar(ctx context.Context, users ...*User) error {
 	if err != nil {
 		return err
 	}
+	//thumb image
+	optsThumb := &storage.ImageOptions{
+		ResizeOptions: &storage.ResizeOptions{Resize: true, Width: 128, Height: 128},
+	}
+	optsMedium := &storage.ImageOptions{
+		ResizeOptions: &storage.ResizeOptions{Resize: true, Width: 200, Height: 200},
+	}
+	thumbImages, err := storage.ImageClient.GetFileUrlOptions(ctx, optsThumb, paths...)
+	mediumImages, err := storage.ImageClient.GetFileUrlOptions(ctx, optsMedium, paths...)
 	for _, user := range users {
 		user.AvatarUrl = avatars[user.AvatarPath]
+		user.Avatar = &Avatar{}
+		user.Avatar.Orgin = avatars[user.AvatarPath]
+		user.Avatar.Large = avatars[user.AvatarPath]
+		user.Avatar.Small = thumbImages[user.AvatarPath]
+		user.Avatar.Medium = mediumImages[user.AvatarPath]
 	}
 	return nil
 }

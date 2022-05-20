@@ -61,7 +61,7 @@ type (
 	}
 )
 
-func (res *HttpResult) Restult(out interface{}) error {
+func (res *HttpResult) Result(out interface{}) error {
 	if res.statusCode != http.StatusOK {
 		return errors.New(res.status)
 	}
@@ -108,7 +108,7 @@ func ListAsset(ctx context.Context, currentUID uint64, in *ListAssetInput) (stri
 }
 func AfterListAsset(ctx context.Context, currentUID uint64, httpResult *HttpResult) error {
 	out := &ListAssetOutput{}
-	httpResult.Restult(out)
+	httpResult.Result(out)
 	err := SaveUserNftAsset(ctx, currentUID, out.Assets)
 	if err != nil {
 		fmt.Println(err.Error())
@@ -121,8 +121,8 @@ func ListAssetOut(ctx context.Context, in *ListAssetInput) (*ListAssetOutput, er
 	if err != nil {
 		return nil, codes.ErrTooManyRequests.Newf(err.Error())
 	}
-	out.Restult(res)
-	return res, nil
+
+	return res, out.Result(res)
 }
 
 func ListAssetApi(ctx context.Context, in *ListAssetInput) (*HttpResult, error) {
@@ -153,8 +153,7 @@ func ListEventOut(ctx context.Context, in *OpensaeInput) (*ListEventOutput, erro
 	if err != nil {
 		return nil, codes.ErrTooManyRequests.Newf(err.Error())
 	}
-	out.Restult(res)
-	return res, nil
+	return res, out.Result(res)
 }
 func ListEventApi(ctx context.Context, in *OpensaeInput) (*HttpResult, error) {
 	if in.Limit >= 50 || in.Limit <= 0 {
@@ -230,8 +229,7 @@ func GetSingleAssetOut(ctx context.Context, in *SingleAssetInput) (*models.Asset
 	if err != nil {
 		return nil, codes.ErrTooManyRequests.Newf(err.Error())
 	}
-	out.Restult(res)
-	return res, nil
+	return res, out.Result(res)
 }
 
 func GetSingleAsset(ctx context.Context, in *SingleAssetInput) (string, error) {
