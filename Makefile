@@ -18,5 +18,7 @@ truss:
 	truss proto/socialsvc.proto  --pbpkg github.com/mises-id/sns-socialsvc/proto --svcpkg github.com/mises-id/sns-socialsvc --svcout . -v 
 
 test:
-	APP_ENV=test go test -coverprofile coverage.out -v --tags tests -parallel 1  ./...
+	APP_ENV=test go test -coverprofile coverage.out  -count=1 --tags tests  -coverpkg=./app/... ./tests/...
 
+coverage:
+	go tool cover -html=coverage.out
