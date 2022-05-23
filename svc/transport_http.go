@@ -201,6 +201,32 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("POST").Path("/nft_asset/like/").Handler(httptransport.NewServer(
+		endpoints.LikeNftAssetEndpoint,
+		DecodeHTTPLikeNftAssetZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("POST").Path("/nft_asset/like").Handler(httptransport.NewServer(
+		endpoints.LikeNftAssetEndpoint,
+		DecodeHTTPLikeNftAssetOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("POST").Path("/nft_asset/unlike/").Handler(httptransport.NewServer(
+		endpoints.UnlikeNftAssetEndpoint,
+		DecodeHTTPUnlikeNftAssetZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("POST").Path("/nft_asset/unlike").Handler(httptransport.NewServer(
+		endpoints.UnlikeNftAssetEndpoint,
+		DecodeHTTPUnlikeNftAssetOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("GET").Path("/status/").Handler(httptransport.NewServer(
 		endpoints.GetStatusEndpoint,
 		DecodeHTTPGetStatusZeroRequest,
@@ -366,6 +392,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 	m.Methods("GET").Path("/comment/list").Handler(httptransport.NewServer(
 		endpoints.ListCommentEndpoint,
 		DecodeHTTPListCommentOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/like/list/").Handler(httptransport.NewServer(
+		endpoints.ListLikeEndpoint,
+		DecodeHTTPListLikeZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/like/list").Handler(httptransport.NewServer(
+		endpoints.ListLikeEndpoint,
+		DecodeHTTPListLikeOneRequest,
 		responseEncoder,
 		serverOptions...,
 	))
@@ -652,6 +691,84 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 	m.Methods("GET").Path("/opensea/asset_contract").Handler(httptransport.NewServer(
 		endpoints.GetOpenseaAssetContractEndpoint,
 		DecodeHTTPGetOpenseaAssetContractOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/nft_asset/page/").Handler(httptransport.NewServer(
+		endpoints.PageNftAssetEndpoint,
+		DecodeHTTPPageNftAssetZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/nft_asset/page").Handler(httptransport.NewServer(
+		endpoints.PageNftAssetEndpoint,
+		DecodeHTTPPageNftAssetOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/nft_asset/get/").Handler(httptransport.NewServer(
+		endpoints.GetNftAssetEndpoint,
+		DecodeHTTPGetNftAssetZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/nft_asset/get").Handler(httptransport.NewServer(
+		endpoints.GetNftAssetEndpoint,
+		DecodeHTTPGetNftAssetOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/nft_event/page/").Handler(httptransport.NewServer(
+		endpoints.PageNftEventEndpoint,
+		DecodeHTTPPageNftEventZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/nft_event/page").Handler(httptransport.NewServer(
+		endpoints.PageNftEventEndpoint,
+		DecodeHTTPPageNftEventOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("POST").Path("/user/config/").Handler(httptransport.NewServer(
+		endpoints.UpdateUserConfigEndpoint,
+		DecodeHTTPUpdateUserConfigZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("POST").Path("/user/config").Handler(httptransport.NewServer(
+		endpoints.UpdateUserConfigEndpoint,
+		DecodeHTTPUpdateUserConfigOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/user/config/").Handler(httptransport.NewServer(
+		endpoints.GetUserConfigEndpoint,
+		DecodeHTTPGetUserConfigZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/user/config").Handler(httptransport.NewServer(
+		endpoints.GetUserConfigEndpoint,
+		DecodeHTTPGetUserConfigOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/nft/update/").Handler(httptransport.NewServer(
+		endpoints.UpdateOpenseaNftEndpoint,
+		DecodeHTTPUpdateOpenseaNftZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/nft/update").Handler(httptransport.NewServer(
+		endpoints.UpdateOpenseaNftEndpoint,
+		DecodeHTTPUpdateOpenseaNftOneRequest,
 		responseEncoder,
 		serverOptions...,
 	))
@@ -1612,6 +1729,150 @@ func DecodeHTTPListLikeStatusOneRequest(_ context.Context, r *http.Request) (int
 		}
 
 	}
+
+	return &req, err
+}
+
+// DecodeHTTPLikeNftAssetZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded likenftasset request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPLikeNftAssetZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.LikeNftAssetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPLikeNftAssetOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded likenftasset request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPLikeNftAssetOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.LikeNftAssetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPUnlikeNftAssetZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded unlikenftasset request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUnlikeNftAssetZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UnLikeNftAssetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPUnlikeNftAssetOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded unlikenftasset request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUnlikeNftAssetOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UnLikeNftAssetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
 
 	return &req, err
 }
@@ -3106,6 +3367,12 @@ func DecodeHTTPListCommentZeroRequest(_ context.Context, r *http.Request) (inter
 
 	}
 
+	if NftAssetIdListCommentStrArr, ok := queryParams["nft_asset_id"]; ok {
+		NftAssetIdListCommentStr := NftAssetIdListCommentStrArr[0]
+		NftAssetIdListComment := NftAssetIdListCommentStr
+		req.NftAssetId = NftAssetIdListComment
+	}
+
 	return &req, err
 }
 
@@ -3169,6 +3436,134 @@ func DecodeHTTPListCommentOneRequest(_ context.Context, r *http.Request) (interf
 		err = json.Unmarshal([]byte(PaginatorListCommentStr), req.Paginator)
 		if err != nil {
 			return nil, errors.Wrapf(err, "couldn't decode PaginatorListComment from %v", PaginatorListCommentStr)
+		}
+
+	}
+
+	if NftAssetIdListCommentStrArr, ok := queryParams["nft_asset_id"]; ok {
+		NftAssetIdListCommentStr := NftAssetIdListCommentStrArr[0]
+		NftAssetIdListComment := NftAssetIdListCommentStr
+		req.NftAssetId = NftAssetIdListComment
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPListLikeZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded listlike request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPListLikeZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ListLikeUserRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidListLikeStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListLikeStr := CurrentUidListLikeStrArr[0]
+		CurrentUidListLike, err := strconv.ParseUint(CurrentUidListLikeStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListLike from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListLike
+	}
+
+	if TargerIdListLikeStrArr, ok := queryParams["targer_id"]; ok {
+		TargerIdListLikeStr := TargerIdListLikeStrArr[0]
+		TargerIdListLike := TargerIdListLikeStr
+		req.TargerId = TargerIdListLike
+	}
+
+	if PaginatorListLikeStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorListLikeStr := PaginatorListLikeStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorListLikeStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorListLike from %v", PaginatorListLikeStr)
+		}
+
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPListLikeOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded listlike request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPListLikeOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ListLikeUserRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidListLikeStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListLikeStr := CurrentUidListLikeStrArr[0]
+		CurrentUidListLike, err := strconv.ParseUint(CurrentUidListLikeStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListLike from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListLike
+	}
+
+	if TargerIdListLikeStrArr, ok := queryParams["targer_id"]; ok {
+		TargerIdListLikeStr := TargerIdListLikeStrArr[0]
+		TargerIdListLike := TargerIdListLikeStr
+		req.TargerId = TargerIdListLike
+	}
+
+	if PaginatorListLikeStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorListLikeStr := PaginatorListLikeStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorListLikeStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorListLike from %v", PaginatorListLikeStr)
 		}
 
 	}
@@ -4839,6 +5234,15 @@ func DecodeHTTPGetOpenseaAssetZeroRequest(_ context.Context, r *http.Request) (i
 		req.Network = NetworkGetOpenseaAsset
 	}
 
+	if CurrentUidGetOpenseaAssetStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetOpenseaAssetStr := CurrentUidGetOpenseaAssetStrArr[0]
+		CurrentUidGetOpenseaAsset, err := strconv.ParseUint(CurrentUidGetOpenseaAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetOpenseaAsset from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetOpenseaAsset
+	}
+
 	return &req, err
 }
 
@@ -4905,6 +5309,15 @@ func DecodeHTTPGetOpenseaAssetOneRequest(_ context.Context, r *http.Request) (in
 		req.Network = NetworkGetOpenseaAsset
 	}
 
+	if CurrentUidGetOpenseaAssetStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetOpenseaAssetStr := CurrentUidGetOpenseaAssetStrArr[0]
+		CurrentUidGetOpenseaAsset, err := strconv.ParseUint(CurrentUidGetOpenseaAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetOpenseaAsset from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetOpenseaAsset
+	}
+
 	return &req, err
 }
 
@@ -4968,6 +5381,15 @@ func DecodeHTTPListOpenseaAssetZeroRequest(_ context.Context, r *http.Request) (
 		req.Network = NetworkListOpenseaAsset
 	}
 
+	if CurrentUidListOpenseaAssetStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListOpenseaAssetStr := CurrentUidListOpenseaAssetStrArr[0]
+		CurrentUidListOpenseaAsset, err := strconv.ParseUint(CurrentUidListOpenseaAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListOpenseaAsset from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListOpenseaAsset
+	}
+
 	return &req, err
 }
 
@@ -5029,6 +5451,15 @@ func DecodeHTTPListOpenseaAssetOneRequest(_ context.Context, r *http.Request) (i
 		NetworkListOpenseaAssetStr := NetworkListOpenseaAssetStrArr[0]
 		NetworkListOpenseaAsset := NetworkListOpenseaAssetStr
 		req.Network = NetworkListOpenseaAsset
+	}
+
+	if CurrentUidListOpenseaAssetStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidListOpenseaAssetStr := CurrentUidListOpenseaAssetStrArr[0]
+		CurrentUidListOpenseaAsset, err := strconv.ParseUint(CurrentUidListOpenseaAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidListOpenseaAsset from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidListOpenseaAsset
 	}
 
 	return &req, err
@@ -5097,6 +5528,15 @@ func DecodeHTTPGetOpenseaAssetContractZeroRequest(_ context.Context, r *http.Req
 		req.Network = NetworkGetOpenseaAssetContract
 	}
 
+	if CurrentUidGetOpenseaAssetContractStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetOpenseaAssetContractStr := CurrentUidGetOpenseaAssetContractStrArr[0]
+		CurrentUidGetOpenseaAssetContract, err := strconv.ParseUint(CurrentUidGetOpenseaAssetContractStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetOpenseaAssetContract from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetOpenseaAssetContract
+	}
+
 	return &req, err
 }
 
@@ -5162,6 +5602,643 @@ func DecodeHTTPGetOpenseaAssetContractOneRequest(_ context.Context, r *http.Requ
 		NetworkGetOpenseaAssetContract := NetworkGetOpenseaAssetContractStr
 		req.Network = NetworkGetOpenseaAssetContract
 	}
+
+	if CurrentUidGetOpenseaAssetContractStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetOpenseaAssetContractStr := CurrentUidGetOpenseaAssetContractStrArr[0]
+		CurrentUidGetOpenseaAssetContract, err := strconv.ParseUint(CurrentUidGetOpenseaAssetContractStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetOpenseaAssetContract from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetOpenseaAssetContract
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPPageNftAssetZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded pagenftasset request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPPageNftAssetZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.PageNftAssetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidPageNftAssetStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidPageNftAssetStr := CurrentUidPageNftAssetStrArr[0]
+		CurrentUidPageNftAsset, err := strconv.ParseUint(CurrentUidPageNftAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidPageNftAsset from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidPageNftAsset
+	}
+
+	if UidPageNftAssetStrArr, ok := queryParams["uid"]; ok {
+		UidPageNftAssetStr := UidPageNftAssetStrArr[0]
+		UidPageNftAsset, err := strconv.ParseUint(UidPageNftAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidPageNftAsset from query, queryParams: %v", queryParams))
+		}
+		req.Uid = UidPageNftAsset
+	}
+
+	if PaginatorPageNftAssetStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorPageNftAssetStr := PaginatorPageNftAssetStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorPageNftAssetStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorPageNftAsset from %v", PaginatorPageNftAssetStr)
+		}
+
+	}
+
+	if SortByPageNftAssetStrArr, ok := queryParams["sort_by"]; ok {
+		SortByPageNftAssetStr := SortByPageNftAssetStrArr[0]
+		SortByPageNftAsset := SortByPageNftAssetStr
+		req.SortBy = SortByPageNftAsset
+	}
+
+	if ScenePageNftAssetStrArr, ok := queryParams["scene"]; ok {
+		ScenePageNftAssetStr := ScenePageNftAssetStrArr[0]
+		ScenePageNftAsset := ScenePageNftAssetStr
+		req.Scene = ScenePageNftAsset
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPPageNftAssetOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded pagenftasset request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPPageNftAssetOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.PageNftAssetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidPageNftAssetStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidPageNftAssetStr := CurrentUidPageNftAssetStrArr[0]
+		CurrentUidPageNftAsset, err := strconv.ParseUint(CurrentUidPageNftAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidPageNftAsset from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidPageNftAsset
+	}
+
+	if UidPageNftAssetStrArr, ok := queryParams["uid"]; ok {
+		UidPageNftAssetStr := UidPageNftAssetStrArr[0]
+		UidPageNftAsset, err := strconv.ParseUint(UidPageNftAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidPageNftAsset from query, queryParams: %v", queryParams))
+		}
+		req.Uid = UidPageNftAsset
+	}
+
+	if PaginatorPageNftAssetStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorPageNftAssetStr := PaginatorPageNftAssetStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorPageNftAssetStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorPageNftAsset from %v", PaginatorPageNftAssetStr)
+		}
+
+	}
+
+	if SortByPageNftAssetStrArr, ok := queryParams["sort_by"]; ok {
+		SortByPageNftAssetStr := SortByPageNftAssetStrArr[0]
+		SortByPageNftAsset := SortByPageNftAssetStr
+		req.SortBy = SortByPageNftAsset
+	}
+
+	if ScenePageNftAssetStrArr, ok := queryParams["scene"]; ok {
+		ScenePageNftAssetStr := ScenePageNftAssetStrArr[0]
+		ScenePageNftAsset := ScenePageNftAssetStr
+		req.Scene = ScenePageNftAsset
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetNftAssetZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getnftasset request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetNftAssetZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetNftAssetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetNftAssetStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetNftAssetStr := CurrentUidGetNftAssetStrArr[0]
+		CurrentUidGetNftAsset, err := strconv.ParseUint(CurrentUidGetNftAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetNftAsset from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetNftAsset
+	}
+
+	if NftAssetIdGetNftAssetStrArr, ok := queryParams["nft_asset_id"]; ok {
+		NftAssetIdGetNftAssetStr := NftAssetIdGetNftAssetStrArr[0]
+		NftAssetIdGetNftAsset := NftAssetIdGetNftAssetStr
+		req.NftAssetId = NftAssetIdGetNftAsset
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetNftAssetOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getnftasset request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetNftAssetOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetNftAssetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetNftAssetStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetNftAssetStr := CurrentUidGetNftAssetStrArr[0]
+		CurrentUidGetNftAsset, err := strconv.ParseUint(CurrentUidGetNftAssetStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetNftAsset from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetNftAsset
+	}
+
+	if NftAssetIdGetNftAssetStrArr, ok := queryParams["nft_asset_id"]; ok {
+		NftAssetIdGetNftAssetStr := NftAssetIdGetNftAssetStrArr[0]
+		NftAssetIdGetNftAsset := NftAssetIdGetNftAssetStr
+		req.NftAssetId = NftAssetIdGetNftAsset
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPPageNftEventZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded pagenftevent request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPPageNftEventZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.PageNftEventRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidPageNftEventStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidPageNftEventStr := CurrentUidPageNftEventStrArr[0]
+		CurrentUidPageNftEvent, err := strconv.ParseUint(CurrentUidPageNftEventStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidPageNftEvent from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidPageNftEvent
+	}
+
+	if NftAssetIdPageNftEventStrArr, ok := queryParams["nft_asset_id"]; ok {
+		NftAssetIdPageNftEventStr := NftAssetIdPageNftEventStrArr[0]
+		NftAssetIdPageNftEvent := NftAssetIdPageNftEventStr
+		req.NftAssetId = NftAssetIdPageNftEvent
+	}
+
+	if PaginatorPageNftEventStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorPageNftEventStr := PaginatorPageNftEventStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorPageNftEventStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorPageNftEvent from %v", PaginatorPageNftEventStr)
+		}
+
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPPageNftEventOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded pagenftevent request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPPageNftEventOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.PageNftEventRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidPageNftEventStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidPageNftEventStr := CurrentUidPageNftEventStrArr[0]
+		CurrentUidPageNftEvent, err := strconv.ParseUint(CurrentUidPageNftEventStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidPageNftEvent from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidPageNftEvent
+	}
+
+	if NftAssetIdPageNftEventStrArr, ok := queryParams["nft_asset_id"]; ok {
+		NftAssetIdPageNftEventStr := NftAssetIdPageNftEventStrArr[0]
+		NftAssetIdPageNftEvent := NftAssetIdPageNftEventStr
+		req.NftAssetId = NftAssetIdPageNftEvent
+	}
+
+	if PaginatorPageNftEventStrArr, ok := queryParams["paginator"]; ok {
+		PaginatorPageNftEventStr := PaginatorPageNftEventStrArr[0]
+
+		err = json.Unmarshal([]byte(PaginatorPageNftEventStr), req.Paginator)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode PaginatorPageNftEvent from %v", PaginatorPageNftEventStr)
+		}
+
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPUpdateUserConfigZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded updateuserconfig request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUpdateUserConfigZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UpdateUserConfigRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPUpdateUserConfigOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded updateuserconfig request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUpdateUserConfigOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UpdateUserConfigRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPGetUserConfigZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getuserconfig request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetUserConfigZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetUserConfigRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetUserConfigStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetUserConfigStr := CurrentUidGetUserConfigStrArr[0]
+		CurrentUidGetUserConfig, err := strconv.ParseUint(CurrentUidGetUserConfigStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetUserConfig from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetUserConfig
+	}
+
+	if UidGetUserConfigStrArr, ok := queryParams["uid"]; ok {
+		UidGetUserConfigStr := UidGetUserConfigStrArr[0]
+		UidGetUserConfig, err := strconv.ParseUint(UidGetUserConfigStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidGetUserConfig from query, queryParams: %v", queryParams))
+		}
+		req.Uid = UidGetUserConfig
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetUserConfigOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getuserconfig request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetUserConfigOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetUserConfigRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetUserConfigStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetUserConfigStr := CurrentUidGetUserConfigStrArr[0]
+		CurrentUidGetUserConfig, err := strconv.ParseUint(CurrentUidGetUserConfigStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetUserConfig from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetUserConfig
+	}
+
+	if UidGetUserConfigStrArr, ok := queryParams["uid"]; ok {
+		UidGetUserConfigStr := UidGetUserConfigStrArr[0]
+		UidGetUserConfig, err := strconv.ParseUint(UidGetUserConfigStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting UidGetUserConfig from query, queryParams: %v", queryParams))
+		}
+		req.Uid = UidGetUserConfig
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPUpdateOpenseaNftZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded updateopenseanft request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUpdateOpenseaNftZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UpdateOpenseaNftRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPUpdateOpenseaNftOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded updateopenseanft request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPUpdateOpenseaNftOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.UpdateOpenseaNftRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
 
 	return &req, err
 }

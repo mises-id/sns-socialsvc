@@ -5,7 +5,6 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
-	"github.com/mises-id/sns-socialsvc/app/services/opensea_api"
 	pb "github.com/mises-id/sns-socialsvc/proto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -23,6 +22,7 @@ func NewUserInfo(user *models.User) *pb.UserInfo {
 		Email:           user.Email,
 		Address:         user.Address,
 		Avatar:          user.AvatarUrl,
+		Intro:           user.Intro,
 		IsFollowed:      user.IsFollowed,
 		IsAirdropped:    user.IsAirdropped,
 		AirdropStatus:   user.AirdropStatus,
@@ -33,6 +33,25 @@ func NewUserInfo(user *models.User) *pb.UserInfo {
 		NewFansCount:    user.NewFansCount,
 		IsLogined:       user.IsLogined,
 		HelpMisesid:     user.Misesid,
+	}
+	if user.NftAvatar != nil {
+		userinfo.AvatarUrl = &pb.UserAvatar{
+			Small:      user.NftAvatar.ImageThumbnailUrl,
+			Medium:     user.NftAvatar.ImagePreviewUrl,
+			Large:      user.NftAvatar.ImageURL,
+			NftAssetId: user.NftAvatar.NftAssetID.Hex(),
+		}
+	} else {
+		userinfo.AvatarUrl = &pb.UserAvatar{
+			Small:      user.AvatarUrl,
+			Medium:     user.AvatarUrl,
+			Large:      user.AvatarUrl,
+			NftAssetId: "",
+		}
+		if user.Avatar != nil {
+			userinfo.AvatarUrl.Small = user.Avatar.Small
+			userinfo.AvatarUrl.Medium = user.Avatar.Medium
+		}
 	}
 	return &userinfo
 }
@@ -100,6 +119,144 @@ func NewStatusInfoSlice(statuses []*models.Status) []*pb.StatusInfo {
 	}
 	return result
 }
+func NewNftAssetSlice(assets []*models.NftAsset) []*pb.NftAsset {
+	result := make([]*pb.NftAsset, len(assets))
+	for i, asset := range assets {
+		result[i] = NewNftAsset(asset)
+	}
+	return result
+}
+func NewNftEventSlice(events []*models.NftEvent) []*pb.NftEvent {
+	result := make([]*pb.NftEvent, len(events))
+	for i, event := range events {
+		result[i] = NewNftEvent(event)
+	}
+	return result
+}
+func NewLikeSlice(likes []*models.Like) []*pb.Like {
+	result := make([]*pb.Like, len(likes))
+	for i, like := range likes {
+		result[i] = NewLike(like)
+	}
+	return result
+}
+func NewLike(like *models.Like) *pb.Like {
+	if like == nil {
+		return nil
+	}
+	resp := &pb.Like{
+		Id: docID(like.ID),
+	}
+	resp.User = NewUserInfo(like.User)
+	return resp
+}
+
+func NewAssetContract(in *models.AssetContract) *pb.AssetContract {
+	if in == nil {
+		return nil
+	}
+	result := &pb.AssetContract{
+		Address: in.Address,
+	}
+	return result
+}
+func NewCollection(in *models.NftCollection) *pb.NftCollection {
+	if in == nil {
+		return nil
+	}
+	result := &pb.NftCollection{
+		Name:  in.Name,
+		Slug:  in.Slug,
+		Stats: NewStats(in.Stats),
+	}
+	if in.PaymentToken != nil {
+		result.PaymentToken = NewPaymentTokenSlice(in.PaymentToken)
+	}
+	return result
+}
+
+func NewPaymentTokenSlice(in []*models.PaymentToken) []*pb.PaymentToken {
+	result := make([]*pb.PaymentToken, len(in))
+	for i, v := range in {
+		result[i] = NewPaymentToken(v)
+	}
+	return result
+}
+
+func NewPaymentToken(in *models.PaymentToken) *pb.PaymentToken {
+	if in == nil {
+		return nil
+	}
+	result := &pb.PaymentToken{
+		Id:       uint64(in.ID),
+		Symbol:   in.Symbol,
+		Address:  in.Address,
+		Name:     in.Name,
+		EthPrice: in.ETHPrice,
+		UsdPrice: in.USDPrice,
+		Decimals: in.Decimals,
+	}
+	return result
+}
+
+func NewStats(in *models.Stats) *pb.Stats {
+	if in == nil {
+		return nil
+	}
+	result := &pb.Stats{
+		FloorPrice: float32(in.FloorPrice),
+	}
+	return result
+}
+
+func NewNftAsset(asset *models.NftAsset) *pb.NftAsset {
+	if asset == nil {
+		return nil
+	}
+	result := &pb.NftAsset{
+		Id:                docID(asset.ID),
+		ImageUrl:          asset.ImageURL,
+		ImagePreviewUrl:   asset.ImagePreviewUrl,
+		ImageThumbnailUrl: asset.ImageThumbnailUrl,
+		TokenId:           asset.TokenId,
+		PermaLink:         asset.PermaLink,
+		LikesCount:        asset.LikesCount,
+		CommentsCount:     asset.CommentsCount,
+		Name:              asset.Name,
+		User:              NewUserInfo(asset.User),
+		IsLiked:           asset.IsLiked,
+	}
+	result.AssetContract = NewAssetContract(asset.AssetContract)
+	result.Collection = NewCollection(asset.Collection)
+	return result
+}
+
+func NewNftEvent(event *models.NftEvent) *pb.NftEvent {
+	if event == nil {
+		return nil
+	}
+	result := &pb.NftEvent{
+		Id:           docID(event.ID),
+		EventType:    event.EventType,
+		FromAccount:  NewNftAccount(event.FromAccount),
+		ToAccount:    NewNftAccount(event.ToAccount),
+		CreatedDate:  event.CreatedDate,
+		PaymentToken: NewPaymentToken(event.PaymentToken),
+	}
+	return result
+}
+
+func NewNftAccount(account *models.Account) *pb.NftAccount {
+	if account == nil {
+		return nil
+	}
+	result := &pb.NftAccount{
+		Address:       account.Address,
+		ProfileImgUrl: account.ProfileImgUrl,
+		MisesUser:     NewUserInfo(account.MisesUser),
+	}
+	return result
+}
 
 func NewRelationInfoSlice(relationType enum.RelationType, follows []*models.Follow) []*pb.RelationInfo {
 	result := make([]*pb.RelationInfo, len(follows))
@@ -145,7 +302,34 @@ func newCommentMeta(meta *message.CommentMeta) *pb.NewCommentMeta {
 		StatusImageUrl:       meta.StatusImageURL,
 	}
 }
+func newNftCommentMeta(meta *message.NftAssetCommentMeta) *pb.NewNftCommentMeta {
+	if meta == nil {
+		return &pb.NewNftCommentMeta{}
+	}
+	return &pb.NewNftCommentMeta{
+		Uid:            meta.UID,
+		GroupId:        docID(meta.GroupID),
+		CommentId:      docID(meta.CommentID),
+		Content:        meta.Content,
+		ParentContent:  meta.ParentContent,
+		ParentUserName: meta.ParentUsername,
+		NftAssetName:   meta.NftAssetName,
+		NftAssetImage:  meta.NftAssetImage,
+	}
+}
 
+func newLikeNftMeta(meta *message.LikeNftAssetMeta) *pb.NewLikeNftMeta {
+	if meta == nil {
+		return &pb.NewLikeNftMeta{}
+	}
+	return &pb.NewLikeNftMeta{
+		Uid:           meta.UID,
+		NftAssetId:    meta.NftAssetID.Hex(),
+		NftAssetName:  meta.NftAssetName,
+		NftAssetImage: meta.NftAssetImage,
+	}
+
+}
 func newLikeStatusMeta(meta *message.LikeStatusMeta) *pb.NewLikeStatusMeta {
 	if meta == nil {
 		return &pb.NewLikeStatusMeta{}
@@ -164,6 +348,17 @@ func newLikeCommentMeta(meta *message.LikeCommentMeta) *pb.NewLikeCommentMeta {
 		return &pb.NewLikeCommentMeta{}
 	}
 	return &pb.NewLikeCommentMeta{
+		Uid:             meta.UID,
+		CommentId:       meta.CommentID.Hex(),
+		CommentUsername: meta.CommentUsername,
+		CommentContent:  meta.CommentContent,
+	}
+}
+func newLikeNftCommentMeta(meta *message.LikeNftAssetCommentMeta) *pb.NewLikeNftCommentMeta {
+	if meta == nil {
+		return &pb.NewLikeNftCommentMeta{}
+	}
+	return &pb.NewLikeNftCommentMeta{
 		Uid:             meta.UID,
 		CommentId:       meta.CommentID.Hex(),
 		CommentUsername: meta.CommentUsername,
@@ -204,6 +399,7 @@ func NewMessage(message *models.Message) *pb.Message {
 		FromUser:         NewUserInfo(message.FromUser),
 		State:            message.State(),
 		Status:           NewStatusInfo(message.Status),
+		NftAsset:         NewNftAsset(message.NftAsset),
 		CreatedAt:        uint64(message.CreatedAt.Unix()),
 		StatusIsDeleted:  message.StatusIsDeleted,
 		CommentIsDeleted: message.CommentIsDeleted,
@@ -215,6 +411,12 @@ func NewMessage(message *models.Message) *pb.Message {
 		result.NewLikeStatusMeta = newLikeStatusMeta(message.LikeStatusMeta)
 	case enum.NewLikeComment:
 		result.NewLikeCommentMeta = newLikeCommentMeta(message.LikeCommentMeta)
+	case enum.NewNftComment:
+		result.NewNftComment = newNftCommentMeta(message.NftCommentMeta)
+	case enum.NewLikeNftComment:
+		result.NewLikeNftCommentMeta = newLikeNftCommentMeta(message.LikeNftCommentMeta)
+	case enum.NewLikeNft:
+		result.NewLikeNft = newLikeNftMeta(message.LikeNftMeta)
 	case enum.NewFans:
 		result.NewFansMeta = newFansMeta(message.FansMeta)
 	case enum.NewForward:
@@ -313,21 +515,6 @@ func NewChannelUser(channel_user *models.ChannelUser) *pb.ChannelUserInfo {
 		ChannelMisesid: channel_user.ChannelMisesid,
 	}
 
-}
-func NewOpenseaAsset(in *opensea_api.AssetModel) *pb.OpenseaAsset {
-	return &pb.OpenseaAsset{
-		Id:       in.ID,
-		ImageUrl: in.ImageUrl,
-		Name:     in.Name,
-	}
-}
-
-func NewOpenseaAssetSlice(assets []*opensea_api.AssetModel) []*pb.OpenseaAsset {
-	result := make([]*pb.OpenseaAsset, len(assets))
-	for i, v := range assets {
-		result[i] = NewOpenseaAsset(v)
-	}
-	return result
 }
 
 func NewStatusLikeSlice(likes []*models.Like) []*pb.StatusLike {

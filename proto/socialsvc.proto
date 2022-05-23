@@ -169,6 +169,34 @@ service Social {
       }
     };
   }
+    //like a nft_asset
+    rpc LikeNftAsset (LikeNftAssetRequest) returns (SimpleResponse) {
+      option (google.api.http) = {
+        // All fields (In) are query parameters of the http request unless otherwise specified
+        post: "/nft_asset/like"
+        body: "*"
+  
+        additional_bindings {
+          // Trailing slashes are different routes
+          post: "/nft_asset/like/"
+          body: "*"
+        }
+      };
+    }
+  //unlike a nft_asset
+  rpc UnlikeNftAsset (UnLikeNftAssetRequest) returns (SimpleResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/nft_asset/unlike"
+      body: "*"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/nft_asset/unlike/"
+        body: "*"
+      }
+    };
+  }
 
   //query single status
   rpc GetStatus (GetStatusRequest) returns (GetStatusResponse) {
@@ -342,6 +370,17 @@ service Social {
       additional_bindings {
         // Trailing slashes are different routes
         get: "/comment/list/"
+      }
+    };
+  }
+  rpc ListLike (ListLikeUserRequest) returns (ListLikeUserResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/like/list"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/like/list/"
       }
     };
   }
@@ -609,6 +648,73 @@ service Social {
       }
     };
   }
+  rpc PageNftAsset (PageNftAssetRequest) returns (PageNftAssetResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/nft_asset/page"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/nft_asset/page/"
+      }
+    };
+  }
+  rpc GetNftAsset (GetNftAssetRequest) returns (GetNftAssetResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/nft_asset/get"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/nft_asset/get/"
+      }
+    };
+  }
+  rpc PageNftEvent (PageNftEventRequest) returns (PageNftEventResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/nft_event/page"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/nft_event/page/"
+      }
+    };
+  }
+  rpc UpdateUserConfig (UpdateUserConfigRequest) returns (UpdateUserConfigResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/user/config"
+      body: "*"
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/user/config/"
+        body: "*"
+      }
+    };
+  }
+  rpc GetUserConfig (GetUserConfigRequest) returns (GetUserConfigResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/user/config"
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/user/config/"
+      }
+    };
+  }
+  rpc UpdateOpenseaNft (UpdateOpenseaNftRequest) returns (UpdateOpenseaNftResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/nft/update"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/nft/update/"
+      }
+    };
+  }
+  
 }
 
 message SignInRequest {
@@ -626,6 +732,7 @@ message UserAvatar {
   string small = 1;
 	string		medium = 2;
   string	large = 3;
+  string nft_asset_id = 4;
 }
 
 message UserInfo {
@@ -648,6 +755,7 @@ message UserInfo {
   bool airdrop_status = 17;
   bool is_logined = 18;
   string help_misesid = 19;
+  string intro = 20;
 }
 
 message FindUserRequest {
@@ -668,11 +776,13 @@ message UpdateUserProfileRequest {
   string mobile = 3;
   string email = 4;
   string address = 5;
+  string intro = 6;
 }
 
 message UpdateUserAvatarRequest {
   uint64 uid = 1;
   string attachment_path = 2;
+  string nft_asset_id = 3;
 }
 
 message UpdateUserNameRequest {
@@ -854,11 +964,22 @@ message SimpleResponse {
 message LikeStatusRequest {
   uint64 current_uid = 1;
   string statusid = 2;
+  string nft_asset_id = 3;
 }
 
 message UnLikeStatusRequest {
   uint64 current_uid = 1;
   string statusid = 2;
+  string nft_asset_id = 3;
+}
+message LikeNftAssetRequest {
+  uint64 current_uid = 1;
+  string nft_asset_id = 2;
+}
+
+message UnLikeNftAssetRequest {
+  uint64 current_uid = 1;
+  string nft_asset_id = 2;
 }
 
 message FollowRequest {
@@ -905,6 +1026,7 @@ message Comment {
   uint64 like_count = 12;
 	uint64 created_at = 13;
   bool is_liked = 14;
+  string nft_asset_id = 15;
 }
 
 message GetCommentRequest {
@@ -922,11 +1044,28 @@ message ListCommentRequest {
   string status_id = 2;
   string topic_id = 3;
   PageQuick paginator = 4;
+  string nft_asset_id = 5;
 }
 
 message ListCommentResponse {
   uint64 code = 1;
   repeated Comment comments = 2;
+  PageQuick paginator = 3;
+}
+message ListLikeUserRequest {
+  uint64 current_uid = 1;
+  string targer_id = 2;
+  PageQuick paginator = 3;
+  
+}
+
+message Like {
+  string id = 1;
+UserInfo user = 2;
+}
+message ListLikeUserResponse {
+  uint64 code = 1;
+  repeated Like likes = 2;
   PageQuick paginator = 3;
 }
 
@@ -935,6 +1074,7 @@ message CreateCommentRequest {
   string status_id = 2;
   string parent_id = 3;
   string content = 4;
+  string nft_asset_id = 5;
 }
 
 message DeleteCommentRequest {
@@ -958,11 +1098,35 @@ message NewCommentMeta {
   string status_image_url=8;
 }
 
+message NewNftCommentMeta {
+  uint64 uid = 1;
+  string group_id=2;
+  string comment_id=3;
+  string content=4;
+  string parent_content=5;
+  string parent_user_name=6;
+  string nft_asset_name=7;
+  string nft_asset_image=8;
+}
+
+message NewLikeNftCommentMeta {
+  uint64 uid = 1;
+  string comment_id=2;
+  string comment_username=3;
+  string comment_content=4;
+}
 message NewLikeCommentMeta {
   uint64 uid = 1;
   string comment_id=2;
   string comment_username=3;
   string comment_content=4;
+}
+
+message NewLikeNftMeta {
+  uint64 uid = 1;
+  string nft_asset_id=2;
+  string nft_asset_name=3;
+  string nft_asset_image=4;
 }
 
 message NewLikeStatusMeta {
@@ -1000,6 +1164,10 @@ message Message {
   NewFansMeta new_fans_meta = 23;
   NewForwardMeta new_forward_meta = 24;
   NewLikeCommentMeta new_like_comment_meta = 25;
+  NewNftCommentMeta new_nft_comment = 26;
+  NewLikeNftMeta new_like_nft = 27;
+  NewLikeNftCommentMeta new_like_nft_comment_meta = 28;
+  NftAsset nft_asset = 29;
 }
 
 message ListMessageRequest {
@@ -1179,6 +1347,7 @@ message GetOpenseaAssetRequest {
   string account_address = 3;
   string include_orders = 4;
   string network = 5;
+  uint64 current_uid = 6;
 }
 
 message GetOpenseaAssetResponse {
@@ -1192,6 +1361,7 @@ message GetOpenseaAssetContractRequest {
   string account_address = 3;
   string include_orders = 4;
   string network = 5;
+  uint64 current_uid = 6;
 }
 
 message GetOpenseaAssetContractResponse {
@@ -1204,6 +1374,7 @@ message ListOpenseaAssetRequest {
   uint64 limit = 2;
   string cursor = 3;
   string network = 4;
+  uint64 current_uid = 5;
 }
 
 message ListOpenseaAssetResponse {
@@ -1211,4 +1382,123 @@ message ListOpenseaAssetResponse {
   string assets = 2;
   string next = 3;
   string previous = 4;
+}
+
+message NftCollection {
+  string id = 1;
+  string name = 2;
+  string slug = 3;
+  Stats stats = 4;
+  repeated PaymentToken payment_token = 5;
+}
+
+message AssetContract {
+  string address = 1;
+}
+
+message NftAsset {
+  string id = 1;
+  string image_url = 2;
+  string image_preview_url = 3;
+  string image_thumbnail_url = 4;
+  string perma_link = 5;
+  uint64 likes_count = 6;
+  uint64 comments_count = 7;
+  string token_id = 8;
+  string name = 9;
+  NftCollection collection = 10;
+  AssetContract asset_contract = 11;
+  bool is_liked = 12;
+  UserInfo user = 13;
+}
+
+message PageNftAssetRequest {
+  uint64 current_uid = 1;
+  uint64 uid = 2;
+  PageQuick paginator = 3;
+  string sort_by = 4;
+  string scene = 5;
+}
+
+message PageNftAssetResponse {
+  uint64 code = 1;
+  repeated NftAsset assets = 2;
+  PageQuick paginator = 3;
+}
+
+message GetNftAssetRequest {
+  uint64 current_uid = 1;
+  string nft_asset_id = 2;
+}
+message GetNftAssetResponse {
+  uint64 code = 1;
+  NftAsset asset = 2;
+}
+
+message UserConfig {
+  bool nft_state = 1;
+}
+
+message UpdateUserConfigRequest {
+  uint64 current_uid = 1;
+  bool nft_state = 2;
+}
+message UpdateUserConfigResponse {
+  uint64 code = 1;
+  UserConfig config = 2;
+}
+message GetUserConfigRequest {
+  uint64 current_uid = 1;
+  uint64 uid = 2;
+}
+message GetUserConfigResponse {
+  uint64 code = 1;
+  UserConfig config = 2;
+}
+
+message NftAccount {
+  string address = 1;
+  UserInfo mises_user = 2;
+  string profile_img_url = 3;
+}
+
+message PaymentToken {
+  uint64 id = 1;
+  string symbol = 2;
+  string address = 3;
+  string name = 4;
+  string eth_price = 5;
+  string usd_price = 6;
+  int64 decimals = 7;
+}
+
+message Stats {
+  float floor_price = 1;
+}
+
+message NftEvent {
+  string id = 1;
+  string event_type = 2;
+  NftAccount from_account = 3;
+  NftAccount to_account = 4;
+  string created_date = 5;
+  PaymentToken payment_token = 6;
+}
+
+message PageNftEventRequest {
+  uint64 current_uid = 1;
+  string nft_asset_id = 2;
+  PageQuick paginator = 3;
+}
+
+message PageNftEventResponse {
+  uint64 code = 1;
+  repeated NftEvent event = 2;
+  PageQuick paginator = 3;
+}
+message UpdateOpenseaNftRequest {
+
+}
+message UpdateOpenseaNftResponse {
+  uint64 code = 1;
 }

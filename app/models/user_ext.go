@@ -2,10 +2,10 @@ package models
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/lib/db"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -37,6 +37,8 @@ type (
 		Following2PoolCursor      *Following2PoolCursor      `bson:"following2_cursor"`
 		CommonPoolCursor          *CommonPoolCursor          `bson:"common_cursor"`
 		Referrer                  string                     `bson:"referrer"`
+		EthAddress                string                     `bson:"eth_address"`
+		NftState                  bool                       `bson:"nft_state"`
 		CreatedAt                 time.Time                  `bson:"created_at,omitempty"`
 		UpdatedAt                 time.Time                  `bson:"updated_at,omitempty"`
 	}
@@ -44,9 +46,8 @@ type (
 
 //find or create user ext
 func FindOrCreateUserExt(ctx context.Context, uid uint64) (*UserExt, error) {
-
-	//find
 	user_ext := &UserExt{}
+	//find
 	err := db.ODM(ctx).Where(bson.M{
 		"uid": uid,
 	}).Last(user_ext).Error
@@ -59,6 +60,17 @@ func FindOrCreateUserExt(ctx context.Context, uid uint64) (*UserExt, error) {
 	}
 	return user_ext, nil
 
+}
+
+func FindUserExt(ctx context.Context, uid uint64) (*UserExt, error) {
+	user_ext := &UserExt{}
+	err := db.ODM(ctx).Where(bson.M{
+		"uid": uid,
+	}).Last(user_ext).Error
+	if err != nil {
+		return nil, err
+	}
+	return user_ext, nil
 }
 
 func UserMergeUserExt(ctx context.Context, user *User) *User {
@@ -155,8 +167,6 @@ func (m *UserExt) Update(ctx context.Context) error {
 	if m.CommonPoolCursor != nil {
 		update["common_cursor"] = m.CommonPoolCursor
 	}
-	fmt.Println("uid: ", m.UID)
-	fmt.Println("user ext common: ", m.CommonPoolCursor)
 	_, err := db.DB().Collection("userexts").UpdateOne(ctx, &bson.M{
 		"uid": m.UID,
 	}, bson.D{{
@@ -179,4 +189,16 @@ func CreateUserExt(ctx context.Context, uid uint64) (*UserExt, error) {
 	}
 
 	return user_ext, nil
+}
+
+func FindUserExtByEthAddress(ctx context.Context, addresses ...string) ([]*UserExt, error) {
+	for k, v := range addresses {
+		addresses[k] = utils.EthAddressToEIPAddress(v)
+	}
+	res := make([]*UserExt, 0)
+	err := db.ODM(ctx).Where(bson.M{"eth_address": bson.M{"$in": addresses}}).Find(&res).Error
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }

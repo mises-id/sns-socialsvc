@@ -54,7 +54,6 @@ func FindChannelUser(ctx context.Context, params IAdminParams) (*ChannelUser, er
 	if err != nil {
 		return nil, err
 	}
-
 	return res, nil
 }
 
@@ -243,7 +242,5 @@ func RankChannelUser(ctx context.Context, params *RankChannelUserParams) ([]*Cha
 		return nil, err
 	}
 	err = res.All(ctx, &out)
-	fmt.Println("res: ", res)
-	fmt.Println("out: ", out)
 	return out, err
 }

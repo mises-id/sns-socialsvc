@@ -29,6 +29,7 @@ type CreateMessageParams struct {
 	UID         uint64
 	FromUID     uint64
 	StatusID    primitive.ObjectID
+	NftAssetID  primitive.ObjectID
 	MessageType enum.MessageType
 	MetaData    *message.MetaData
 }
@@ -39,6 +40,7 @@ type Message struct {
 	UID              uint64             `bson:"uid,omitempty"`
 	FromUID          uint64             `bson:"from_uid,omitempty"`
 	StatusID         primitive.ObjectID `bson:"status_id,omitempty"`
+	NftAssetID       primitive.ObjectID `bson:"nft_asset_id,omitempty"`
 	MessageType      enum.MessageType   `bson:"message_type,omitempty"`
 	ReadTime         *time.Time         `bson:"read_time"`
 	CreatedAt        time.Time          `bson:"created_at,omitempty"`
@@ -46,6 +48,7 @@ type Message struct {
 	FromUser         *User              `bson:"-"`
 	Status           *Status            `bson:"-"`
 	Comment          *Comment           `bson:"-"`
+	NftAsset         *NftAsset          `bson:"-"`
 	StatusIsDeleted  bool               `bson:"-"`
 	CommentIsDeleted bool               `bson:"-"`
 }
@@ -70,6 +73,7 @@ func CreateMessage(ctx context.Context, params *CreateMessageParams) (*Message, 
 	message := &Message{
 		UID:         params.UID,
 		StatusID:    params.StatusID,
+		NftAssetID:  params.NftAssetID,
 		FromUID:     params.FromUID,
 		MessageType: params.MessageType,
 		MetaData:    *params.MetaData,
@@ -146,6 +150,9 @@ func PreloadMessageData(ctx context.Context, messages ...*Message) error {
 	if err := preloadMessageComment(ctx, messages...); err != nil {
 		return err
 	}
+	if err := preloadMessageNftAsset(ctx, messages...); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -185,6 +192,28 @@ func preloadMessageStatus(ctx context.Context, messages ...*Message) error {
 			if message.Status == nil {
 				message.StatusIsDeleted = true
 			}
+		}
+	}
+	return nil
+}
+func preloadMessageNftAsset(ctx context.Context, messages ...*Message) error {
+	ids := make([]primitive.ObjectID, 0)
+	for _, message := range messages {
+		if !message.NftAssetID.IsZero() {
+			ids = append(ids, message.NftAssetID)
+		}
+	}
+	nft_assets, err := FindNftAssetByIDs(ctx, ids...)
+	if err != nil {
+		return err
+	}
+	nftAssetMap := map[primitive.ObjectID]*NftAsset{}
+	for _, nft_asset := range nft_assets {
+		nftAssetMap[nft_asset.ID] = nft_asset
+	}
+	for _, message := range messages {
+		if !message.NftAssetID.IsZero() {
+			message.NftAsset = nftAssetMap[message.NftAssetID]
 		}
 	}
 	return nil

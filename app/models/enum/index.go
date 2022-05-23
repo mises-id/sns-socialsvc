@@ -5,6 +5,8 @@ type (
 	SortType            int
 	UserValidState      int32
 	ChannelAirdropState int32
+	Blockchains         string
+	NftTagableType      string
 )
 
 const (
@@ -21,4 +23,11 @@ const (
 
 	SortAsc  SortType = 1
 	SortDesc SortType = -1
+
+	EthMain                  Blockchains    = "eth main"
+	NftTagableTypeEmpty      NftTagableType = ""
+	NftTagableTypeOwner      NftTagableType = "owner"
+	NftTagableTypeAsset      NftTagableType = "asset"
+	NftTagableTypeCollection NftTagableType = "collection"
+	NftTagableTypeEvent      NftTagableType = "event"
 )

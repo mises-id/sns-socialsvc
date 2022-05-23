@@ -15,6 +15,7 @@ import (
 
 type ListCommentParams struct {
 	StatusID   primitive.ObjectID
+	NftAssetID primitive.ObjectID
 	GroupID    primitive.ObjectID
 	OpponentID uint64
 	TargetUID  uint64
@@ -24,17 +25,20 @@ type ListCommentParams struct {
 
 type CreateCommentParams struct {
 	StatusID   primitive.ObjectID
+	NftAssetID primitive.ObjectID
 	ParentID   primitive.ObjectID
 	GroupID    primitive.ObjectID
 	OpponentID uint64
 	UID        uint64
 	Content    string
 	Status     *Status
+	NftAsset   *NftAsset
 }
 
 type Comment struct {
 	ID            primitive.ObjectID   `bson:"_id,omitempty"`
 	StatusID      primitive.ObjectID   `bson:"status_id,omitempty"`
+	NftAssetID    primitive.ObjectID   `bson:"nft_asset_id,omitempty"`
 	ParentID      primitive.ObjectID   `bson:"parent_id,omitempty"`
 	GroupID       primitive.ObjectID   `bson:"group_id,omitempty"`
 	OpponentID    uint64               `bson:"opponent_uid,omitempty"`
@@ -49,6 +53,7 @@ type Comment struct {
 	Opponent      *User                `bson:"-"`
 	Comments      []*Comment           `bson:"-"`
 	Status        *Status              `bson:"-"`
+	NftAsset      *NftAsset            `bson:"-"`
 	IsLiked       bool                 `bson:"-"`
 	Parent        *Comment             `bson:"-"`
 }
@@ -68,10 +73,21 @@ func (c *Comment) BeforeCreate(ctx context.Context) error {
 
 func (c *Comment) AfterCreate(ctx context.Context) error {
 	var err error
-	if c.ParentID.IsZero() {
-		err = c.notifyStatusUser(ctx)
-	} else {
-		err = c.notifyCommentUser(ctx)
+
+	if !c.StatusID.IsZero() {
+		if !c.ParentID.IsZero() {
+			err = c.notifyCommentUser(ctx)
+		} else {
+			err = c.notifyStatusUser(ctx)
+		}
+
+	}
+	if !c.NftAssetID.IsZero() {
+		if !c.ParentID.IsZero() {
+			err = c.notifyNftCommentUser(ctx)
+		} else {
+			err = c.notifyNftAssetUser(ctx)
+		}
 	}
 	if err != nil {
 		return err
@@ -118,6 +134,28 @@ func (c *Comment) notifyStatusUser(ctx context.Context) error {
 	}
 	return nil
 }
+func (c *Comment) notifyNftAssetUser(ctx context.Context) error {
+	_, err := CreateMessage(ctx, &CreateMessageParams{
+		UID:         c.NftAsset.UID,
+		FromUID:     c.UID,
+		NftAssetID:  c.NftAssetID,
+		MessageType: enum.NewNftComment,
+		MetaData: &message.MetaData{
+			NftCommentMeta: &message.NftAssetCommentMeta{
+				UID:           c.UID,
+				GroupID:       c.GroupID,
+				CommentID:     c.ID,
+				Content:       c.Content,
+				NftAssetName:  c.NftAsset.Name,
+				NftAssetImage: c.NftAsset.ImageThumbnailUrl,
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
 func (c *Comment) notifyCommentUser(ctx context.Context) error {
 	if c.UID == c.OpponentID {
@@ -143,6 +181,38 @@ func (c *Comment) notifyCommentUser(ctx context.Context) error {
 				ParentUsername:       c.ParentUsername(),
 				StatusContentSummary: c.Status.ContentSummary(),
 				StatusImagePath:      c.Status.FirstImage(),
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (c *Comment) notifyNftCommentUser(ctx context.Context) error {
+	if c.UID == c.OpponentID {
+		return nil
+	}
+	var err error
+	c.Parent, err = FindComment(ctx, c.ParentID)
+	if err != nil {
+		return err
+	}
+	_, err = CreateMessage(ctx, &CreateMessageParams{ // notify parent comment user
+		UID:         c.OpponentID,
+		FromUID:     c.UID,
+		NftAssetID:  c.NftAssetID,
+		MessageType: enum.NewNftComment,
+		MetaData: &message.MetaData{
+			NftCommentMeta: &message.NftAssetCommentMeta{
+				UID:            c.UID,
+				GroupID:        c.GroupID,
+				CommentID:      c.ID,
+				Content:        c.Content,
+				ParentContent:  c.ParentContent(),
+				ParentUsername: c.ParentUsername(),
+				NftAssetName:   c.NftAsset.Name,
+				NftAssetImage:  c.NftAsset.ImageThumbnailUrl,
 			},
 		},
 	})
@@ -250,6 +320,9 @@ func ListComment(ctx context.Context, params *ListCommentParams) ([]*Comment, pa
 	if params.StatusID != primitive.NilObjectID {
 		chain = chain.Where(bson.M{"status_id": params.StatusID})
 	}
+	if params.NftAssetID != primitive.NilObjectID {
+		chain = chain.Where(bson.M{"nft_asset_id": params.NftAssetID})
+	}
 	if params.UID != 0 {
 		chain = chain.Where(bson.M{"uid": params.UID})
 	}
@@ -281,11 +354,13 @@ func CreateComment(ctx context.Context, params *CreateCommentParams) (*Comment, 
 	comment := &Comment{
 		UID:        params.UID,
 		StatusID:   params.StatusID,
+		NftAssetID: params.NftAssetID,
 		ParentID:   params.ParentID,
 		GroupID:    params.GroupID,
 		OpponentID: params.OpponentID,
 		Content:    params.Content,
 		Status:     params.Status,
+		NftAsset:   params.NftAsset,
 	}
 	var err error
 	if err = comment.BeforeCreate(ctx); err != nil {
@@ -320,7 +395,7 @@ func preloadCommentLikeState(ctx context.Context, comments ...*Comment) error {
 	for i, comment := range comments {
 		ids[i] = comment.ID
 	}
-	likeMap, err := GetLikeMap(ctx, currentUID, ids, enum.LikeComment, false)
+	likeMap, err := GetLikeMaps(ctx, currentUID, ids, []enum.LikeTargetType{enum.LikeComment, enum.LikeNftComment}, false)
 	if err != nil {
 		return err
 	}

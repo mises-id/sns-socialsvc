@@ -9,6 +9,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
+	"github.com/mises-id/sns-socialsvc/app/models/search"
 	airdropSVC "github.com/mises-id/sns-socialsvc/app/services/airdrop"
 	blacklistSVC "github.com/mises-id/sns-socialsvc/app/services/blacklist"
 	channelSVC "github.com/mises-id/sns-socialsvc/app/services/channel_list"
@@ -16,7 +17,7 @@ import (
 	commentSVC "github.com/mises-id/sns-socialsvc/app/services/comment"
 	friendshipSVC "github.com/mises-id/sns-socialsvc/app/services/follow"
 	messageSVC "github.com/mises-id/sns-socialsvc/app/services/message"
-	openseaApiSVC "github.com/mises-id/sns-socialsvc/app/services/opensea_api"
+	"github.com/mises-id/sns-socialsvc/app/services/nft"
 	sessionSVC "github.com/mises-id/sns-socialsvc/app/services/session"
 	statusSVC "github.com/mises-id/sns-socialsvc/app/services/status"
 	userSVC "github.com/mises-id/sns-socialsvc/app/services/user"
@@ -80,6 +81,7 @@ func (s socialService) UpdateUserProfile(ctx context.Context, in *pb.UpdateUserP
 		Mobile:  in.Mobile,
 		Email:   in.Email,
 		Address: in.Address,
+		Intro:   in.Intro,
 	})
 	if err != nil {
 		return nil, err
@@ -92,7 +94,12 @@ func (s socialService) UpdateUserProfile(ctx context.Context, in *pb.UpdateUserP
 
 func (s socialService) UpdateUserAvatar(ctx context.Context, in *pb.UpdateUserAvatarRequest) (*pb.UpdateUserResponse, error) {
 	var resp pb.UpdateUserResponse
-	user, err := userSVC.UpdateUserAvatar(ctx, in.Uid, in.AttachmentPath)
+	idstr := in.GetNftAssetId()
+	nft_asset_id, err := primitive.ObjectIDFromHex(in.GetNftAssetId())
+	if idstr != "" && err != nil {
+		return nil, codes.ErrInvalidArgument
+	}
+	user, err := userSVC.UpdateUserAvatar(ctx, in.Uid, in.AttachmentPath, nft_asset_id)
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +176,6 @@ func (s socialService) CreateStatus(ctx context.Context, in *pb.CreateStatusRequ
 		IsPrivate:    in.IsPrivate,
 		ShowDuration: int64(in.ShowDuration),
 	}
-	fmt.Println(in)
 	fromType, err := enum.FromTypeFromString(in.FromType)
 	if err != nil {
 		return nil, codes.ErrInvalidArgument
@@ -413,7 +419,9 @@ func (s socialService) ReadMessage(ctx context.Context, in *pb.ReadMessageReques
 func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentRequest) (*pb.ListCommentResponse, error) {
 	var resp pb.ListCommentResponse
 	statusID, err := primitive.ObjectIDFromHex(in.GetStatusId())
-	if err != nil {
+	nft_asset_id, err := primitive.ObjectIDFromHex(in.GetNftAssetId())
+	if statusID.IsZero() == nft_asset_id.IsZero() {
+		fmt.Println(nft_asset_id)
 		return nil, codes.ErrInvalidArgument
 	}
 	var groupID primitive.ObjectID
@@ -425,8 +433,9 @@ func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentReques
 	}
 	comments, page, err := commentSVC.ListComment(contextWithCurrentUID(ctx, in), &commentSVC.ListCommentParams{
 		ListCommentParams: models.ListCommentParams{
-			StatusID: statusID,
-			GroupID:  groupID,
+			StatusID:   statusID,
+			GroupID:    groupID,
+			NftAssetID: nft_asset_id,
 			PageParams: &pagination.PageQuickParams{
 				Limit:  int64(in.Paginator.Limit),
 				NextID: in.Paginator.NextId,
@@ -437,9 +446,17 @@ func (s socialService) ListComment(ctx context.Context, in *pb.ListCommentReques
 		return nil, err
 	}
 	var total uint64
-	status, err := statusSVC.GetStatusData(ctx, in.CurrentUid, statusID)
-	if err == nil {
-		total = status.CommentsCount
+	if !statusID.IsZero() {
+		status, err := statusSVC.GetStatusData(ctx, in.CurrentUid, statusID)
+		if err == nil {
+			total = status.CommentsCount
+		}
+	}
+	if !nft_asset_id.IsZero() {
+		nft_asset, err := nft.FindNftAsset(ctx, in.CurrentUid, nft_asset_id)
+		if err == nil {
+			total = nft_asset.CommentsCount
+		}
 	}
 	resp.Code = 0
 	resp.Comments = factory.NewCommentSlice(comments)
@@ -467,7 +484,8 @@ func (s socialService) LatestFollowing(ctx context.Context, in *pb.LatestFollowi
 func (s socialService) CreateComment(ctx context.Context, in *pb.CreateCommentRequest) (*pb.CreateCommentResponse, error) {
 	var resp pb.CreateCommentResponse
 	statusID, err := primitive.ObjectIDFromHex(in.GetStatusId())
-	if err != nil {
+	nft_asset_id, err := primitive.ObjectIDFromHex(in.GetNftAssetId())
+	if statusID.IsZero() == nft_asset_id.IsZero() {
 		return nil, codes.ErrInvalidArgument
 	}
 	var parentID primitive.ObjectID
@@ -479,10 +497,11 @@ func (s socialService) CreateComment(ctx context.Context, in *pb.CreateCommentRe
 	}
 	comment, err := commentSVC.CreateComment(ctx, &commentSVC.CreateCommentParams{
 		CreateCommentParams: &models.CreateCommentParams{
-			StatusID: statusID,
-			ParentID: parentID,
-			UID:      in.GetCurrentUid(),
-			Content:  in.GetContent(),
+			StatusID:   statusID,
+			NftAssetID: nft_asset_id,
+			ParentID:   parentID,
+			UID:        in.GetCurrentUid(),
+			Content:    in.GetContent(),
 		},
 	})
 	if err != nil {
@@ -782,7 +801,7 @@ func (s socialService) GetChannelUser(ctx context.Context, in *pb.GetChannelUser
 func (s socialService) GetOpenseaAsset(ctx context.Context, in *pb.GetOpenseaAssetRequest) (*pb.GetOpenseaAssetResponse, error) {
 	var resp pb.GetOpenseaAssetResponse
 
-	out, err := openseaApiSVC.GetSingleAsset(ctx, &openseaApiSVC.SingleAssetInput{
+	out, err := nft.GetSingleAsset(ctx, &nft.SingleAssetInput{
 		AssetContractAddress: in.AssetContractAddress,
 		TokenId:              in.TokenId,
 		AccountAddress:       in.AccountAddress,
@@ -799,7 +818,7 @@ func (s socialService) GetOpenseaAsset(ctx context.Context, in *pb.GetOpenseaAss
 
 func (s socialService) ListOpenseaAsset(ctx context.Context, in *pb.ListOpenseaAssetRequest) (*pb.ListOpenseaAssetResponse, error) {
 	var resp pb.ListOpenseaAssetResponse
-	out, err := openseaApiSVC.ListAsset(ctx, &openseaApiSVC.ListAssetInput{
+	out, err := nft.ListAsset(ctx, in.CurrentUid, &nft.ListAssetInput{
 		Owner:   in.Owner,
 		Limit:   in.Limit,
 		Cursor:  in.Cursor,
@@ -815,7 +834,7 @@ func (s socialService) ListOpenseaAsset(ctx context.Context, in *pb.ListOpenseaA
 
 func (s socialService) GetOpenseaAssetContract(ctx context.Context, in *pb.GetOpenseaAssetContractRequest) (*pb.GetOpenseaAssetContractResponse, error) {
 	var resp pb.GetOpenseaAssetContractResponse
-	out, err := openseaApiSVC.GetAssetContract(ctx, &openseaApiSVC.AssetContractInput{
+	out, err := nft.GetAssetContract(ctx, &nft.AssetContractInput{
 		AssetContractAddress: in.AssetContractAddress,
 		Network:              in.Network,
 	})
@@ -824,5 +843,168 @@ func (s socialService) GetOpenseaAssetContract(ctx context.Context, in *pb.GetOp
 	}
 	resp.Code = 0
 	resp.OpenseaAsset = out
+	return &resp, nil
+}
+
+func (s socialService) GetNftAsset(ctx context.Context, in *pb.GetNftAssetRequest) (*pb.GetNftAssetResponse, error) {
+	var resp pb.GetNftAssetResponse
+	id, err := primitive.ObjectIDFromHex(in.NftAssetId)
+	if err != nil {
+		return nil, codes.ErrInvalidArgument
+	}
+
+	asset, err := nft.FindNftAsset(ctx, in.CurrentUid, id)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Asset = factory.NewNftAsset(asset)
+	return &resp, nil
+}
+
+func (s socialService) PageNftEvent(ctx context.Context, in *pb.PageNftEventRequest) (*pb.PageNftEventResponse, error) {
+	var resp pb.PageNftEventResponse
+	params := &search.NftEventSearch{}
+	nft_asset_id, err := primitive.ObjectIDFromHex(in.NftAssetId)
+	if in.NftAssetId != "" && err != nil {
+		return nil, codes.ErrInvalidArgument
+	}
+	params.NftAssetID = nft_asset_id
+	if in.Paginator != nil {
+		params.PageParams = &pagination.PageQuickParams{
+			Limit:  int64(in.Paginator.Limit),
+			NextID: in.Paginator.NextId,
+		}
+	}
+	evnets, page, err := nft.PageNftEvent(ctx, in.CurrentUid, &nft.NftEventInput{NftEventSearch: params})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Event = factory.NewNftEventSlice(evnets)
+	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
+	resp.Paginator = &pb.PageQuick{
+		Limit:  uint64(quickpage.Limit),
+		NextId: quickpage.NextID,
+	}
+	return &resp, nil
+}
+
+func (s socialService) PageNftAsset(ctx context.Context, in *pb.PageNftAssetRequest) (*pb.PageNftAssetResponse, error) {
+	var resp pb.PageNftAssetResponse
+	params := &search.NftAssetSearch{}
+	params.UID = in.GetUid()
+	params.SortBy = in.GetSortBy()
+	if in.Paginator != nil {
+		params.PageParams = &pagination.PageQuickParams{
+			Limit:  int64(in.Paginator.Limit),
+			NextID: in.Paginator.NextId,
+		}
+	}
+	assets, page, err := nft.PageNftAsset(ctx, in.CurrentUid, &nft.NftAssetInput{NftAssetSearch: params})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Assets = factory.NewNftAssetSlice(assets)
+	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
+	resp.Paginator = &pb.PageQuick{
+		Limit:  uint64(quickpage.Limit),
+		NextId: quickpage.NextID,
+	}
+
+	return &resp, nil
+}
+
+func (s socialService) GetUserConfig(ctx context.Context, in *pb.GetUserConfigRequest) (*pb.GetUserConfigResponse, error) {
+	var resp pb.GetUserConfigResponse
+	res, err := userSVC.GetUserConfig(ctx, in.CurrentUid, in.Uid)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Config = &pb.UserConfig{
+		NftState: res.NftState,
+	}
+	return &resp, nil
+}
+
+func (s socialService) UpdateUserConfig(ctx context.Context, in *pb.UpdateUserConfigRequest) (*pb.UpdateUserConfigResponse, error) {
+	var resp pb.UpdateUserConfigResponse
+	params := &userSVC.UserConfig{NftState: in.NftState}
+	res, err := userSVC.UpdateUserConfig(ctx, in.CurrentUid, params)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Config = &pb.UserConfig{
+		NftState: res.NftState,
+	}
+	return &resp, nil
+}
+
+func (s socialService) LikeNftAsset(ctx context.Context, in *pb.LikeNftAssetRequest) (*pb.SimpleResponse, error) {
+	var resp pb.SimpleResponse
+	id, err := primitive.ObjectIDFromHex(in.NftAssetId)
+	if err != nil {
+		return nil, codes.ErrInvalidArgument
+	}
+	if _, err := nft.LikeNftAsset(ctx, in.CurrentUid, id); err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	return &resp, nil
+}
+
+func (s socialService) UnlikeNftAsset(ctx context.Context, in *pb.UnLikeNftAssetRequest) (*pb.SimpleResponse, error) {
+	var resp pb.SimpleResponse
+	id, err := primitive.ObjectIDFromHex(in.NftAssetId)
+	if err != nil {
+		return nil, codes.ErrInvalidArgument
+	}
+	if err := nft.UnlikeNftAsset(ctx, in.CurrentUid, id); err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	return &resp, nil
+}
+
+func (s socialService) ListLike(ctx context.Context, in *pb.ListLikeUserRequest) (*pb.ListLikeUserResponse, error) {
+	var resp pb.ListLikeUserResponse
+	params := &models.LikeSearch{}
+	target_id, err := primitive.ObjectIDFromHex(in.TargerId)
+	if in.TargerId != "" && err != nil {
+		return nil, codes.ErrInvalidArgument
+	}
+	params.TargetID = target_id
+	if in.Paginator != nil {
+		params.PageParams = &pagination.PageQuickParams{
+			Limit:  int64(in.Paginator.Limit),
+			NextID: in.Paginator.NextId,
+		}
+	}
+	likes, page, err := nft.PageLike(ctx, in.CurrentUid, &nft.PageLikeParams{LikeSearch: params})
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Likes = factory.NewLikeSlice(likes)
+	quickpage := page.BuildJSONResult().(*pagination.QuickPagination)
+	resp.Paginator = &pb.PageQuick{
+		Limit:  uint64(quickpage.Limit),
+		NextId: quickpage.NextID,
+		Total:  uint64(quickpage.TotalRecords),
+	}
+
+	return &resp, nil
+}
+
+func (s socialService) UpdateOpenseaNft(ctx context.Context, in *pb.UpdateOpenseaNftRequest) (*pb.UpdateOpenseaNftResponse, error) {
+	var resp pb.UpdateOpenseaNftResponse
+	err := nft.UpdateOpenseaNft(ctx)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
 	return &resp, nil
 }
