@@ -25,6 +25,7 @@ type (
 		StartTime     *time.Time `json:"start_time" query:"start_time"`
 		EndTime       *time.Time `json:"end_time" query:"end_time"`
 		Tag           enum.TagType
+		IsNftUser     bool
 		//sort
 		//limit
 		ListNum int64
