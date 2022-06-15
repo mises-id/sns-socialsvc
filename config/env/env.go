@@ -36,6 +36,7 @@ type Env struct {
 	GOTWI_API_KEY_SECRET        string        `env:"GOTWI_API_KEY_SECRET" envDefault:""`
 	GooglePlayAppID             string        `env:"GOOGLE_PLAY_APPID" envDefault:""`
 	OpenseaApiKey               string        `env:"OpenseaApiKey" envDefault:""`
+	TwitterAuthSuccessCallback  string        `env:"TwitterAuthSuccessCallback" envDefault:""`
 	TWEET_TAG                   string        `env:"TWEET_TAG"`
 	VALID_TWITTER_REGISTER_DATE string        `env:"VALID_TWITTER_REGISTER_DATE"`
 	RootPath                    string

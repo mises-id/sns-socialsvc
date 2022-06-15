@@ -751,6 +751,58 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var gettwitterauthurlEndpoint endpoint.Endpoint
+	{
+		gettwitterauthurlEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"GetTwitterAuthUrl",
+			EncodeGRPCGetTwitterAuthUrlRequest,
+			DecodeGRPCGetTwitterAuthUrlResponse,
+			pb.GetTwitterAuthUrlResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var getairdropinfoEndpoint endpoint.Endpoint
+	{
+		getairdropinfoEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"GetAirdropInfo",
+			EncodeGRPCGetAirdropInfoRequest,
+			DecodeGRPCGetAirdropInfoResponse,
+			pb.GetAirdropInfoResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var twittercallbackEndpoint endpoint.Endpoint
+	{
+		twittercallbackEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"TwitterCallback",
+			EncodeGRPCTwitterCallbackRequest,
+			DecodeGRPCTwitterCallbackResponse,
+			pb.TwitterCallbackResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
+	var receiveairdropEndpoint endpoint.Endpoint
+	{
+		receiveairdropEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"ReceiveAirdrop",
+			EncodeGRPCReceiveAirdropRequest,
+			DecodeGRPCReceiveAirdropResponse,
+			pb.ReceiveAirdropResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	return svc.Endpoints{
 		SignInEndpoint:                  signinEndpoint,
 		FindUserEndpoint:                finduserEndpoint,
@@ -807,6 +859,10 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		UpdateUserConfigEndpoint:        updateuserconfigEndpoint,
 		GetUserConfigEndpoint:           getuserconfigEndpoint,
 		UpdateOpenseaNftEndpoint:        updateopenseanftEndpoint,
+		GetTwitterAuthUrlEndpoint:       gettwitterauthurlEndpoint,
+		GetAirdropInfoEndpoint:          getairdropinfoEndpoint,
+		TwitterCallbackEndpoint:         twittercallbackEndpoint,
+		ReceiveAirdropEndpoint:          receiveairdropEndpoint,
 	}, nil
 }
 
@@ -1197,6 +1253,34 @@ func DecodeGRPCUpdateOpenseaNftResponse(_ context.Context, grpcReply interface{}
 	return reply, nil
 }
 
+// DecodeGRPCGetTwitterAuthUrlResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC gettwitterauthurl reply to a user-domain gettwitterauthurl response. Primarily useful in a client.
+func DecodeGRPCGetTwitterAuthUrlResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.GetTwitterAuthUrlResponse)
+	return reply, nil
+}
+
+// DecodeGRPCGetAirdropInfoResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC getairdropinfo reply to a user-domain getairdropinfo response. Primarily useful in a client.
+func DecodeGRPCGetAirdropInfoResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.GetAirdropInfoResponse)
+	return reply, nil
+}
+
+// DecodeGRPCTwitterCallbackResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC twittercallback reply to a user-domain twittercallback response. Primarily useful in a client.
+func DecodeGRPCTwitterCallbackResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.TwitterCallbackResponse)
+	return reply, nil
+}
+
+// DecodeGRPCReceiveAirdropResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC receiveairdrop reply to a user-domain receiveairdrop response. Primarily useful in a client.
+func DecodeGRPCReceiveAirdropResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.ReceiveAirdropResponse)
+	return reply, nil
+}
+
 // GRPC Client Encode
 
 // EncodeGRPCSignInRequest is a transport/grpc.EncodeRequestFunc that converts a
@@ -1581,6 +1665,34 @@ func EncodeGRPCGetUserConfigRequest(_ context.Context, request interface{}) (int
 // user-domain updateopenseanft request to a gRPC updateopenseanft request. Primarily useful in a client.
 func EncodeGRPCUpdateOpenseaNftRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.UpdateOpenseaNftRequest)
+	return req, nil
+}
+
+// EncodeGRPCGetTwitterAuthUrlRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain gettwitterauthurl request to a gRPC gettwitterauthurl request. Primarily useful in a client.
+func EncodeGRPCGetTwitterAuthUrlRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.GetTwitterAuthUrlRequest)
+	return req, nil
+}
+
+// EncodeGRPCGetAirdropInfoRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain getairdropinfo request to a gRPC getairdropinfo request. Primarily useful in a client.
+func EncodeGRPCGetAirdropInfoRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.GetAirdropInfoRequest)
+	return req, nil
+}
+
+// EncodeGRPCTwitterCallbackRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain twittercallback request to a gRPC twittercallback request. Primarily useful in a client.
+func EncodeGRPCTwitterCallbackRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.TwitterCallbackRequest)
+	return req, nil
+}
+
+// EncodeGRPCReceiveAirdropRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain receiveairdrop request to a gRPC receiveairdrop request. Primarily useful in a client.
+func EncodeGRPCReceiveAirdropRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.ReceiveAirdropRequest)
 	return req, nil
 }
 

@@ -35,6 +35,16 @@ func FindAirdrop(ctx context.Context, params IAdminParams) (*Airdrop, error) {
 
 	return res, nil
 }
+func FindAirdropByUid(ctx context.Context, uid uint64) (*Airdrop, error) {
+	res := &Airdrop{}
+	result := db.DB().Collection("airdrops").FindOne(ctx, &bson.M{
+		"uid": uid,
+	})
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	return res, result.Decode(res)
+}
 
 func ListAirdrop(ctx context.Context, params IAdminParams) ([]*Airdrop, error) {
 
@@ -46,6 +56,16 @@ func ListAirdrop(ctx context.Context, params IAdminParams) ([]*Airdrop, error) {
 	}
 
 	return res, nil
+}
+
+func CreateAirdrop(ctx context.Context, data *Airdrop) (*Airdrop, error) {
+
+	res, err := db.DB().Collection("airdrops").InsertOne(ctx, data)
+	if err != nil {
+		return nil, err
+	}
+	data.ID = res.InsertedID.(primitive.ObjectID)
+	return data, err
 }
 
 func CreateAirdropMany(ctx context.Context, data []*Airdrop) error {

@@ -7,9 +7,15 @@ import (
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type (
+	TweetInfo struct {
+		TweetID   string    `bson:"tweet_id"`
+		Text      string    `bson:"text"`
+		CreatedAt time.Time `bson:"created_at"`
+	}
 	TwitterUser struct {
 		TwitterUserId  string    `bson:"twitter_user_id"`
 		Name           string    `bson:"name"`
@@ -18,23 +24,57 @@ type (
 		TweetCount     uint64    `bson:"tweet_count"`
 		CreatedAt      time.Time `bson:"created_at"`
 	}
-
-	TweetInfo struct {
-		TweetID   string    `bson:"tweet_id"`
-		Text      string    `bson:"text"`
-		CreatedAt time.Time `bson:"created_at"`
-	}
-
 	UserTwitterAuth struct {
-		ID            primitive.ObjectID `bson:"_id,omitempty"`
-		UID           uint64             `bson:"uid"`
-		Misesid       string             `bson:"misesid,omitempty"`
-		TwitterUserId string             `bson:"twitter_user_id"`
-		TwitterUser   *TwitterUser       `bson:"twitter_user"`
-		TweetInfo     *TweetInfo         `bson:"tweet_info"`
-		CreatedAt     time.Time          `bson:"created_at"`
+		ID               primitive.ObjectID `bson:"_id,omitempty"`
+		UID              uint64             `bson:"uid"`
+		Misesid          string             `bson:"misesid,omitempty"`
+		TwitterUserId    string             `bson:"twitter_user_id"`
+		OauthToken       string             `bson:"oauth_token"`
+		OauthTokenSecret string             `bson:"oauth_token_secret"`
+		TwitterUser      *TwitterUser       `bson:"twitter_user"`
+		TweetInfo        *TweetInfo         `bson:"tweet_info"`
+		UpdatedAt        time.Time          `bson:"updated_at,omitempty"`
+		CreatedAt        time.Time          `bson:"created_at"`
+		Amount           int64              `bson:"-"`
+		IsValid          bool               `bson:"-"`
 	}
 )
+
+func CreateUserTwitterAuth(ctx context.Context, data *UserTwitterAuth) error {
+	created := bson.M{}
+	created["created_at"] = time.Now()
+	created["updated_at"] = time.Now()
+	created["uid"] = data.UID
+	created["misesid"] = data.Misesid
+	created["twitter_user_id"] = data.TwitterUserId
+	created["twitter_user"] = data.TwitterUser
+	created["tweet_info"] = data.TweetInfo
+	created["oauth_token"] = data.OauthToken
+	created["oauth_token_secret"] = data.OauthTokenSecret
+	opt := &options.FindOneAndUpdateOptions{}
+	opt.SetUpsert(true)
+	opt.SetReturnDocument(1)
+	result := db.DB().Collection("usertwitterauths").FindOneAndUpdate(ctx,
+		bson.M{"uid": data.UID, "twitter_user_id": data.TwitterUserId},
+		bson.D{{Key: "$set", Value: created}}, opt)
+	if result.Err() != nil {
+		return result.Err()
+	}
+	return nil
+}
+
+func UpdateUserTwitterAuth(ctx context.Context, data *UserTwitterAuth) error {
+
+	update := bson.M{}
+	update["updated_at"] = time.Now()
+	update["twitter_user_id"] = data.TwitterUserId
+	update["twitter_user"] = data.TwitterUser
+	update["oauth_token"] = data.OauthToken
+	update["oauth_token_secret"] = data.OauthTokenSecret
+
+	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
+	return err
+}
 
 func CreateUserTwitterAuthMany(ctx context.Context, data []*UserTwitterAuth) error {
 
@@ -58,6 +98,26 @@ func FindUserTwitterAuth(ctx context.Context, params IAdminParams) (*UserTwitter
 	}
 
 	return res, nil
+}
+func FindUserTwitterAuthByUid(ctx context.Context, uid uint64) (*UserTwitterAuth, error) {
+	res := &UserTwitterAuth{}
+	result := db.DB().Collection("usertwitterauths").FindOne(ctx, &bson.M{
+		"uid": uid,
+	})
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	return res, result.Decode(res)
+}
+func FindUserTwitterAuthByTwitterUserId(ctx context.Context, twitter_user_id string) (*UserTwitterAuth, error) {
+	res := &UserTwitterAuth{}
+	result := db.DB().Collection("usertwitterauths").FindOne(ctx, &bson.M{
+		"twitter_user_id": twitter_user_id,
+	})
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	return res, result.Decode(res)
 }
 
 //list user twitter auth
