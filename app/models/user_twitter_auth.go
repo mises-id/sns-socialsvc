@@ -101,23 +101,19 @@ func FindUserTwitterAuth(ctx context.Context, params IAdminParams) (*UserTwitter
 }
 func FindUserTwitterAuthByUid(ctx context.Context, uid uint64) (*UserTwitterAuth, error) {
 	res := &UserTwitterAuth{}
-	result := db.DB().Collection("usertwitterauths").FindOne(ctx, &bson.M{
-		"uid": uid,
-	})
-	if result.Err() != nil {
-		return nil, result.Err()
+	err := db.ODM(ctx).Where(bson.M{"uid": uid}).Last(&res).Error
+	if err != nil {
+		return nil, err
 	}
-	return res, result.Decode(res)
+	return res, nil
 }
 func FindUserTwitterAuthByTwitterUserId(ctx context.Context, twitter_user_id string) (*UserTwitterAuth, error) {
 	res := &UserTwitterAuth{}
-	result := db.DB().Collection("usertwitterauths").FindOne(ctx, &bson.M{
-		"twitter_user_id": twitter_user_id,
-	})
-	if result.Err() != nil {
-		return nil, result.Err()
+	err := db.ODM(ctx).Where(bson.M{"twitter_user_id": twitter_user_id}).Last(&res).Error
+	if err != nil {
+		return nil, err
 	}
-	return res, result.Decode(res)
+	return res, nil
 }
 
 //list user twitter auth

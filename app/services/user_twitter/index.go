@@ -98,9 +98,12 @@ func GetAirdropInfo(ctx context.Context, uid uint64) (*AirdropInfoOutput, error)
 	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	}
-	user_twitter.IsValid = IsValidTwitterUser(user_twitter.TwitterUser)
-	if user_twitter.IsValid {
-		user_twitter.Amount = getTwitterAirdropCoin(ctx, user_twitter)
+
+	if user_twitter != nil {
+		user_twitter.IsValid = IsValidTwitterUser(user_twitter.TwitterUser)
+		if user_twitter.IsValid {
+			user_twitter.Amount = getTwitterAirdropCoin(ctx, user_twitter)
+		}
 	}
 	airdrop, err := models.FindAirdropByUid(ctx, uid)
 	if err != nil && err != mongo.ErrNoDocuments {
@@ -116,26 +119,38 @@ func GetAirdropInfo(ctx context.Context, uid uint64) (*AirdropInfoOutput, error)
 
 //receive airdrop
 func ReceiveAirdrop(ctx context.Context, uid uint64, tweet string) error {
+	//check twitter auth
+	user_twitter, err := models.FindUserTwitterAuthByUid(ctx, uid)
+	if err != nil {
+		return codes.ErrForbidden.Newf("Twitter is unauthorized")
+	}
+	if !IsValidTwitterUser(user_twitter.TwitterUser) {
+		return codes.ErrForbidden.Newf("Twitter is invalid.")
+	}
+	if !models.GetAirdropStatus(ctx) {
+		return codes.ErrForbidden.Newf("Airdrop end")
+	}
+	airdrop, _ := models.FindAirdropByUid(ctx, uid)
+	if airdrop != nil {
+		return codes.ErrForbidden.Newf("Repeat to receive")
+	}
 	if tweet == "" {
 		tweet = "hi"
 	}
 	//send tweet
-	if err := sendTweet(ctx, uid, tweet); err != nil {
+	if err := sendTweet(ctx, user_twitter, tweet); err != nil {
 		return err
 	}
 	//create airdrop order
-	if err := createAirdrop(ctx, uid); err != nil {
+	if err := createAirdrop(ctx, user_twitter); err != nil {
 		return err
 	}
 	//cancel auth token
 	return nil
 }
 
-func sendTweet(ctx context.Context, uid uint64, tweet string) error {
-	user_twitter, err := models.FindUserTwitterAuthByUid(ctx, uid)
-	if err != nil {
-		return codes.ErrForbidden.Newf("Unauthorized")
-	}
+func sendTweet(ctx context.Context, user_twitter *models.UserTwitterAuth, tweet string) error {
+
 	if user_twitter.OauthToken == "" || user_twitter.OauthTokenSecret == "" {
 		return codes.ErrForbidden.Newf("OAuthToken and OAuthTokenSecret is required")
 	}
@@ -159,21 +174,7 @@ func sendTweet(ctx context.Context, uid uint64, tweet string) error {
 	return err
 }
 
-func createAirdrop(ctx context.Context, uid uint64) error {
-	if !models.GetAirdropStatus(ctx) {
-		return codes.ErrForbidden.Newf("Airdrop end")
-	}
-	airdrop, _ := models.FindAirdropByUid(ctx, uid)
-	if airdrop != nil {
-		return codes.ErrForbidden.Newf("Airdrop exist")
-	}
-	user_twitter, err := models.FindUserTwitterAuthByUid(ctx, uid)
-	if err != nil {
-		return codes.ErrForbidden.Newf("Unauthorized")
-	}
-	if !IsValidTwitterUser(user_twitter.TwitterUser) {
-		return codes.ErrForbidden.Newf("twitter is invalid.")
-	}
+func createAirdrop(ctx context.Context, user_twitter *models.UserTwitterAuth) error {
 	airdropAdd := &models.Airdrop{
 		UID:       user_twitter.UID,
 		Misesid:   user_twitter.Misesid,
@@ -183,35 +184,45 @@ func createAirdrop(ctx context.Context, uid uint64) error {
 		TxID:      "",
 		CreatedAt: time.Now(),
 	}
-	_, err = models.CreateAirdrop(ctx, airdropAdd)
+	_, err := models.CreateAirdrop(ctx, airdropAdd)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
+func getTwitterCallbackUrl(code string) string {
+	return env.Envs.TwitterAuthSuccessCallback + "?code=" + code
+}
+
 //twitter auth callback
 func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifier string) string {
 
-	callback_url := env.Envs.TwitterAuthSuccessCallback
+	var (
+		callback0 string = getTwitterCallbackUrl("0")
+		callback1 string = getTwitterCallbackUrl("1")
+		callback2 string = getTwitterCallbackUrl("2")
+	)
+	if oauth_token == "" || oauth_verifier == "" {
+		logrus.Infoln("oauth_token[%s],oauth_verifier[%s] err: ", oauth_token, oauth_verifier)
+		return callback2
+	}
 	user, err := models.FindUser(ctx, uid)
 	if err != nil {
-		logrus.Errorln("twitter callback find user err: ", err.Error())
-		return callback_url
+		logrus.Infoln("twitter callback find user err: ", err.Error())
+		return callback2
 	}
 	//find twitter user
 	access_token, err := AccessToken(ctx, oauth_token, oauth_verifier)
 	if err != nil {
-		logrus.Errorln("twitter callback access token err: ", err.Error())
-		return callback_url
+		logrus.Infoln("twitter callback access token err: ", err.Error())
+		return callback2
 	}
-	logrus.Println("access_token: ", access_token)
 	params, _ := url.ParseQuery(access_token)
 	user_ids, ok := params["user_id"]
-
 	if !ok || len(user_ids) <= 0 {
-		logrus.Errorln("twitter callback user_id err: ", err.Error())
-		return callback_url
+		logrus.Infoln("Twitter callback user_id err: ", err.Error())
+		return callback2
 	}
 	oauth_tokens, ok := params["oauth_token"]
 	oauth_token_secrets, ok := params["oauth_token_secret"]
@@ -221,20 +232,19 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 	//check twitter_user_id
 	twitter_auth, err := models.FindUserTwitterAuthByTwitterUserId(ctx, twitter_user_id)
 	if twitter_auth != nil && twitter_auth.UID != uid {
-		logrus.Errorln("FindUserTwitterAuthByTwitterUserId exist ")
-		return callback_url
+		logrus.Infoln("FindUserTwitterAuthByTwitterUserId exist ")
+		return callback1
 	}
-
 	//check uid
 	user_twitter, err := models.FindUserTwitterAuthByUid(ctx, uid)
 	if err != nil && err != mongo.ErrNoDocuments {
-		logrus.Errorln("twitter callback FindUserTwitterAuthByUid err: ", err.Error())
-		return callback_url
+		logrus.Infoln("Twitter callback FindUserTwitterAuthByUid err: ", err.Error())
+		return callback0
 	}
 	twitter_user, err := getTwitterUserById(ctx, twitter_user_id)
 	if err != nil {
-		logrus.Errorln("twitter callback getTwitterUserById err: ", err.Error())
-		return callback_url
+		logrus.Infoln("Twitter callback getTwitterUserById err: ", err.Error())
+		return callback0
 	}
 	TwitterUser := &models.TwitterUser{
 		TwitterUserId:  *twitter_user.ID,
@@ -250,8 +260,8 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 	if user_twitter == nil {
 		//create
 		if airdrop != nil {
-			logrus.Errorln("twitter callback airdrop exist")
-			return callback_url
+			logrus.Infoln("Twitter callback airdrop exist")
+			return callback0
 		}
 		add := &models.UserTwitterAuth{
 			UID:              uid,
@@ -274,9 +284,9 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 		err = models.UpdateUserTwitterAuth(ctx, user_twitter)
 	}
 	if err != nil {
-		logrus.Errorln("twitter callback save err: ", err.Error())
+		logrus.Infoln("Twitter callback save err: ", err.Error())
 	}
-	return callback_url
+	return callback0
 }
 
 func getTwitterUserById(ctx context.Context, twitter_user_id string) (*resources.User, error) {
@@ -299,7 +309,7 @@ func getTwitterUserById(ctx context.Context, twitter_user_id string) (*resources
 	}
 	tr, err := users.UserLookupID(ctx, twitter_client, params)
 	if err != nil {
-		fmt.Println("user look up id error: ", err.Error())
+		logrus.Println("User look up id error: ", err.Error())
 		return nil, err
 	}
 	return &tr.Data, nil
@@ -346,7 +356,6 @@ func RequestToken(ctx context.Context, callback string) (string, error) {
 
 	out, err := CreateOAuthSignature(in)
 	if err != nil {
-		fmt.Println("sing err: ", err.Error())
 		return "", err
 	}
 	auth := fmt.Sprintf(oauth1header,
@@ -362,11 +371,9 @@ func RequestToken(ctx context.Context, callback string) (string, error) {
 	req.Header.Add("Authorization", auth)
 	res, err := client.Do(req)
 	if err != nil {
-		fmt.Println("err: ", err.Error())
 		return "", err
 	}
 	if res.StatusCode != http.StatusOK {
-		fmt.Println(res.Status)
 		return "", errors.New(res.Status)
 	}
 	defer res.Body.Close()
@@ -388,7 +395,6 @@ func AccessToken(ctx context.Context, oauth_token, oauth_verifier string) (strin
 		return "", err
 	}
 	if res.StatusCode != http.StatusOK {
-		fmt.Println(res.Status)
 		return "", errors.New(res.Status)
 	}
 	defer res.Body.Close()
