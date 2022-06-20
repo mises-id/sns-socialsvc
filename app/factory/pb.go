@@ -89,6 +89,7 @@ func NewUserTwitterAuth(in *models.UserTwitterAuth) *pb.UserTwitterAuth {
 	}
 	out := &pb.UserTwitterAuth{
 		TwitterUserId:    in.TwitterUserId,
+		Misesid:          utils.RemoveMisesidProfix(in.Misesid),
 		Name:             in.TwitterUser.Name,
 		Username:         in.TwitterUser.UserName,
 		FollowersCount:   in.TwitterUser.FollowersCount,

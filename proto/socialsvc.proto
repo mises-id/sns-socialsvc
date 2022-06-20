@@ -1563,6 +1563,7 @@ message UserTwitterAuth {
   uint64 twitter_created_at = 6;
   float amount = 7;
   uint64 created_at = 8;
+  string misesid = 9;
 }
 message Airdrop {
   float coin = 1;

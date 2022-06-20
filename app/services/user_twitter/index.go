@@ -35,7 +35,7 @@ const (
 	callbackBase                 = "https://api.alb.mises.site/api/v1/twitter/callback"
 	RequestTokenEndpoint         = "https://api.twitter.com/oauth/request_token"
 	AccessTokenEndpoint          = "https://api.twitter.com/oauth/access_token"
-	AuthEndpoint                 = "https://api.twitter.com/oauth/authenticate"
+	AuthEndpoint                 = "https://api.twitter.com/oauth/authorize"
 	OAuthVersion10               = "1.0"
 	OAuthSignatureMethodHMACSHA1 = "HMAC-SHA1"
 	oauth1header                 = `OAuth oauth_callback="%s",oauth_consumer_key="%s",oauth_nonce="%s",oauth_signature="%s",oauth_signature_method="%s",oauth_timestamp="%s",oauth_token="%s",oauth_version="%s"`
@@ -191,20 +191,20 @@ func createAirdrop(ctx context.Context, user_twitter *models.UserTwitterAuth) er
 	return nil
 }
 
-func getTwitterCallbackUrl(code string) string {
-	return env.Envs.TwitterAuthSuccessCallback + "?code=" + code
+func getTwitterCallbackUrl(code, username, misesid string) string {
+	return env.Envs.TwitterAuthSuccessCallback + "?code=" + code + "&username=" + username + "&misesid=" + misesid
 }
 
 //twitter auth callback
 func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifier string) string {
 
 	var (
-		callback0 string = getTwitterCallbackUrl("0")
-		callback1 string = getTwitterCallbackUrl("1")
-		callback2 string = getTwitterCallbackUrl("2")
+		callback0 string = getTwitterCallbackUrl("0", "", "")
+		callback1 string = getTwitterCallbackUrl("1", "", "")
+		callback2 string = getTwitterCallbackUrl("2", "", "")
 	)
 	if oauth_token == "" || oauth_verifier == "" {
-		logrus.Infoln("oauth_token[%s],oauth_verifier[%s] err: ", oauth_token, oauth_verifier)
+		logrus.Infof("oauth_token[%s],oauth_verifier[%s] err", oauth_token, oauth_verifier)
 		return callback2
 	}
 	user, err := models.FindUser(ctx, uid)
@@ -212,6 +212,8 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 		logrus.Infoln("twitter callback find user err: ", err.Error())
 		return callback2
 	}
+	userMisesid := user.Misesid
+	callback2 = getTwitterCallbackUrl("2", "", userMisesid)
 	//find twitter user
 	access_token, err := AccessToken(ctx, oauth_token, oauth_verifier)
 	if err != nil {
@@ -231,7 +233,9 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 	oauth_token_secret := oauth_token_secrets[0]
 	//check twitter_user_id
 	twitter_auth, err := models.FindUserTwitterAuthByTwitterUserId(ctx, twitter_user_id)
+
 	if twitter_auth != nil && twitter_auth.UID != uid {
+		callback1 = getTwitterCallbackUrl("1", twitter_auth.TwitterUser.UserName, userMisesid)
 		logrus.Infoln("FindUserTwitterAuthByTwitterUserId exist ")
 		return callback1
 	}
@@ -239,13 +243,14 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 	user_twitter, err := models.FindUserTwitterAuthByUid(ctx, uid)
 	if err != nil && err != mongo.ErrNoDocuments {
 		logrus.Infoln("Twitter callback FindUserTwitterAuthByUid err: ", err.Error())
-		return callback0
+		return callback2
 	}
 	twitter_user, err := getTwitterUserById(ctx, twitter_user_id)
 	if err != nil {
 		logrus.Infoln("Twitter callback getTwitterUserById err: ", err.Error())
-		return callback0
+		return callback2
 	}
+	callback0 = getTwitterCallbackUrl("0", *twitter_user.Username, userMisesid)
 	TwitterUser := &models.TwitterUser{
 		TwitterUserId:  *twitter_user.ID,
 		UserName:       *twitter_user.Username,
