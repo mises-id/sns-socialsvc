@@ -80,16 +80,6 @@ func PageLike(ctx context.Context, currentUID uint64, params *PageLikeParams) ([
 	return models.PageLike(ctxWithUID, enum.LikeNft, params.LikeSearch)
 }
 
-func Run(ctx context.Context) error {
-	for i := 1; i < 100; i++ {
-		err := UpdateUserNftAssets(ctx, uint64(i))
-		if err != nil {
-			fmt.Printf("uid[%d],err:%s", i, err.Error())
-		}
-	}
-	return nil
-}
-
 func SaveUserNftAsset(ctx context.Context, uid uint64, assets []*models.Asset) error {
 	if err := SaveUserNftLog(ctx, uid); err != nil {
 		return err
@@ -133,11 +123,13 @@ func UpdateOpenseaNft(ctx context.Context) error {
 		if err != nil {
 			continue
 		}
-		err = UpdateUserNftAssets(ctx, uid)
+		num, err := UpdateUserNftAssets(ctx, uid)
 		if err != nil {
 			fmt.Println("update user nft assets error: ", err.Error())
 			continue
 		}
+		log.UpdateType = "update"
+		log.Num = num
 		log.ForceUpdate = false
 		models.UpdateNftLog(ctx, log)
 	}
@@ -145,19 +137,20 @@ func UpdateOpenseaNft(ctx context.Context) error {
 }
 
 //update nft assets by uid
-func UpdateUserNftAssets(ctx context.Context, uid uint64) error {
+func UpdateUserNftAssets(ctx context.Context, uid uint64) (uint64, error) {
 	user, err := models.FindUserEthAddress(ctx, uid)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	address := user.EthAddress
 	if address == "" {
-		return errors.New("invalid address")
+		return 0, errors.New("invalid address")
 	}
 	return updateUserNftAssets(ctx, uid, address)
 }
 
-func updateUserNftAssets(ctx context.Context, uid uint64, address string) error {
+func updateUserNftAssets(ctx context.Context, uid uint64, address string) (uint64, error) {
+	var nftNum uint64
 	params := &ListAssetInput{
 		Owner: address,
 	}
@@ -165,18 +158,20 @@ func updateUserNftAssets(ctx context.Context, uid uint64, address string) error 
 		time.Sleep(time.Second * 1)
 		out, err := ListAssetOut(ctx, params)
 		if err != nil {
-			return err
+			return 0, err
 		}
 		err = updateOrCreateNftAssets(ctx, uid, out.Assets)
 		if err != nil {
-			return err
+			return 0, err
 		}
+		nftNum += uint64(len(out.Assets))
 		if out.Next == "" {
 			break
 		}
 		params.Cursor = out.Previous
+
 	}
-	return nil
+	return nftNum, nil
 }
 
 func updateOrCreateNftAssets(ctx context.Context, uid uint64, assets []*models.Asset) error {

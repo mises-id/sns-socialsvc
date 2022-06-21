@@ -26,6 +26,8 @@ type (
 )
 
 func PageNftEvent(ctx context.Context, currentUID uint64, in *NftEventInput) ([]*models.NftEvent, pagination.Pagination, error) {
+	in.NftEventSearch.EventTypes = []string{"successful", "transfer"}
+	in.NftEventSearch.SortBy = "created_date_desc"
 	ctxWithUID := context.WithValue(ctx, utils.CurrentUIDKey{}, currentUID)
 	return models.QuickPageNftEvent(ctxWithUID, in.NftEventSearch)
 }

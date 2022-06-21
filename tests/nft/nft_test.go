@@ -16,6 +16,8 @@ import (
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"github.com/mises-id/sns-socialsvc/tests"
 	"github.com/stretchr/testify/suite"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type NftServerSuite struct {
@@ -99,6 +101,19 @@ func (suite *NftServerSuite) TestListNft() {
 		suite.Nil(err)
 		quickPage = page.BuildJSONResult().(*pagination.QuickPagination)
 		suite.Empty(quickPage.NextID)
+	})
+}
+
+func (suite *NftServerSuite) TestFindNft() {
+	suite.T().Run("find nft success", func(t *testing.T) {
+		asset, err := service.FindNftAsset(context.TODO(), 2, suite.nfts[0].ID)
+		suite.Nil(err)
+		suite.EqualValues(suite.nfts[0].ID, asset.ID)
+	})
+	suite.T().Run("not found nft", func(t *testing.T) {
+		asset, err := service.FindNftAsset(context.TODO(), 2, primitive.NilObjectID)
+		suite.Nil(asset)
+		suite.EqualValues(err, mongo.ErrNoDocuments)
 	})
 }
 

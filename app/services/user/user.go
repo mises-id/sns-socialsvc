@@ -6,7 +6,6 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
-	"github.com/mises-id/sns-socialsvc/lib/storage"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -90,6 +89,7 @@ func UpdateUserAvatar(ctx context.Context, uid uint64, attachmentPath string, nf
 		}
 	} else {
 		user.AvatarPath = attachmentPath
+		user.NftAvatar = nil
 		if err = models.UpdateUserAvatar(ctx, user); err != nil {
 			return nil, err
 		}
@@ -111,7 +111,8 @@ func UpdateUsername(ctx context.Context, uid uint64, username string) (*models.U
 }
 
 func preloadAvatar(ctx context.Context, users ...*models.User) error {
-	paths := make([]string, 0)
+	return models.PreloadUserAvatar(ctx, users...)
+	/* paths := make([]string, 0)
 	for _, user := range users {
 		if user.AvatarPath != "" {
 			paths = append(paths, user.AvatarPath)
@@ -124,5 +125,5 @@ func preloadAvatar(ctx context.Context, users ...*models.User) error {
 	for _, user := range users {
 		user.AvatarUrl = avatars[user.AvatarPath]
 	}
-	return nil
+	return nil */
 }
