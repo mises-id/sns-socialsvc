@@ -204,12 +204,12 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 		callback2 string = getTwitterCallbackUrl("2", "", "")
 	)
 	if oauth_token == "" || oauth_verifier == "" {
-		logrus.Infof("oauth_token[%s],oauth_verifier[%s] err", oauth_token, oauth_verifier)
+		logrus.Infof("Oauth_token[%s],oauth_verifier[%s] err", oauth_token, oauth_verifier)
 		return callback2
 	}
 	user, err := models.FindUser(ctx, uid)
 	if err != nil {
-		logrus.Infoln("twitter callback find user err: ", err.Error())
+		logrus.Infoln("Twitter callback find user err: ", err.Error())
 		return callback2
 	}
 	userMisesid := user.Misesid
@@ -217,7 +217,7 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 	//find twitter user
 	access_token, err := AccessToken(ctx, oauth_token, oauth_verifier)
 	if err != nil {
-		logrus.Infoln("twitter callback access token err: ", err.Error())
+		logrus.Infoln("Twitter callback access token err: ", err.Error())
 		return callback2
 	}
 	params, _ := url.ParseQuery(access_token)
@@ -524,8 +524,6 @@ func createSignatureBase(method, endpointBase, parameterString string) string {
 }
 
 func calculateSignature(base, key string) (string, error) {
-	fmt.Println("base: ", base)
-	fmt.Println("key: ", key)
 	b := []byte(key)
 	h := hmac.New(sha1.New, b)
 	_, err := io.WriteString(h, base)
