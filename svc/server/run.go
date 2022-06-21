@@ -108,6 +108,10 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		updateuserconfigEndpoint        = svc.MakeUpdateUserConfigEndpoint(service)
 		getuserconfigEndpoint           = svc.MakeGetUserConfigEndpoint(service)
 		updateopenseanftEndpoint        = svc.MakeUpdateOpenseaNftEndpoint(service)
+		gettwitterauthurlEndpoint       = svc.MakeGetTwitterAuthUrlEndpoint(service)
+		getairdropinfoEndpoint          = svc.MakeGetAirdropInfoEndpoint(service)
+		twittercallbackEndpoint         = svc.MakeTwitterCallbackEndpoint(service)
+		receiveairdropEndpoint          = svc.MakeReceiveAirdropEndpoint(service)
 	)
 
 	endpoints := svc.Endpoints{
@@ -166,6 +170,10 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		UpdateUserConfigEndpoint:        updateuserconfigEndpoint,
 		GetUserConfigEndpoint:           getuserconfigEndpoint,
 		UpdateOpenseaNftEndpoint:        updateopenseanftEndpoint,
+		GetTwitterAuthUrlEndpoint:       gettwitterauthurlEndpoint,
+		GetAirdropInfoEndpoint:          getairdropinfoEndpoint,
+		TwitterCallbackEndpoint:         twittercallbackEndpoint,
+		ReceiveAirdropEndpoint:          receiveairdropEndpoint,
 	}
 
 	// Wrap selected Endpoints with middlewares. See handlers/middlewares.go

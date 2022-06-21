@@ -601,6 +601,46 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var GetTwitterAuthUrlZeroEndpoint endpoint.Endpoint
+	{
+		GetTwitterAuthUrlZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/twitter/auth_url/"),
+			EncodeHTTPGetTwitterAuthUrlZeroRequest,
+			DecodeHTTPGetTwitterAuthUrlResponse,
+			options...,
+		).Endpoint()
+	}
+	var GetAirdropInfoZeroEndpoint endpoint.Endpoint
+	{
+		GetAirdropInfoZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/airdrop/info/"),
+			EncodeHTTPGetAirdropInfoZeroRequest,
+			DecodeHTTPGetAirdropInfoResponse,
+			options...,
+		).Endpoint()
+	}
+	var TwitterCallbackZeroEndpoint endpoint.Endpoint
+	{
+		TwitterCallbackZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/twitter/callback/"),
+			EncodeHTTPTwitterCallbackZeroRequest,
+			DecodeHTTPTwitterCallbackResponse,
+			options...,
+		).Endpoint()
+	}
+	var ReceiveAirdropZeroEndpoint endpoint.Endpoint
+	{
+		ReceiveAirdropZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/airdrop/receive/"),
+			EncodeHTTPReceiveAirdropZeroRequest,
+			DecodeHTTPReceiveAirdropResponse,
+			options...,
+		).Endpoint()
+	}
 
 	return svc.Endpoints{
 		SignInEndpoint:                  SignInZeroEndpoint,
@@ -658,6 +698,10 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		UpdateUserConfigEndpoint:        UpdateUserConfigZeroEndpoint,
 		GetUserConfigEndpoint:           GetUserConfigZeroEndpoint,
 		UpdateOpenseaNftEndpoint:        UpdateOpenseaNftZeroEndpoint,
+		GetTwitterAuthUrlEndpoint:       GetTwitterAuthUrlZeroEndpoint,
+		GetAirdropInfoEndpoint:          GetAirdropInfoZeroEndpoint,
+		TwitterCallbackEndpoint:         TwitterCallbackZeroEndpoint,
+		ReceiveAirdropEndpoint:          ReceiveAirdropZeroEndpoint,
 	}, nil
 }
 
@@ -2162,6 +2206,114 @@ func DecodeHTTPUpdateOpenseaNftResponse(_ context.Context, r *http.Response) (in
 	}
 
 	var resp pb.UpdateOpenseaNftResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPGetTwitterAuthUrlResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded GetTwitterAuthUrlResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPGetTwitterAuthUrlResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.GetTwitterAuthUrlResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPGetAirdropInfoResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded GetAirdropInfoResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPGetAirdropInfoResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.GetAirdropInfoResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPTwitterCallbackResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded TwitterCallbackResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPTwitterCallbackResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.TwitterCallbackResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPReceiveAirdropResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded ReceiveAirdropResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPReceiveAirdropResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.ReceiveAirdropResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -7077,6 +7229,310 @@ func EncodeHTTPUpdateOpenseaNftOneRequest(_ context.Context, r *http.Request, re
 	values := r.URL.Query()
 	var tmp []byte
 	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetTwitterAuthUrlZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a gettwitterauthurl request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetTwitterAuthUrlZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetTwitterAuthUrlRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"twitter",
+		"auth_url",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetTwitterAuthUrlOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a gettwitterauthurl request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetTwitterAuthUrlOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetTwitterAuthUrlRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"twitter",
+		"auth_url",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetAirdropInfoZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a getairdropinfo request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetAirdropInfoZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetAirdropInfoRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"airdrop",
+		"info",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPGetAirdropInfoOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a getairdropinfo request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPGetAirdropInfoOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.GetAirdropInfoRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"airdrop",
+		"info",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPTwitterCallbackZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a twittercallback request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPTwitterCallbackZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.TwitterCallbackRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"twitter",
+		"callback",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("oauth_token", fmt.Sprint(req.OauthToken))
+
+	values.Add("oauth_verifier", fmt.Sprint(req.OauthVerifier))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPTwitterCallbackOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a twittercallback request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPTwitterCallbackOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.TwitterCallbackRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"twitter",
+		"callback",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("oauth_token", fmt.Sprint(req.OauthToken))
+
+	values.Add("oauth_verifier", fmt.Sprint(req.OauthVerifier))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPReceiveAirdropZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a receiveairdrop request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPReceiveAirdropZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ReceiveAirdropRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"airdrop",
+		"receive",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("tweet", fmt.Sprint(req.Tweet))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPReceiveAirdropOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a receiveairdrop request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPReceiveAirdropOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ReceiveAirdropRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"airdrop",
+		"receive",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	values.Add("tweet", fmt.Sprint(req.Tweet))
 
 	r.URL.RawQuery = values.Encode()
 	return nil

@@ -88,6 +88,10 @@ type Endpoints struct {
 	UpdateUserConfigEndpoint        endpoint.Endpoint
 	GetUserConfigEndpoint           endpoint.Endpoint
 	UpdateOpenseaNftEndpoint        endpoint.Endpoint
+	GetTwitterAuthUrlEndpoint       endpoint.Endpoint
+	GetAirdropInfoEndpoint          endpoint.Endpoint
+	TwitterCallbackEndpoint         endpoint.Endpoint
+	ReceiveAirdropEndpoint          endpoint.Endpoint
 }
 
 // Endpoints
@@ -530,6 +534,38 @@ func (e Endpoints) UpdateOpenseaNft(ctx context.Context, in *pb.UpdateOpenseaNft
 		return nil, err
 	}
 	return response.(*pb.UpdateOpenseaNftResponse), nil
+}
+
+func (e Endpoints) GetTwitterAuthUrl(ctx context.Context, in *pb.GetTwitterAuthUrlRequest) (*pb.GetTwitterAuthUrlResponse, error) {
+	response, err := e.GetTwitterAuthUrlEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.GetTwitterAuthUrlResponse), nil
+}
+
+func (e Endpoints) GetAirdropInfo(ctx context.Context, in *pb.GetAirdropInfoRequest) (*pb.GetAirdropInfoResponse, error) {
+	response, err := e.GetAirdropInfoEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.GetAirdropInfoResponse), nil
+}
+
+func (e Endpoints) TwitterCallback(ctx context.Context, in *pb.TwitterCallbackRequest) (*pb.TwitterCallbackResponse, error) {
+	response, err := e.TwitterCallbackEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.TwitterCallbackResponse), nil
+}
+
+func (e Endpoints) ReceiveAirdrop(ctx context.Context, in *pb.ReceiveAirdropRequest) (*pb.ReceiveAirdropResponse, error) {
+	response, err := e.ReceiveAirdropEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.ReceiveAirdropResponse), nil
 }
 
 // Make Endpoints
@@ -1139,6 +1175,50 @@ func MakeUpdateOpenseaNftEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeGetTwitterAuthUrlEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.GetTwitterAuthUrlRequest)
+		v, err := s.GetTwitterAuthUrl(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeGetAirdropInfoEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.GetAirdropInfoRequest)
+		v, err := s.GetAirdropInfo(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeTwitterCallbackEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.TwitterCallbackRequest)
+		v, err := s.TwitterCallback(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeReceiveAirdropEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ReceiveAirdropRequest)
+		v, err := s.ReceiveAirdrop(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 // WrapAllExcept wraps each Endpoint field of struct Endpoints with a
 // go-kit/kit/endpoint.Middleware.
 // Use this for applying a set of middlewares to every endpoint in the service.
@@ -1201,6 +1281,10 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"UpdateUserConfig":        {},
 		"GetUserConfig":           {},
 		"UpdateOpenseaNft":        {},
+		"GetTwitterAuthUrl":       {},
+		"GetAirdropInfo":          {},
+		"TwitterCallback":         {},
+		"ReceiveAirdrop":          {},
 	}
 
 	for _, ex := range excluded {
@@ -1376,6 +1460,18 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "UpdateOpenseaNft" {
 			e.UpdateOpenseaNftEndpoint = middleware(e.UpdateOpenseaNftEndpoint)
 		}
+		if inc == "GetTwitterAuthUrl" {
+			e.GetTwitterAuthUrlEndpoint = middleware(e.GetTwitterAuthUrlEndpoint)
+		}
+		if inc == "GetAirdropInfo" {
+			e.GetAirdropInfoEndpoint = middleware(e.GetAirdropInfoEndpoint)
+		}
+		if inc == "TwitterCallback" {
+			e.TwitterCallbackEndpoint = middleware(e.TwitterCallbackEndpoint)
+		}
+		if inc == "ReceiveAirdrop" {
+			e.ReceiveAirdropEndpoint = middleware(e.ReceiveAirdropEndpoint)
+		}
 	}
 }
 
@@ -1445,6 +1541,10 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"UpdateUserConfig":        {},
 		"GetUserConfig":           {},
 		"UpdateOpenseaNft":        {},
+		"GetTwitterAuthUrl":       {},
+		"GetAirdropInfo":          {},
+		"TwitterCallback":         {},
+		"ReceiveAirdrop":          {},
 	}
 
 	for _, ex := range excluded {
@@ -1619,6 +1719,18 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "UpdateOpenseaNft" {
 			e.UpdateOpenseaNftEndpoint = middleware("UpdateOpenseaNft", e.UpdateOpenseaNftEndpoint)
+		}
+		if inc == "GetTwitterAuthUrl" {
+			e.GetTwitterAuthUrlEndpoint = middleware("GetTwitterAuthUrl", e.GetTwitterAuthUrlEndpoint)
+		}
+		if inc == "GetAirdropInfo" {
+			e.GetAirdropInfoEndpoint = middleware("GetAirdropInfo", e.GetAirdropInfoEndpoint)
+		}
+		if inc == "TwitterCallback" {
+			e.TwitterCallbackEndpoint = middleware("TwitterCallback", e.TwitterCallbackEndpoint)
+		}
+		if inc == "ReceiveAirdrop" {
+			e.ReceiveAirdropEndpoint = middleware("ReceiveAirdrop", e.ReceiveAirdropEndpoint)
 		}
 	}
 }
