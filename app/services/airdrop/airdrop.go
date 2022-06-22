@@ -34,7 +34,7 @@ func AirdropTwitter(ctx context.Context) {
 	totalAirdropNum = 200
 	airdropStop = make(chan int)
 	airdropDo = true
-	fmt.Println("airdrop start")
+	logrus.Println("airdrop start")
 	airdropLib.AirdropClient.SetListener(&FaucetCallback{ctx})
 	go airdropTx(ctx)
 	select {
@@ -53,13 +53,13 @@ func airdropToStop() {
 func airdropTx(ctx context.Context) {
 	airdrops, err := getAirdropList(ctx)
 	if err != nil {
-		fmt.Println("err: ", err.Error())
+		logrus.Println("err: ", err.Error())
 		airdropToStop()
 		return
 	}
 	for _, airdrop := range airdrops {
 		if err := airdropRun(ctx, airdrop); err != nil {
-			fmt.Println("airdrop run error: ", err.Error())
+			logrus.Println("airdrop run error: ", err.Error())
 			airdropToStop()
 			return
 		}
@@ -68,10 +68,10 @@ func airdropTx(ctx context.Context) {
 }
 
 func airdropTxOne(ctx context.Context) {
-	fmt.Println("run airdrop tx one")
+	logrus.Println("run airdrop tx one")
 	airdrop, err := getAirdrop(ctx)
 	if err != nil {
-		fmt.Println("airdrop one err: ", err.Error())
+		logrus.Println("airdrop one err: ", err.Error())
 		airdropToStop()
 		return
 	}
@@ -108,7 +108,7 @@ func airdropRun(ctx context.Context, airdrop *models.Airdrop) error {
 	if totalAirdropNum <= 0 {
 		return errors.New("too many airdrop num")
 	}
-	fmt.Printf("num:%d,misesid:%s,coin:%d\n", totalAirdropNum, airdrop.Misesid, airdrop.Coin)
+	logrus.Printf("num:%d,misesid:%s,coin:%d\n", totalAirdropNum, airdrop.Misesid, airdrop.Coin)
 	err := airdropLib.AirdropClient.RunAsync(airdrop.Misesid, "", airdrop.Coin)
 	if err != nil {
 		fmt.Println("airdrop run error: ", err.Error())
@@ -190,15 +190,15 @@ func failedAfter(ctx context.Context, misesid string) error {
 	}
 	airdrop, err := models.FindAirdrop(ctx, params)
 	if err != nil {
-		fmt.Println("find airdrop error: ", err.Error())
+		logrus.Println("find airdrop error: ", err.Error())
 		return err
 	}
 	if airdrop.Status != enum.AirdropPending && airdrop.Status != enum.AirdropDefault {
-		fmt.Printf("misesid:%s,  status error", misesid)
+		logrus.Printf("misesid:%s,  status error", misesid)
 		return errors.New("airdrop status error")
 	}
 	if err = airdrop.UpdateStatus(ctx, enum.AirdropFailed); err != nil {
-		fmt.Println("airdrop failed update error: ", err.Error())
+		logrus.Println("airdrop failed update error: ", err.Error())
 		return err
 	}
 	return nil

@@ -204,12 +204,12 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 		callback2 string = getTwitterCallbackUrl("2", "", "")
 	)
 	if oauth_token == "" || oauth_verifier == "" {
-		logrus.Infof("Oauth_token[%s],oauth_verifier[%s] err", oauth_token, oauth_verifier)
+		logrus.Printf("Oauth_token[%s],oauth_verifier[%s] err", oauth_token, oauth_verifier)
 		return callback2
 	}
 	user, err := models.FindUser(ctx, uid)
 	if err != nil {
-		logrus.Infoln("Twitter callback find user err: ", err.Error())
+		logrus.Println("Twitter callback find user err: ", err.Error())
 		return callback2
 	}
 	userMisesid := user.Misesid
@@ -217,13 +217,13 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 	//find twitter user
 	access_token, err := AccessToken(ctx, oauth_token, oauth_verifier)
 	if err != nil {
-		logrus.Infoln("Twitter callback access token err: ", err.Error())
+		logrus.Println("Twitter callback access token err: ", err.Error())
 		return callback2
 	}
 	params, _ := url.ParseQuery(access_token)
 	user_ids, ok := params["user_id"]
 	if !ok || len(user_ids) <= 0 {
-		logrus.Infoln("Twitter callback user_id err: ", err.Error())
+		logrus.Println("Twitter callback user_id err: ", err.Error())
 		return callback2
 	}
 	oauth_tokens, ok := params["oauth_token"]
@@ -236,18 +236,18 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 
 	if twitter_auth != nil && twitter_auth.UID != uid {
 		callback1 = getTwitterCallbackUrl("1", twitter_auth.TwitterUser.UserName, userMisesid)
-		logrus.Infoln("FindUserTwitterAuthByTwitterUserId exist ")
+		logrus.Println("FindUserTwitterAuthByTwitterUserId exist ")
 		return callback1
 	}
 	//check uid
 	user_twitter, err := models.FindUserTwitterAuthByUid(ctx, uid)
 	if err != nil && err != mongo.ErrNoDocuments {
-		logrus.Infoln("Twitter callback FindUserTwitterAuthByUid err: ", err.Error())
+		logrus.Println("Twitter callback FindUserTwitterAuthByUid err: ", err.Error())
 		return callback2
 	}
 	twitter_user, err := getTwitterUserById(ctx, twitter_user_id)
 	if err != nil {
-		logrus.Infoln("Twitter callback getTwitterUserById err: ", err.Error())
+		logrus.Println("Twitter callback getTwitterUserById err: ", err.Error())
 		return callback2
 	}
 	callback0 = getTwitterCallbackUrl("0", *twitter_user.Username, userMisesid)
@@ -265,7 +265,7 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 	if user_twitter == nil {
 		//create
 		if airdrop != nil {
-			logrus.Infoln("Twitter callback airdrop exist")
+			logrus.Println("Twitter callback airdrop exist")
 			return callback0
 		}
 		add := &models.UserTwitterAuth{
@@ -289,7 +289,7 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 		err = models.UpdateUserTwitterAuth(ctx, user_twitter)
 	}
 	if err != nil {
-		logrus.Infoln("Twitter callback save err: ", err.Error())
+		logrus.Println("Twitter callback save err: ", err.Error())
 	}
 	return callback0
 }
