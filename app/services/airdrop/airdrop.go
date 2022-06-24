@@ -14,7 +14,6 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/search"
 	"github.com/mises-id/sns-socialsvc/app/services/user_twitter"
 	airdropLib "github.com/mises-id/sns-socialsvc/lib/airdrop"
-	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -34,7 +33,7 @@ func AirdropTwitter(ctx context.Context) {
 	totalAirdropNum = 200
 	airdropStop = make(chan int)
 	airdropDo = true
-	logrus.Println("airdrop start")
+	fmt.Println("airdrop start")
 	airdropLib.AirdropClient.SetListener(&FaucetCallback{ctx})
 	go airdropTx(ctx)
 	select {
@@ -53,13 +52,13 @@ func airdropToStop() {
 func airdropTx(ctx context.Context) {
 	airdrops, err := getAirdropList(ctx)
 	if err != nil {
-		logrus.Println("err: ", err.Error())
+		fmt.Println("err: ", err.Error())
 		airdropToStop()
 		return
 	}
 	for _, airdrop := range airdrops {
 		if err := airdropRun(ctx, airdrop); err != nil {
-			logrus.Println("airdrop run error: ", err.Error())
+			fmt.Println("airdrop run error: ", err.Error())
 			airdropToStop()
 			return
 		}
@@ -68,10 +67,10 @@ func airdropTx(ctx context.Context) {
 }
 
 func airdropTxOne(ctx context.Context) {
-	logrus.Println("run airdrop tx one")
+	fmt.Println("run airdrop tx one")
 	airdrop, err := getAirdrop(ctx)
 	if err != nil {
-		logrus.Println("airdrop one err: ", err.Error())
+		fmt.Println("airdrop one err: ", err.Error())
 		airdropToStop()
 		return
 	}
@@ -108,7 +107,7 @@ func airdropRun(ctx context.Context, airdrop *models.Airdrop) error {
 	if totalAirdropNum <= 0 {
 		return errors.New("too many airdrop num")
 	}
-	logrus.Printf("num:%d,misesid:%s,coin:%d\n", totalAirdropNum, airdrop.Misesid, airdrop.Coin)
+	fmt.Printf("num:%d,misesid:%s,coin:%d\n", totalAirdropNum, airdrop.Misesid, airdrop.Coin)
 	err := airdropLib.AirdropClient.RunAsync(airdrop.Misesid, "", airdrop.Coin)
 	if err != nil {
 		fmt.Println("airdrop run error: ", err.Error())
@@ -120,20 +119,20 @@ func airdropRun(ctx context.Context, airdrop *models.Airdrop) error {
 
 func (cb *FaucetCallback) OnTxGenerated(cmd types.MisesAppCmd) {
 	misesid := cmd.MisesUID()
-	logrus.Printf("Mises[%s] Airdrop OnTxGenerated %s\n", misesid, cmd.TxID())
+	fmt.Printf("Mises[%s] Airdrop OnTxGenerated %s\n", misesid, cmd.TxID())
 	txid := cmd.TxID()
 	err := txGeneratedAfter(context.Background(), misesid, txid)
 	if err != nil {
-		logrus.Println("tx generated after  error: ", err.Error())
+		fmt.Println("tx generated after  error: ", err.Error())
 	}
 
 }
 func (cb *FaucetCallback) OnSucceed(cmd types.MisesAppCmd) {
 	misesid := cmd.MisesUID()
-	logrus.Printf("Mises[%s] Airdrop OnSucceed\n", misesid)
+	fmt.Printf("Mises[%s] Airdrop OnSucceed\n", misesid)
 	err := successAfter(context.Background(), misesid)
 	if err != nil {
-		logrus.Println("tx success after  error: ", err.Error())
+		fmt.Println("tx success after  error: ", err.Error())
 	}
 	if airdropDo {
 		airdropTxOne(cb.ctx)
@@ -143,11 +142,11 @@ func (cb *FaucetCallback) OnSucceed(cmd types.MisesAppCmd) {
 func (cb *FaucetCallback) OnFailed(cmd types.MisesAppCmd, err error) {
 	misesid := cmd.MisesUID()
 	if err != nil {
-		logrus.Printf("Mises[%s] Airdrop OnFailed: %s\n", misesid, err.Error())
+		fmt.Printf("Mises[%s] Airdrop OnFailed: %s\n", misesid, err.Error())
 	}
 	err = failedAfter(context.Background(), misesid)
 	if err != nil {
-		logrus.Println("tx failed after  error: ", err.Error())
+		fmt.Println("tx failed after  error: ", err.Error())
 	}
 	if airdropDo {
 		airdropTxOne(cb.ctx)
@@ -163,20 +162,20 @@ func successAfter(ctx context.Context, misesid string) error {
 	}
 	airdrop, err := models.FindAirdrop(ctx, params)
 	if err != nil {
-		logrus.Println("find airdrop error: ", err.Error())
+		fmt.Println("find airdrop error: ", err.Error())
 		return err
 	}
 	if airdrop.Status != enum.AirdropPending {
-		logrus.Printf("misesid:%s,  status error ", misesid)
+		fmt.Printf("misesid:%s,  status error ", misesid)
 		return errors.New("misesid finished")
 	}
 	if err = airdrop.UpdateStatus(ctx, enum.AirdropSuccess); err != nil {
-		logrus.Println("airdrop success update error: ", err.Error())
+		fmt.Println("airdrop success update error: ", err.Error())
 		return err
 	}
 	//update user airdrop coin
 	if err = updateUserAirdrop(ctx, airdrop.UID, uint64(airdrop.Coin)); err != nil {
-		logrus.Println("airdrop success update user ext error: ", err.Error())
+		fmt.Println("airdrop success update user ext error: ", err.Error())
 		return err
 	}
 	return nil
@@ -190,15 +189,15 @@ func failedAfter(ctx context.Context, misesid string) error {
 	}
 	airdrop, err := models.FindAirdrop(ctx, params)
 	if err != nil {
-		logrus.Println("find airdrop error: ", err.Error())
+		fmt.Println("find airdrop error: ", err.Error())
 		return err
 	}
 	if airdrop.Status != enum.AirdropPending && airdrop.Status != enum.AirdropDefault {
-		logrus.Printf("misesid:%s,  status error", misesid)
+		fmt.Printf("misesid:%s,  status error", misesid)
 		return errors.New("airdrop status error")
 	}
 	if err = airdrop.UpdateStatus(ctx, enum.AirdropFailed); err != nil {
-		logrus.Println("airdrop failed update error: ", err.Error())
+		fmt.Println("airdrop failed update error: ", err.Error())
 		return err
 	}
 	return nil
@@ -222,7 +221,7 @@ func pendingAfter(ctx context.Context, id primitive.ObjectID) error {
 	}
 	airdrop, err := models.FindAirdrop(ctx, params)
 	if err != nil {
-		logrus.Println("pending after find airdrop error: ", err.Error())
+		fmt.Println("pending after find airdrop error: ", err.Error())
 		return err
 	}
 	if airdrop.TxID != "" && airdrop.Status != enum.AirdropDefault {
@@ -240,7 +239,7 @@ func txGeneratedAfter(ctx context.Context, misesid string, tx_id string) error {
 	}
 	airdrop, err := models.FindAirdrop(ctx, params)
 	if err != nil {
-		logrus.Println("find airdrop error: ", err.Error())
+		fmt.Println("find airdrop error: ", err.Error())
 		return err
 	}
 	if airdrop.TxID != "" || airdrop.Status != enum.AirdropPending {
