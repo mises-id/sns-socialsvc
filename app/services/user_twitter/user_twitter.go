@@ -237,6 +237,7 @@ func checkMisesidOrTwitterUserIdIsExists(misesid string, twitter_user *models.Tw
 }
 
 func IsValidTwitterUser(twitter_user *models.TwitterUser) (is_valid bool) {
+	validRegisterDate = env.Envs.VALID_TWITTER_REGISTER_DATE
 	timeFormat := "2006-01-02"
 	st, _ := time.Parse(timeFormat, validRegisterDate)
 	vt := st.Unix()
