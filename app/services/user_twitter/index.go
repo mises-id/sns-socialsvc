@@ -320,16 +320,19 @@ func getTwitterUserById(ctx context.Context, twitter_user_id string) (*resources
 }
 
 func getTwitterAirdropCoin(ctx context.Context, userTwitter *models.UserTwitterAuth) int64 {
-
+	if userTwitter.TwitterUser.FollowersCount == 0 {
+		return 0
+	}
 	var max, umises, mises uint64
 	umises = 1
 	mises = 1000000 * umises
 	max = 100 * mises
-	tweet_count := userTwitter.TwitterUser.TweetCount
+	/* tweet_count := userTwitter.TwitterUser.TweetCount
 	if tweet_count > 500 {
 		tweet_count = 500
-	}
-	coin := mises + 10000*umises*tweet_count + 5000*umises*userTwitter.TwitterUser.FollowersCount
+	} */
+	//coin := mises + 10000*umises*tweet_count + 5000*umises*userTwitter.TwitterUser.FollowersCount
+	coin := mises + 5000*umises*userTwitter.TwitterUser.FollowersCount
 	if coin > max {
 		coin = max
 	}
