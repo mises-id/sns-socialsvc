@@ -34,6 +34,7 @@ func main() {
 	fmt.Println("setup airdrop...")
 	airdrop.SetAirdropClient()
 
+	//config
 	cfg := server.DefaultConfig
 	cfg = handlers.SetConfig(cfg)
 
