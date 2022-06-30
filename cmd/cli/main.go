@@ -14,6 +14,8 @@ import (
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	_ "github.com/mises-id/sns-socialsvc/lib/mises"
 
+	//"github.com/mises-id/sns-socialsvc/lib/stream"
+
 	// This Service
 	"github.com/mises-id/sns-socialsvc/handlers"
 	"github.com/mises-id/sns-socialsvc/svc/server"
@@ -33,6 +35,8 @@ func main() {
 	session.SetupMisesClient()
 	fmt.Println("setup airdrop...")
 	airdrop.SetAirdropClient()
+	fmt.Println("setup stream...")
+	//stream.SetStreamClient()
 
 	cfg := server.DefaultConfig
 	cfg = handlers.SetConfig(cfg)

@@ -61,7 +61,7 @@ func New() Client {
 			app:    nil,
 		}
 	}
-	opt := sdk.MSdkOption{
+	opt := types.MSdkOption{
 		ChainID: env.Envs.MisesChainID,
 	}
 	appinfo := types.NewMisesAppInfoReadonly(
