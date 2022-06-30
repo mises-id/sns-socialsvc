@@ -316,7 +316,11 @@ func getTwitterAirdropCoin(ctx context.Context, userTwitter *models.UserTwitterA
 	umises = 1
 	mises = 1000000 * umises
 	max = 100 * mises
-	coin := mises + 10000*umises*userTwitter.TwitterUser.TweetCount + 500*umises*userTwitter.TwitterUser.FollowersCount
+	tweet_count := userTwitter.TwitterUser.TweetCount
+	if tweet_count > 500 {
+		tweet_count = 500
+	}
+	coin := mises + 10000*umises*tweet_count + 5000*umises*userTwitter.TwitterUser.FollowersCount
 	if coin > max {
 		coin = max
 	}
