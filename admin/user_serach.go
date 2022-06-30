@@ -21,10 +21,12 @@ type (
 		ChannelID     primitive.ObjectID
 		ChannelIDs    []primitive.ObjectID
 		IsChannelUser uint64
+		AvatarType    uint64
 		Tags          []enum.TagType
 		StartTime     *time.Time `json:"start_time" query:"start_time"`
 		EndTime       *time.Time `json:"end_time" query:"end_time"`
 		Tag           enum.TagType
+		IsNftUser     bool
 		//sort
 		//limit
 		ListNum int64
@@ -50,6 +52,12 @@ func (params *AdminUserParams) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	}
 	if params.ChannelIDs != nil && len(params.ChannelIDs) > 0 {
 		chain = chain.Where(bson.M{"channel_id": bson.M{"$in": params.ChannelIDs}})
+	}
+	if params.AvatarType == 1 {
+		chain = chain.Where(bson.M{"nft_avatar": bson.M{"$eq": nil}})
+	}
+	if params.AvatarType == 2 {
+		chain = chain.Where(bson.M{"nft_avatar": bson.M{"$ne": nil}})
 	}
 	if params.IsChannelUser == 1 {
 		chain = chain.Where(bson.M{"channel_id": bson.M{"$ne": nil}})

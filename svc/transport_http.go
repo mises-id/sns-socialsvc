@@ -772,6 +772,58 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		responseEncoder,
 		serverOptions...,
 	))
+
+	m.Methods("GET").Path("/twitter/auth_url/").Handler(httptransport.NewServer(
+		endpoints.GetTwitterAuthUrlEndpoint,
+		DecodeHTTPGetTwitterAuthUrlZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/twitter/auth_url").Handler(httptransport.NewServer(
+		endpoints.GetTwitterAuthUrlEndpoint,
+		DecodeHTTPGetTwitterAuthUrlOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/airdrop/info/").Handler(httptransport.NewServer(
+		endpoints.GetAirdropInfoEndpoint,
+		DecodeHTTPGetAirdropInfoZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/airdrop/info").Handler(httptransport.NewServer(
+		endpoints.GetAirdropInfoEndpoint,
+		DecodeHTTPGetAirdropInfoOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/twitter/callback/").Handler(httptransport.NewServer(
+		endpoints.TwitterCallbackEndpoint,
+		DecodeHTTPTwitterCallbackZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/twitter/callback").Handler(httptransport.NewServer(
+		endpoints.TwitterCallbackEndpoint,
+		DecodeHTTPTwitterCallbackOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
+	m.Methods("GET").Path("/airdrop/receive/").Handler(httptransport.NewServer(
+		endpoints.ReceiveAirdropEndpoint,
+		DecodeHTTPReceiveAirdropZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/airdrop/receive").Handler(httptransport.NewServer(
+		endpoints.ReceiveAirdropEndpoint,
+		DecodeHTTPReceiveAirdropOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
 	return m
 }
 
@@ -6239,6 +6291,402 @@ func DecodeHTTPUpdateOpenseaNftOneRequest(_ context.Context, r *http.Request) (i
 
 	queryParams := r.URL.Query()
 	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPGetTwitterAuthUrlZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded gettwitterauthurl request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetTwitterAuthUrlZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetTwitterAuthUrlRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetTwitterAuthUrlStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetTwitterAuthUrlStr := CurrentUidGetTwitterAuthUrlStrArr[0]
+		CurrentUidGetTwitterAuthUrl, err := strconv.ParseUint(CurrentUidGetTwitterAuthUrlStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetTwitterAuthUrl from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetTwitterAuthUrl
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetTwitterAuthUrlOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded gettwitterauthurl request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetTwitterAuthUrlOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetTwitterAuthUrlRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetTwitterAuthUrlStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetTwitterAuthUrlStr := CurrentUidGetTwitterAuthUrlStrArr[0]
+		CurrentUidGetTwitterAuthUrl, err := strconv.ParseUint(CurrentUidGetTwitterAuthUrlStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetTwitterAuthUrl from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetTwitterAuthUrl
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetAirdropInfoZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getairdropinfo request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetAirdropInfoZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetAirdropInfoRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetAirdropInfoStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetAirdropInfoStr := CurrentUidGetAirdropInfoStrArr[0]
+		CurrentUidGetAirdropInfo, err := strconv.ParseUint(CurrentUidGetAirdropInfoStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetAirdropInfo from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetAirdropInfo
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPGetAirdropInfoOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded getairdropinfo request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPGetAirdropInfoOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.GetAirdropInfoRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidGetAirdropInfoStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidGetAirdropInfoStr := CurrentUidGetAirdropInfoStrArr[0]
+		CurrentUidGetAirdropInfo, err := strconv.ParseUint(CurrentUidGetAirdropInfoStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidGetAirdropInfo from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidGetAirdropInfo
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPTwitterCallbackZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded twittercallback request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPTwitterCallbackZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.TwitterCallbackRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidTwitterCallbackStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidTwitterCallbackStr := CurrentUidTwitterCallbackStrArr[0]
+		CurrentUidTwitterCallback, err := strconv.ParseUint(CurrentUidTwitterCallbackStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidTwitterCallback from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidTwitterCallback
+	}
+
+	if OauthTokenTwitterCallbackStrArr, ok := queryParams["oauth_token"]; ok {
+		OauthTokenTwitterCallbackStr := OauthTokenTwitterCallbackStrArr[0]
+		OauthTokenTwitterCallback := OauthTokenTwitterCallbackStr
+		req.OauthToken = OauthTokenTwitterCallback
+	}
+
+	if OauthVerifierTwitterCallbackStrArr, ok := queryParams["oauth_verifier"]; ok {
+		OauthVerifierTwitterCallbackStr := OauthVerifierTwitterCallbackStrArr[0]
+		OauthVerifierTwitterCallback := OauthVerifierTwitterCallbackStr
+		req.OauthVerifier = OauthVerifierTwitterCallback
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPTwitterCallbackOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded twittercallback request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPTwitterCallbackOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.TwitterCallbackRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidTwitterCallbackStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidTwitterCallbackStr := CurrentUidTwitterCallbackStrArr[0]
+		CurrentUidTwitterCallback, err := strconv.ParseUint(CurrentUidTwitterCallbackStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidTwitterCallback from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidTwitterCallback
+	}
+
+	if OauthTokenTwitterCallbackStrArr, ok := queryParams["oauth_token"]; ok {
+		OauthTokenTwitterCallbackStr := OauthTokenTwitterCallbackStrArr[0]
+		OauthTokenTwitterCallback := OauthTokenTwitterCallbackStr
+		req.OauthToken = OauthTokenTwitterCallback
+	}
+
+	if OauthVerifierTwitterCallbackStrArr, ok := queryParams["oauth_verifier"]; ok {
+		OauthVerifierTwitterCallbackStr := OauthVerifierTwitterCallbackStrArr[0]
+		OauthVerifierTwitterCallback := OauthVerifierTwitterCallbackStr
+		req.OauthVerifier = OauthVerifierTwitterCallback
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPReceiveAirdropZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded receiveairdrop request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPReceiveAirdropZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ReceiveAirdropRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidReceiveAirdropStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidReceiveAirdropStr := CurrentUidReceiveAirdropStrArr[0]
+		CurrentUidReceiveAirdrop, err := strconv.ParseUint(CurrentUidReceiveAirdropStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidReceiveAirdrop from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidReceiveAirdrop
+	}
+
+	if TweetReceiveAirdropStrArr, ok := queryParams["tweet"]; ok {
+		TweetReceiveAirdropStr := TweetReceiveAirdropStrArr[0]
+		TweetReceiveAirdrop := TweetReceiveAirdropStr
+		req.Tweet = TweetReceiveAirdrop
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPReceiveAirdropOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded receiveairdrop request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPReceiveAirdropOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ReceiveAirdropRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if CurrentUidReceiveAirdropStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidReceiveAirdropStr := CurrentUidReceiveAirdropStrArr[0]
+		CurrentUidReceiveAirdrop, err := strconv.ParseUint(CurrentUidReceiveAirdropStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidReceiveAirdrop from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidReceiveAirdrop
+	}
+
+	if TweetReceiveAirdropStrArr, ok := queryParams["tweet"]; ok {
+		TweetReceiveAirdropStr := TweetReceiveAirdropStrArr[0]
+		TweetReceiveAirdrop := TweetReceiveAirdropStr
+		req.Tweet = TweetReceiveAirdrop
+	}
 
 	return &req, err
 }

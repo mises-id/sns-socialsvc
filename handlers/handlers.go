@@ -21,6 +21,7 @@ import (
 	sessionSVC "github.com/mises-id/sns-socialsvc/app/services/session"
 	statusSVC "github.com/mises-id/sns-socialsvc/app/services/status"
 	userSVC "github.com/mises-id/sns-socialsvc/app/services/user"
+	"github.com/mises-id/sns-socialsvc/app/services/user_twitter"
 	twitterSVC "github.com/mises-id/sns-socialsvc/app/services/user_twitter"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
@@ -746,7 +747,6 @@ func (s socialService) CreateChannelAirdrop(ctx context.Context, in *pb.CreateCh
 
 func (s socialService) PageChannelUser(ctx context.Context, in *pb.PageChannelUserRequest) (*pb.PageChannelUserResponse, error) {
 	var resp pb.PageChannelUserResponse
-	fmt.Println("in: ", in)
 	PageParams := &pagination.TraditionalParams{}
 	if in.Paginator != nil {
 		PageParams = &pagination.TraditionalParams{
@@ -1002,6 +1002,47 @@ func (s socialService) ListLike(ctx context.Context, in *pb.ListLikeUserRequest)
 func (s socialService) UpdateOpenseaNft(ctx context.Context, in *pb.UpdateOpenseaNftRequest) (*pb.UpdateOpenseaNftResponse, error) {
 	var resp pb.UpdateOpenseaNftResponse
 	err := nft.UpdateOpenseaNft(ctx)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	return &resp, nil
+}
+
+func (s socialService) GetTwitterAuthUrl(ctx context.Context, in *pb.GetTwitterAuthUrlRequest) (*pb.GetTwitterAuthUrlResponse, error) {
+	var resp pb.GetTwitterAuthUrlResponse
+	url, err := user_twitter.GetTwitterAuthUrl(ctx, in.CurrentUid)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.Url = url
+	return &resp, nil
+}
+
+func (s socialService) GetAirdropInfo(ctx context.Context, in *pb.GetAirdropInfoRequest) (*pb.GetAirdropInfoResponse, error) {
+	var resp pb.GetAirdropInfoResponse
+	out, err := user_twitter.GetAirdropInfo(ctx, in.CurrentUid)
+	if err != nil {
+		return nil, err
+	}
+	resp.Airdrop = factory.NewAirdrop(out.Airdrop)
+	resp.Twitter = factory.NewUserTwitterAuth(out.Twitter)
+	resp.Code = 0
+	return &resp, nil
+}
+
+func (s socialService) TwitterCallback(ctx context.Context, in *pb.TwitterCallbackRequest) (*pb.TwitterCallbackResponse, error) {
+	var resp pb.TwitterCallbackResponse
+	url := user_twitter.TwitterCallback(ctx, in.CurrentUid, in.OauthToken, in.OauthVerifier)
+	resp.Code = 0
+	resp.Url = url
+	return &resp, nil
+}
+
+func (s socialService) ReceiveAirdrop(ctx context.Context, in *pb.ReceiveAirdropRequest) (*pb.ReceiveAirdropResponse, error) {
+	var resp pb.ReceiveAirdropResponse
+	err := user_twitter.ReceiveAirdrop(ctx, in.CurrentUid, in.Tweet)
 	if err != nil {
 		return nil, err
 	}

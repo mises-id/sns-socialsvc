@@ -5,6 +5,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/message"
 	"github.com/mises-id/sns-socialsvc/app/models/meta"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	pb "github.com/mises-id/sns-socialsvc/proto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -68,6 +69,36 @@ func NewLinkMetaInfo(meta *meta.LinkMeta) *pb.LinkMetaInfo {
 		ImageUrl:  meta.ImageURL,
 	}
 	return &linkMetaInfo
+}
+func NewAirdrop(in *models.Airdrop) *pb.Airdrop {
+	if in == nil {
+		return nil
+	}
+	out := &pb.Airdrop{
+		Coin:      float32(utils.UMisesToMises(uint64(in.Coin))),
+		Status:    in.Status.String(),
+		FinishAt:  uint64(in.FinishAt.Unix()),
+		CreatedAt: uint64(in.CreatedAt.Unix()),
+	}
+	return out
+}
+
+func NewUserTwitterAuth(in *models.UserTwitterAuth) *pb.UserTwitterAuth {
+	if in == nil {
+		return nil
+	}
+	out := &pb.UserTwitterAuth{
+		TwitterUserId:    in.TwitterUserId,
+		Misesid:          utils.RemoveMisesidProfix(in.Misesid),
+		Name:             in.TwitterUser.Name,
+		Username:         in.TwitterUser.UserName,
+		FollowersCount:   in.TwitterUser.FollowersCount,
+		TweetCount:       in.TwitterUser.TweetCount,
+		TwitterCreatedAt: uint64(in.TwitterUser.CreatedAt.Unix()),
+		Amount:           float32(utils.UMisesToMises(uint64(in.Amount))),
+		CreatedAt:        uint64(in.CreatedAt.Unix()),
+	}
+	return out
 }
 
 func NewImageMetaInfo(meta *meta.ImageMeta) *pb.ImageMetaInfo {

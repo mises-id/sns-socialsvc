@@ -14,7 +14,6 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/config/env"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
-	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/sirupsen/logrus"
 )
 
@@ -99,7 +98,6 @@ func ListAsset(ctx context.Context, currentUID uint64, in *ListAssetInput) (stri
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*60)
 		defer cancel()
-		db.SetupMongo(ctx)
 		if err2 := AfterListAsset(ctx, currentUID, out); err2 != nil {
 			logrus.Errorln("after_list_asset err: ", err2.Error())
 		}

@@ -19,6 +19,7 @@ type (
 		NeedUpdate       bool
 		ForceUpdateState string
 		UpdatedAt        *time.Time
+		MinNum           int
 		//sort
 		SortBy string
 		//limit
@@ -42,6 +43,9 @@ func (params *NftLogSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	}
 	if params.ObjectID != "" {
 		chain = chain.Where(bson.M{"object_id": params.ObjectID})
+	}
+	if params.MinNum > -1 {
+		chain = chain.Where(bson.M{"num": bson.M{"$gte": params.MinNum}})
 	}
 	if params.ForceUpdateState == "true" {
 		chain = chain.Where(bson.M{"force_update": true})

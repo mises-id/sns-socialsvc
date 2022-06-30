@@ -38,6 +38,7 @@ func main() {
 	fmt.Println("setup stream...")
 	//stream.SetStreamClient()
 
+	//config
 	cfg := server.DefaultConfig
 	cfg = handlers.SetConfig(cfg)
 

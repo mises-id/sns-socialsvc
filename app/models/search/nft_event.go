@@ -12,6 +12,7 @@ type (
 		ID         primitive.ObjectID
 		NftAssetID primitive.ObjectID
 		LastID     primitive.ObjectID
+		EventTypes []string
 		//sort
 		SortBy string
 		//limit
@@ -36,6 +37,17 @@ func (params *NftEventSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 
 	if !params.LastID.IsZero() {
 		chain = chain.Where(bson.M{"_id": bson.M{"$lte": params.LastID}})
+	}
+	if params.EventTypes != nil && len(params.EventTypes) > 0 {
+		chain = chain.Where(bson.M{"event_type": bson.M{"$in": params.EventTypes}})
+	}
+	//sort
+	if params.SortBy != "" {
+		switch params.SortBy {
+		case "created_date_desc":
+			chain = chain.Sort(bson.M{"created_date": -1})
+		}
+
 	}
 	chain = chain.Sort(bson.M{"_id": -1})
 	//limit

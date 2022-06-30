@@ -30,7 +30,7 @@ func AdminFindUser(ctx context.Context, params IAdminParams) (*User, error) {
 		return nil, err
 	}
 
-	return user, preloadUserAvatar(ctx, user)
+	return user, PreloadUserAvatar(ctx, user)
 }
 
 //list user
@@ -43,7 +43,7 @@ func AdminListUser(ctx context.Context, params IAdminParams) ([]*User, error) {
 		return nil, err
 	}
 
-	return users, preloadUserAvatar(ctx, users...)
+	return users, PreloadUserAvatar(ctx, users...)
 }
 
 //page user
@@ -57,7 +57,7 @@ func AdminPageUser(ctx context.Context, params IAdminPageParams) ([]*User, pagin
 		return nil, nil, err
 	}
 
-	return users, page, preloadUserAvatar(ctx, users...)
+	return users, page, PreloadUserAvatar(ctx, users...)
 }
 
 //find problem user uids

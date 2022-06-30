@@ -178,7 +178,7 @@ func findListFollowing2Status(ctx context.Context, uid uint64, num int64) ([]*mo
 	if len(uids) == 0 {
 		return []*models.Status{}, nil
 	}
-	start_time := time.Now().AddDate(0, 0, -7)
+	start_time := time.Now().AddDate(0, 0, -15)
 	params := &admin.AdminStatusParams{
 		NInTags:   []enum.TagType{enum.TagRecommendStatus},
 		ListNum:   num,
@@ -281,7 +281,7 @@ func findListCommonStatus(ctx context.Context, uid uint64, num int64, newRecomme
 		return []*models.Status{}, nil
 	}
 	var cursors *models.CommonPoolCursor
-	start_time := time.Now().AddDate(0, 0, -3)
+	start_time := time.Now().AddDate(0, 0, -15)
 	params := &admin.AdminStatusParams{
 		NInTags:   []enum.TagType{enum.TagRecommendStatus}, //filter recommend status
 		ListNum:   num,

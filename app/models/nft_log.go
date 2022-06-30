@@ -7,6 +7,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/search"
 	"github.com/mises-id/sns-socialsvc/lib/db"
+	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -22,6 +23,7 @@ type (
 		Num            uint64              `bson:"num"`
 		UpdatedAt      time.Time           `bson:"updated_at,omitempty"`
 		CreatedAt      time.Time           `bson:"created_at,omitempty"`
+		UpdateType     string              `bson:"-"`
 	}
 )
 
@@ -48,6 +50,9 @@ func UpdateNftLog(ctx context.Context, log *NftLog) error {
 	update := bson.M{}
 	update["updated_at"] = time.Now()
 	update["force_update"] = log.ForceUpdate
+	if log.UpdateType == "update" {
+		update["num"] = log.Num
+	}
 	_, err := db.DB().Collection("nftlogs").UpdateByID(ctx, log.ID, bson.D{{Key: "$set", Value: update}})
 	return err
 }
@@ -88,4 +93,18 @@ func ListNftLog(ctx context.Context, params IAdminParams) ([]*NftLog, error) {
 	}
 
 	return res, nil
+}
+
+//page user
+func AdminPageNftLog(ctx context.Context, params IAdminPageParams) ([]*NftLog, pagination.Pagination, error) {
+	users := make([]*NftLog, 0)
+	chain := params.BuildAdminSearch(db.ODM(ctx))
+	pageParams := params.GetPageParams()
+	paginator := pagination.NewTraditionalPaginatorAdmin(pageParams.PageNum, pageParams.PageSize, chain)
+	page, err := paginator.Paginate(&users)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return users, page, nil
 }

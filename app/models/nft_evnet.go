@@ -85,6 +85,12 @@ func preloadNftAccountMisesUser(ctx context.Context, events ...*NftEvent) error 
 		if event.ToAccount != nil && event.ToAccount.Address != "" {
 			eth_addresses = append(eth_addresses, event.ToAccount.Address)
 		}
+		if event.Seller != nil && event.Seller.Address != "" {
+			eth_addresses = append(eth_addresses, event.Seller.Address)
+		}
+		if event.WinnerAccount != nil && event.WinnerAccount.Address != "" {
+			eth_addresses = append(eth_addresses, event.WinnerAccount.Address)
+		}
 	}
 	addressMap, err := GetUserMapByEthAddresses(ctx, eth_addresses...)
 	if err != nil {
@@ -96,6 +102,14 @@ func preloadNftAccountMisesUser(ctx context.Context, events ...*NftEvent) error 
 		}
 		if event.ToAccount != nil && event.ToAccount.Address != "" {
 			event.ToAccount.MisesUser = addressMap[event.ToAccount.Address]
+		}
+		if event.FromAccount == nil && event.Seller != nil && event.Seller.Address != "" {
+			event.Seller.MisesUser = addressMap[event.Seller.Address]
+			event.FromAccount = event.Seller
+		}
+		if event.ToAccount == nil && event.WinnerAccount != nil && event.WinnerAccount.Address != "" {
+			event.WinnerAccount.MisesUser = addressMap[event.WinnerAccount.Address]
+			event.ToAccount = event.WinnerAccount
 		}
 	}
 	return nil

@@ -209,6 +209,7 @@ func UpdateUserAvatar(ctx context.Context, user *User) error {
 		Key: "$set",
 		Value: bson.M{
 			"avatar_path": user.AvatarPath,
+			"nft_avatar":  nil,
 			"updated_at":  time.Now(),
 		}}})
 	return err
@@ -365,7 +366,7 @@ func GetUserMap(ctx context.Context, ids ...uint64) (map[uint64]*User, error) {
 }
 
 func PreloadUserData(ctx context.Context, users ...*User) error {
-	err := preloadUserAvatar(ctx, users...)
+	err := PreloadUserAvatar(ctx, users...)
 	if err != nil {
 		return err
 	}
@@ -376,7 +377,7 @@ func PreloadUserData(ctx context.Context, users ...*User) error {
 	return nil
 }
 
-func preloadUserAvatar(ctx context.Context, users ...*User) error {
+func PreloadUserAvatar(ctx context.Context, users ...*User) error {
 	paths := make([]string, 0)
 	for _, user := range users {
 		if user.AvatarPath != "" {

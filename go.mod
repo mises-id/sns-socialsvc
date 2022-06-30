@@ -16,7 +16,7 @@ require (
 	github.com/khaiql/dbcleaner v2.3.0+incompatible
 	github.com/michimani/gotwi v0.10.0
 	github.com/mises-id/sdk v0.0.0-20220629022952-af22375938ba
-	github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220207063000-8a91039b2f09
+	github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220623061854-3cb69fa867f2
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/tendermint/tendermint v0.34.16

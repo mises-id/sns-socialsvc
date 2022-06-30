@@ -3,10 +3,12 @@ package admin
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/search"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson"
@@ -67,8 +69,14 @@ func (a *userApi) ListUser(ctx context.Context, params *AdminUserParams) ([]*Use
 
 //get page user
 func (a *userApi) PageUser(ctx context.Context, params *AdminUserParams) ([]*User, pagination.Pagination, error) {
-
-	users, page, err := models.AdminPageUser(ctx, params)
+	var users []*models.User
+	var page pagination.Pagination
+	var err error
+	if params.IsNftUser {
+		users, page, err = pageNftUser(ctx, params)
+	} else {
+		users, page, err = models.AdminPageUser(ctx, params)
+	}
 	if err != nil {
 		return nil, nil, err
 	}
@@ -77,6 +85,32 @@ func (a *userApi) PageUser(ctx context.Context, params *AdminUserParams) ([]*Use
 		result[i] = &User{user}
 	}
 	return result, page, nil
+}
+
+func pageNftUser(ctx context.Context, in *AdminUserParams) ([]*models.User, pagination.Pagination, error) {
+	params := &search.NftLogSearch{
+		NftTagableType: enum.NftTagableTypeOwner,
+		PageNum:        in.PageNum,
+		PageSize:       in.PageSize,
+		MinNum:         1,
+	}
+	nft_logs, page, err := models.AdminPageNftLog(ctx, params)
+	if err != nil {
+		return nil, nil, err
+	}
+	userIds := make([]uint64, 0)
+
+	for _, v := range nft_logs {
+		uid, _ := strconv.ParseUint(v.ObjectID, 10, 64)
+		userIds = append(userIds, uid)
+	}
+	users, err := models.FindUserByIDs(ctx, userIds...)
+	fmt.Println(users)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return users, page, nil
 }
 
 //create tag
