@@ -9,12 +9,13 @@ import (
 
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/services/session"
+	streamSvc "github.com/mises-id/sns-socialsvc/app/services/stream"
 	_ "github.com/mises-id/sns-socialsvc/config"
 	"github.com/mises-id/sns-socialsvc/lib/airdrop"
 	"github.com/mises-id/sns-socialsvc/lib/db"
 	_ "github.com/mises-id/sns-socialsvc/lib/mises"
 
-	//"github.com/mises-id/sns-socialsvc/lib/stream"
+	"github.com/mises-id/sns-socialsvc/lib/stream"
 
 	// This Service
 	"github.com/mises-id/sns-socialsvc/handlers"
@@ -36,7 +37,8 @@ func main() {
 	fmt.Println("setup airdrop...")
 	airdrop.SetAirdropClient()
 	fmt.Println("setup stream...")
-	//stream.SetStreamClient()
+	stream.SetStreamClient()
+	streamSvc.Run(context.TODO())
 
 	//config
 	cfg := server.DefaultConfig

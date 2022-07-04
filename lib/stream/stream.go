@@ -6,7 +6,6 @@ import (
 	cosmos_types "github.com/cosmos/cosmos-sdk/types"
 	"github.com/mises-id/sdk"
 	"github.com/mises-id/sdk/types"
-	"github.com/mises-id/sns-socialsvc/config/env"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
@@ -46,11 +45,16 @@ func NewStream() IStreamClient {
 				app:    nil,
 			}
 		} */
-	opt := types.MSdkOption{
+	/* opt := types.MSdkOption{
 		ChainID: env.Envs.MisesChainID,
+	} */
+	opt := types.MSdkOption{
+		ChainID: "mainnet",
+		Debug:   true,
+		//RpcURI:  "http://mises.ihuaj.com:26657",
 	}
 	appinfo := types.NewMisesAppInfoReadonly(
-		"Mises Discover",
+		"Mises Stream",
 		"https://www.mises.site",
 		"https://home.mises.site",
 		[]string{"mises.site"},
