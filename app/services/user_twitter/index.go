@@ -138,8 +138,14 @@ func ReceiveAirdrop(ctx context.Context, uid uint64, tweet string) error {
 	}
 	//send tweet
 	if err := sendTweet(ctx, user_twitter, tweet); err != nil {
+		fmt.Printf("uid[%d] send tweet err:%s ", uid, err.Error())
 		//return codes.ErrForbidden.Newf("Send twitter failed.")
 	}
+	//follow
+	/* if err := followTwitterUser(ctx, user_twitter, "1442753558311424001"); err != nil {
+		fmt.Printf("uid[%d] follow twitter_user err:%s ",uid, err.Error())
+		//return codes.ErrForbidden.Newf("Follow failed.")
+	} */
 	//create airdrop order
 	if err := createAirdrop(ctx, user_twitter); err != nil {
 		return err
@@ -169,6 +175,31 @@ func sendTweet(ctx context.Context, user_twitter *models.UserTwitterAuth, tweet 
 		Text: &tweet,
 	}
 	_, err = tweets.ManageTweetsPost(ctx, twitter_client, params)
+
+	return err
+}
+func followTwitterUser(ctx context.Context, user_twitter *models.UserTwitterAuth, target_user_id string) error {
+	target_user_id = "1442753558311424001"
+	if user_twitter.OauthToken == "" || user_twitter.OauthTokenSecret == "" {
+		return codes.ErrForbidden.Newf("OAuthToken and OAuthTokenSecret is required")
+	}
+	transport := &http.Transport{Proxy: setProxy()}
+	client := &http.Client{Transport: transport}
+	in := &gotwi.NewGotwiClientInput{
+		HTTPClient:           client,
+		AuthenticationMethod: gotwi.AuthenMethodOAuth1UserContext,
+		OAuthToken:           user_twitter.OauthToken,
+		OAuthTokenSecret:     user_twitter.OauthTokenSecret,
+	}
+	twitter_client, err := gotwi.NewGotwiClient(in)
+	if err != nil {
+		return err
+	}
+	params := &types.FollowsFollowingPostParams{
+		ID:           user_twitter.TwitterUserId,
+		TargetUserID: &target_user_id,
+	}
+	_, err = users.FollowsFollowingPost(ctx, twitter_client, params)
 
 	return err
 }
