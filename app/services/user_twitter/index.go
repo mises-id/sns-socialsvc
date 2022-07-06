@@ -101,7 +101,7 @@ func GetAirdropInfo(ctx context.Context, uid uint64) (*AirdropInfoOutput, error)
 	if user_twitter != nil {
 		user_twitter.IsValid = IsValidTwitterUser(user_twitter.TwitterUser)
 		if user_twitter.IsValid {
-			user_twitter.Amount = getTwitterAirdropCoin(ctx, user_twitter)
+			user_twitter.Amount = GetTwitterAirdropCoin(ctx, user_twitter)
 		}
 	}
 	airdrop, err := models.FindAirdropByUid(ctx, uid)
@@ -210,7 +210,7 @@ func createAirdrop(ctx context.Context, user_twitter *models.UserTwitterAuth) er
 		Misesid:   user_twitter.Misesid,
 		Status:    enum.AirdropDefault,
 		Type:      enum.AirdropTwitter,
-		Coin:      getTwitterAirdropCoin(ctx, user_twitter),
+		Coin:      GetTwitterAirdropCoin(ctx, user_twitter),
 		TxID:      "",
 		CreatedAt: time.Now(),
 	}
@@ -348,26 +348,6 @@ func getTwitterUserById(ctx context.Context, twitter_user_id string) (*resources
 		return nil, err
 	}
 	return &tr.Data, nil
-}
-
-func getTwitterAirdropCoin(ctx context.Context, userTwitter *models.UserTwitterAuth) int64 {
-	if userTwitter.TwitterUser.FollowersCount == 0 {
-		return 0
-	}
-	var max, umises, mises uint64
-	umises = 1
-	mises = 1000000 * umises
-	max = 100 * mises
-	/* tweet_count := userTwitter.TwitterUser.TweetCount
-	if tweet_count > 500 {
-		tweet_count = 500
-	} */
-	//coin := mises + 10000*umises*tweet_count + 5000*umises*userTwitter.TwitterUser.FollowersCount
-	coin := mises + 5000*umises*userTwitter.TwitterUser.FollowersCount
-	if coin > max {
-		coin = max
-	}
-	return int64(coin)
 }
 
 func setProxy() func(*http.Request) (*url.URL, error) {
