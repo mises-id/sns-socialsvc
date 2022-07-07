@@ -289,7 +289,7 @@ func createdTwitterAirdrop(ctx context.Context) error {
 				Misesid:   v.Misesid,
 				Status:    enum.AirdropDefault,
 				Type:      enum.AirdropTwitter,
-				Coin:      getTwitterAirdropCoin(ctx, v),
+				Coin:      user_twitter.GetTwitterAirdropCoin(ctx, v),
 				TxID:      "",
 				CreatedAt: time.Now(),
 			}
@@ -308,19 +308,6 @@ func createdTwitterAirdrop(ctx context.Context) error {
 		return err
 	}
 	return nil
-}
-
-func getTwitterAirdropCoin(ctx context.Context, userTwitter *models.UserTwitterAuth) int64 {
-
-	var max, umises, mises uint64
-	umises = 1
-	mises = 1000000 * umises
-	max = 100 * mises
-	coin := mises + 10000*umises*userTwitter.TwitterUser.TweetCount + 500*umises*userTwitter.TwitterUser.FollowersCount
-	if coin > max {
-		coin = max
-	}
-	return int64(coin)
 }
 
 func getMaxId(ctx context.Context) primitive.ObjectID {

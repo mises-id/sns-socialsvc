@@ -3,7 +3,6 @@ package models
 import (
 	"context"
 	"errors"
-	"fmt"
 	"sync"
 	"time"
 
@@ -125,7 +124,6 @@ func (m *ChannelUser) UpdateTxID(ctx context.Context, tx_id string) error {
 func (m *ChannelUser) UpdateStatusPending(ctx context.Context) error {
 	update := bson.M{}
 	update["airdrop_state"] = enum.ChannelAirdropPending
-	fmt.Println("up id: ", m.ID)
 	_, err := db.DB().Collection("channelusers").UpdateOne(ctx, &bson.M{
 		"_id": m.ID,
 	}, bson.D{{

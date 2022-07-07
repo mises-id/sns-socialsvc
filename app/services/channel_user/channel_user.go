@@ -345,15 +345,8 @@ func getNotAuthChannelUserByUIDs(ctx context.Context, uids ...uint64) ([]*models
 }
 
 func getChannelAirdropCoin(ctx context.Context, userTwitter *models.UserTwitterAuth) int64 {
-	var max, umises, mises uint64
-	umises = 1
-	mises = 1000000 * umises
-	max = 100 * mises
-	coin := mises + 10000*umises*userTwitter.TwitterUser.TweetCount + 500*umises*userTwitter.TwitterUser.FollowersCount
-	if coin > max {
-		coin = max
-	}
-	return int64(coin) / 10
+
+	return user_twitter.GetTwitterAirdropCoin(ctx, userTwitter) / 10
 }
 
 func getMaxId(ctx context.Context) primitive.ObjectID {

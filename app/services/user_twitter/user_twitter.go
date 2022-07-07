@@ -237,6 +237,9 @@ func checkMisesidOrTwitterUserIdIsExists(misesid string, twitter_user *models.Tw
 }
 
 func IsValidTwitterUser(twitter_user *models.TwitterUser) (is_valid bool) {
+	if twitter_user.FollowersCount == 0 {
+		return is_valid
+	}
 	validRegisterDate = env.Envs.VALID_TWITTER_REGISTER_DATE
 	timeFormat := "2006-01-02"
 	st, _ := time.Parse(timeFormat, validRegisterDate)
@@ -246,6 +249,29 @@ func IsValidTwitterUser(twitter_user *models.TwitterUser) (is_valid bool) {
 		is_valid = true
 	}
 	return is_valid
+}
+
+func GetTwitterAirdropCoin(ctx context.Context, userTwitter *models.UserTwitterAuth) int64 {
+	if userTwitter == nil || userTwitter.TwitterUser == nil {
+		return 0
+	}
+	if userTwitter.TwitterUser.FollowersCount == 0 {
+		return 0
+	}
+	var max, umises, mises uint64
+	umises = 1
+	mises = 1000000 * umises
+	max = 100 * mises
+	/* tweet_count := userTwitter.TwitterUser.TweetCount
+	if tweet_count > 500 {
+		tweet_count = 500
+	} */
+	//coin := mises + 10000*umises*tweet_count + 5000*umises*userTwitter.TwitterUser.FollowersCount
+	coin := mises + 40000*umises*userTwitter.TwitterUser.FollowersCount
+	if coin > max {
+		coin = max
+	}
+	return int64(coin)
 }
 
 func getMisesIdByTweetText(text string) (string, error) {
