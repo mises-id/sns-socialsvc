@@ -11,20 +11,24 @@ import (
 func Run(ctx context.Context) {
 	callback := &EventStreamingCallback{}
 	callback.done = make(chan bool)
-	callback.maxCount = 10
+	callback.maxCount = 10000
 	err := streamLib.StreamClient.StartEventStreaming(callback)
 	if err != nil {
 		fmt.Println("StartEventStreaming error: ", err.Error())
 
 	}
-	callback.wait()
-	resp, err := streamLib.StreamClient.ParseEvent(callback.header, callback.tx)
-	if err != nil {
-		fmt.Println("ParseEvent error: ", err.Error())
+	//callback.wait()
 
+	for i := range callback.done {
+		resp, err := streamLib.StreamClient.ParseEvent(callback.header, callback.tx)
+		if err != nil {
+			fmt.Println(i)
+			fmt.Println("ParseEvent error: ", err.Error())
+
+		} else {
+			fmt.Printf("ParseEvent %s", resp.TxHash)
+		}
 	}
-	fmt.Printf("ParseEvent %s", resp.TxHash)
-
 }
 
 type EventStreamingCallback struct {

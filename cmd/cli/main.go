@@ -38,7 +38,7 @@ func main() {
 	airdrop.SetAirdropClient()
 	fmt.Println("setup stream...")
 	stream.SetStreamClient()
-	streamSvc.Run(context.TODO())
+	go streamSvc.Run(context.TODO())
 
 	//config
 	cfg := server.DefaultConfig
