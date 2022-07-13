@@ -3,7 +3,6 @@ package admin
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/mises-id/sns-socialsvc/app/models"
@@ -105,7 +104,6 @@ func pageNftUser(ctx context.Context, in *AdminUserParams) ([]*models.User, pagi
 		userIds = append(userIds, uid)
 	}
 	users, err := models.FindUserByIDs(ctx, userIds...)
-	fmt.Println(users)
 	if err != nil {
 		return nil, nil, err
 	}

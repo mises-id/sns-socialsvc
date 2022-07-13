@@ -13,6 +13,7 @@ type AdminApi interface {
 	User() UserApi
 	Status() StatusApi
 	ChannelUser() ChannelUserApi
+	UserTwitterAuth() UserTwitterAuthApi
 }
 
 type adminApi struct {
@@ -31,4 +32,7 @@ func (*adminApi) Status() StatusApi {
 }
 func (*adminApi) ChannelUser() ChannelUserApi {
 	return NewChannelUserApi()
+}
+func (*adminApi) UserTwitterAuth() UserTwitterAuthApi {
+	return NewUserTwitterAuthApi()
 }

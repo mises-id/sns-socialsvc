@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mises-id/sns-socialsvc/lib/db"
+	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -37,6 +38,7 @@ type (
 		CreatedAt        time.Time          `bson:"created_at"`
 		Amount           int64              `bson:"-"`
 		IsValid          bool               `bson:"-"`
+		User             *User              `bson:"-"`
 	}
 )
 
@@ -152,4 +154,38 @@ func ListUserTwitterAuthByMisesidsOrTwitterUserIds(ctx context.Context, misesids
 	}
 
 	return res, nil
+}
+
+//page user
+func AdminPageUserTwitterAuth(ctx context.Context, params IAdminPageParams) ([]*UserTwitterAuth, pagination.Pagination, error) {
+	res := make([]*UserTwitterAuth, 0)
+	chain := params.BuildAdminSearch(db.ODM(ctx))
+	pageParams := params.GetPageParams()
+	paginator := pagination.NewTraditionalPaginatorAdmin(pageParams.PageNum, pageParams.PageSize, chain)
+	page, err := paginator.Paginate(&res)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return res, page, preloadUserTwitterAuthUser(ctx, res...)
+}
+
+func preloadUserTwitterAuthUser(ctx context.Context, in ...*UserTwitterAuth) error {
+	userIds := make([]uint64, 0)
+	for _, i := range in {
+		userIds = append(userIds, i.UID)
+	}
+	users, err := FindUserByIDs(ctx, userIds...)
+	if err != nil {
+		return err
+	}
+	userMap := make(map[uint64]*User)
+	for _, user := range users {
+		userMap[user.UID] = user
+	}
+	for _, i := range in {
+
+		i.User = userMap[i.UID]
+	}
+	return nil
 }

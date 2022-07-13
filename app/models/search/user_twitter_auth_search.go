@@ -10,13 +10,14 @@ import (
 
 type (
 	UserTwitterAuthSearch struct {
-		GID            primitive.ObjectID
-		UID            uint64
-		UIDs           []uint64
-		Misesid        string
-		Misesids       []string
-		TwitterUserId  string
-		TwitterUserIds []string
+		GID             primitive.ObjectID
+		UID             uint64
+		UIDs            []uint64
+		Misesid         string
+		Misesids        []string
+		TwitterUserId   string
+		TwitterUserIds  []string
+		TwitterUserName string
 		//sort
 		SortKey  string
 		SortType enum.SortType
@@ -53,7 +54,9 @@ func (params *UserTwitterAuthSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.TwitterUserIds != nil && len(params.TwitterUserIds) > 0 {
 		chain = chain.Where(bson.M{"twitter_user_id": bson.M{"$in": params.TwitterUserIds}})
 	}
-	//sort
+	if params.TwitterUserName != "" {
+		chain = chain.Where(bson.M{"twitter_user.username": params.TwitterUserName})
+	}
 	//sort
 	if params.SortKey != "" && params.SortType != 0 {
 		chain = chain.Sort(bson.M{params.SortKey: params.SortType})
