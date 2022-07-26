@@ -54,7 +54,7 @@ func NewStream() IStreamClient {
 		//RpcURI:  "http://mises.ihuaj.com:26657",
 	}
 	appinfo := types.NewMisesAppInfoReadonly(
-		"Mises Stream",
+		"Mises Discover",
 		"https://www.mises.site",
 		"https://home.mises.site",
 		[]string{"mises.site"},
