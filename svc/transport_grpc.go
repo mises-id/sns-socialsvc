@@ -377,6 +377,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCTwitterCallbackResponse,
 			serverOptions...,
 		),
+		twitterfollow: grpctransport.NewServer(
+			endpoints.TwitterFollowEndpoint,
+			DecodeGRPCTwitterFollowRequest,
+			EncodeGRPCTwitterFollowResponse,
+			serverOptions...,
+		),
 		receiveairdrop: grpctransport.NewServer(
 			endpoints.ReceiveAirdropEndpoint,
 			DecodeGRPCReceiveAirdropRequest,
@@ -446,6 +452,7 @@ type grpcServer struct {
 	gettwitterauthurl       grpctransport.Handler
 	getairdropinfo          grpctransport.Handler
 	twittercallback         grpctransport.Handler
+	twitterfollow           grpctransport.Handler
 	receiveairdrop          grpctransport.Handler
 }
 
@@ -915,6 +922,14 @@ func (s *grpcServer) TwitterCallback(ctx context.Context, req *pb.TwitterCallbac
 	return rep.(*pb.TwitterCallbackResponse), nil
 }
 
+func (s *grpcServer) TwitterFollow(ctx context.Context, req *pb.TwitterFollowRequest) (*pb.TwitterFollowResponse, error) {
+	_, rep, err := s.twitterfollow.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.TwitterFollowResponse), nil
+}
+
 func (s *grpcServer) ReceiveAirdrop(ctx context.Context, req *pb.ReceiveAirdropRequest) (*pb.ReceiveAirdropResponse, error) {
 	_, rep, err := s.receiveairdrop.ServeGRPC(ctx, req)
 	if err != nil {
@@ -1331,6 +1346,13 @@ func DecodeGRPCTwitterCallbackRequest(_ context.Context, grpcReq interface{}) (i
 	return req, nil
 }
 
+// DecodeGRPCTwitterFollowRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC twitterfollow request to a user-domain twitterfollow request. Primarily useful in a server.
+func DecodeGRPCTwitterFollowRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.TwitterFollowRequest)
+	return req, nil
+}
+
 // DecodeGRPCReceiveAirdropRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC receiveairdrop request to a user-domain receiveairdrop request. Primarily useful in a server.
 func DecodeGRPCReceiveAirdropRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -1743,6 +1765,13 @@ func EncodeGRPCGetAirdropInfoResponse(_ context.Context, response interface{}) (
 // user-domain twittercallback response to a gRPC twittercallback reply. Primarily useful in a server.
 func EncodeGRPCTwitterCallbackResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.TwitterCallbackResponse)
+	return resp, nil
+}
+
+// EncodeGRPCTwitterFollowResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain twitterfollow response to a gRPC twitterfollow reply. Primarily useful in a server.
+func EncodeGRPCTwitterFollowResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.TwitterFollowResponse)
 	return resp, nil
 }
 

@@ -17,6 +17,7 @@ type (
 		Misesids       []string
 		TwitterUserId  string
 		TwitterUserIds []string
+		FollowState    int
 		//sort
 		SortKey  string
 		SortType enum.SortType
@@ -53,7 +54,9 @@ func (params *UserTwitterAuthSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.TwitterUserIds != nil && len(params.TwitterUserIds) > 0 {
 		chain = chain.Where(bson.M{"twitter_user_id": bson.M{"$in": params.TwitterUserIds}})
 	}
-	//sort
+	if params.FollowState == 1 {
+		chain = chain.Where(bson.M{"is_followed": false})
+	}
 	//sort
 	if params.SortKey != "" && params.SortType != 0 {
 		chain = chain.Sort(bson.M{params.SortKey: params.SortType})

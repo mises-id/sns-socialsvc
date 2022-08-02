@@ -812,6 +812,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("GET").Path("/twitter/follow/").Handler(httptransport.NewServer(
+		endpoints.TwitterFollowEndpoint,
+		DecodeHTTPTwitterFollowZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/twitter/follow").Handler(httptransport.NewServer(
+		endpoints.TwitterFollowEndpoint,
+		DecodeHTTPTwitterFollowOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("GET").Path("/airdrop/receive/").Handler(httptransport.NewServer(
 		endpoints.ReceiveAirdropEndpoint,
 		DecodeHTTPReceiveAirdropZeroRequest,
@@ -6585,6 +6598,78 @@ func DecodeHTTPTwitterCallbackOneRequest(_ context.Context, r *http.Request) (in
 		OauthVerifierTwitterCallback := OauthVerifierTwitterCallbackStr
 		req.OauthVerifier = OauthVerifierTwitterCallback
 	}
+
+	return &req, err
+}
+
+// DecodeHTTPTwitterFollowZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded twitterfollow request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPTwitterFollowZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.TwitterFollowRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPTwitterFollowOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded twitterfollow request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPTwitterFollowOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.TwitterFollowRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
 
 	return &req, err
 }

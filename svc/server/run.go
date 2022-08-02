@@ -111,6 +111,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		gettwitterauthurlEndpoint       = svc.MakeGetTwitterAuthUrlEndpoint(service)
 		getairdropinfoEndpoint          = svc.MakeGetAirdropInfoEndpoint(service)
 		twittercallbackEndpoint         = svc.MakeTwitterCallbackEndpoint(service)
+		twitterfollowEndpoint           = svc.MakeTwitterFollowEndpoint(service)
 		receiveairdropEndpoint          = svc.MakeReceiveAirdropEndpoint(service)
 	)
 
@@ -173,6 +174,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		GetTwitterAuthUrlEndpoint:       gettwitterauthurlEndpoint,
 		GetAirdropInfoEndpoint:          getairdropinfoEndpoint,
 		TwitterCallbackEndpoint:         twittercallbackEndpoint,
+		TwitterFollowEndpoint:           twitterfollowEndpoint,
 		ReceiveAirdropEndpoint:          receiveairdropEndpoint,
 	}
 

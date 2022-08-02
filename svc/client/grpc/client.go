@@ -790,6 +790,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var twitterfollowEndpoint endpoint.Endpoint
+	{
+		twitterfollowEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"TwitterFollow",
+			EncodeGRPCTwitterFollowRequest,
+			DecodeGRPCTwitterFollowResponse,
+			pb.TwitterFollowResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	var receiveairdropEndpoint endpoint.Endpoint
 	{
 		receiveairdropEndpoint = grpctransport.NewClient(
@@ -862,6 +875,7 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		GetTwitterAuthUrlEndpoint:       gettwitterauthurlEndpoint,
 		GetAirdropInfoEndpoint:          getairdropinfoEndpoint,
 		TwitterCallbackEndpoint:         twittercallbackEndpoint,
+		TwitterFollowEndpoint:           twitterfollowEndpoint,
 		ReceiveAirdropEndpoint:          receiveairdropEndpoint,
 	}, nil
 }
@@ -1271,6 +1285,13 @@ func DecodeGRPCGetAirdropInfoResponse(_ context.Context, grpcReply interface{}) 
 // gRPC twittercallback reply to a user-domain twittercallback response. Primarily useful in a client.
 func DecodeGRPCTwitterCallbackResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.TwitterCallbackResponse)
+	return reply, nil
+}
+
+// DecodeGRPCTwitterFollowResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC twitterfollow reply to a user-domain twitterfollow response. Primarily useful in a client.
+func DecodeGRPCTwitterFollowResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.TwitterFollowResponse)
 	return reply, nil
 }
 
@@ -1686,6 +1707,13 @@ func EncodeGRPCGetAirdropInfoRequest(_ context.Context, request interface{}) (in
 // user-domain twittercallback request to a gRPC twittercallback request. Primarily useful in a client.
 func EncodeGRPCTwitterCallbackRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.TwitterCallbackRequest)
+	return req, nil
+}
+
+// EncodeGRPCTwitterFollowRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain twitterfollow request to a gRPC twitterfollow request. Primarily useful in a client.
+func EncodeGRPCTwitterFollowRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.TwitterFollowRequest)
 	return req, nil
 }
 

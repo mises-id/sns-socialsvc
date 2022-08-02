@@ -1049,3 +1049,13 @@ func (s socialService) ReceiveAirdrop(ctx context.Context, in *pb.ReceiveAirdrop
 	resp.Code = 0
 	return &resp, nil
 }
+
+func (s socialService) TwitterFollow(ctx context.Context, in *pb.TwitterFollowRequest) (*pb.TwitterFollowResponse, error) {
+	var resp pb.TwitterFollowResponse
+	err := user_twitter.FollowTwitter(ctx)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	return &resp, nil
+}
