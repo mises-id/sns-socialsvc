@@ -5,13 +5,7 @@ import (
 	 "github.com/mises-id/sns-socialsvc/app/services/recommend/data"
 	"github.com/mises-id/sns-socialsvc/app/services/recommend/filter"
 	"github.com/mises-id/sns-socialsvc/lib/utils" */
-	"context"
-	"fmt"
 
-	"github.com/mises-id/sns-socialsvc/app/models"
-	"github.com/mises-id/sns-socialsvc/app/services/recommend/data"
-	"github.com/mises-id/sns-socialsvc/app/services/recommend/filter"
-	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -33,7 +27,7 @@ type (
 )
 
 //list  status ids
-func ListStatus(ctx context.Context, in *ListStatusInput) ([]primitive.ObjectID, error) {
+/* func ListStatus(ctx context.Context, in *ListStatusInput) ([]primitive.ObjectID, error) {
 
 	return listStatus(ctx, in)
 
@@ -114,3 +108,4 @@ func InitRecommendData(ctx context.Context) error {
 	data.InitUserFollowingPool(ctx)
 	return nil
 }
+*/
