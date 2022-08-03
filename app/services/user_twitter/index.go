@@ -147,6 +147,11 @@ func ReceiveAirdrop(ctx context.Context, uid uint64, tweet string) error {
 		fmt.Printf("uid[%d] send tweet err:%s ", uid, err.Error())
 		//return codes.ErrForbidden.Newf("Send twitter failed.")
 	}
+	//to follow twitter
+	user_twitter.IsFollowed = false
+	if err := models.UpdateUserTwitterAuthFollew(ctx, user_twitter); err != nil {
+		fmt.Printf("[%s]uid[%d] UpdateUserTwitterAuthFollew err:%s ", time.Now().String(), uid, err.Error())
+	}
 	//create airdrop order
 	if err := createAirdrop(ctx, user_twitter); err != nil {
 		return err
