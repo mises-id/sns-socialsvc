@@ -37,6 +37,7 @@ type (
 		CreatedAt        time.Time          `bson:"created_at"`
 		Amount           int64              `bson:"-"`
 		IsValid          bool               `bson:"-"`
+		IsFollowed       bool               `bson:"is_followed"`
 	}
 )
 
@@ -72,6 +73,13 @@ func UpdateUserTwitterAuth(ctx context.Context, data *UserTwitterAuth) error {
 	update["oauth_token"] = data.OauthToken
 	update["oauth_token_secret"] = data.OauthTokenSecret
 
+	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
+	return err
+}
+func UpdateUserTwitterAuthFollew(ctx context.Context, data *UserTwitterAuth) error {
+
+	update := bson.M{}
+	update["is_followed"] = data.IsFollowed
 	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
 	return err
 }

@@ -25,6 +25,7 @@ import (
 	"github.com/michimani/gotwi/users/types"
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/models/search"
 	"github.com/mises-id/sns-socialsvc/config/env"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -45,6 +46,11 @@ var (
 	OAuthConsumerSecret = ""
 	OAuthToken          = ""
 	OAuthTokenSecret    = ""
+	targetTwitterId     = "1442753558311424001"
+)
+
+const (
+	followTwitterNum = 45
 )
 
 type (
@@ -141,11 +147,11 @@ func ReceiveAirdrop(ctx context.Context, uid uint64, tweet string) error {
 		fmt.Printf("uid[%d] send tweet err:%s ", uid, err.Error())
 		//return codes.ErrForbidden.Newf("Send twitter failed.")
 	}
-	//follow
-	/* if err := followTwitterUser(ctx, user_twitter, "1442753558311424001"); err != nil {
-		fmt.Printf("uid[%d] follow twitter_user err:%s ",uid, err.Error())
-		//return codes.ErrForbidden.Newf("Follow failed.")
-	} */
+	//to follow twitter
+	user_twitter.IsFollowed = false
+	if err := models.UpdateUserTwitterAuthFollew(ctx, user_twitter); err != nil {
+		fmt.Printf("[%s]uid[%d] UpdateUserTwitterAuthFollew err:%s ", time.Now().String(), uid, err.Error())
+	}
 	//create airdrop order
 	if err := createAirdrop(ctx, user_twitter); err != nil {
 		return err
@@ -154,6 +160,7 @@ func ReceiveAirdrop(ctx context.Context, uid uint64, tweet string) error {
 	return nil
 }
 
+//send tweet
 func sendTweet(ctx context.Context, user_twitter *models.UserTwitterAuth, tweet string) error {
 
 	if user_twitter.OauthToken == "" || user_twitter.OauthTokenSecret == "" {
@@ -178,8 +185,49 @@ func sendTweet(ctx context.Context, user_twitter *models.UserTwitterAuth, tweet 
 
 	return err
 }
-func followTwitterUser(ctx context.Context, user_twitter *models.UserTwitterAuth, target_user_id string) error {
-	target_user_id = "1442753558311424001"
+
+//follow twitter
+func FollowTwitter(ctx context.Context) error {
+	return runFollowTwitter(ctx)
+}
+
+func runFollowTwitter(ctx context.Context) error {
+	//get list
+	params := &search.UserTwitterAuthSearch{
+		FollowState: 1,
+		SortType:    enum.SortAsc,
+		SortKey:     "_id",
+		ListNum:     int64(followTwitterNum),
+	}
+	user_twitter_list, err := models.ListUserTwitterAuth(ctx, params)
+	if err != nil {
+		return err
+	}
+	num := len(user_twitter_list)
+	if num <= 0 {
+		return nil
+	}
+	fmt.Println("runFollowTwitter num: ", num)
+	//do list
+	for _, user_twitter := range user_twitter_list {
+		//to follow
+		if err := apiFollowTwitterUser(ctx, user_twitter, targetTwitterId); err != nil {
+			fmt.Printf("[%s]twitter_user_id[%s],apiFollowTwitterUser error:%s", time.Now().String(), user_twitter.TwitterUserId, err.Error())
+		}
+		user_twitter.IsFollowed = true
+		if err = models.UpdateUserTwitterAuthFollew(ctx, user_twitter); err != nil {
+			fmt.Printf("[%s]twitter_user_id[%s],UpdateUserTwitterAuthFollew error:%s", time.Now().String(), user_twitter.TwitterUserId, err.Error())
+		}
+	}
+
+	return nil
+}
+
+//apiFollowTwitterUser
+func apiFollowTwitterUser(ctx context.Context, user_twitter *models.UserTwitterAuth, target_user_id string) error {
+	if user_twitter == nil {
+		return errors.New("user_twitter is null")
+	}
 	if user_twitter.OauthToken == "" || user_twitter.OauthTokenSecret == "" {
 		return codes.ErrForbidden.Newf("OAuthToken and OAuthTokenSecret is required")
 	}
