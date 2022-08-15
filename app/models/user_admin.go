@@ -18,6 +18,13 @@ type (
 		Tags       []enum.TagType
 		PageParams *pagination.TraditionalParams
 	}
+	AggregateParams struct {
+		Pipe bson.A
+	}
+	AggregateOutput struct {
+		ID    string `bson:"_id"`
+		Count int64  `bson:"count"`
+	}
 )
 
 //find one user
@@ -125,4 +132,23 @@ func CountUser(ctx context.Context, params IAdminParams) (int64, error) {
 	}
 
 	return res, nil
+}
+
+func AggregateUser(ctx context.Context, params *AggregateParams) ([]*AggregateOutput, error) {
+	out := make([]*AggregateOutput, 0)
+	pipe := bson.A{
+		bson.M{"$group": bson.M{"_id": "$misesid", "count": bson.M{"$sum": 1}}},
+		bson.M{"$match": bson.M{}},
+		bson.M{"$sort": bson.M{"count": -1}},
+		bson.M{"$limit": 50},
+	}
+	if params.Pipe != nil && len(params.Pipe) > 0 {
+		pipe = params.Pipe
+	}
+	res, err := db.DB().Collection("users").Aggregate(ctx, pipe)
+	if err != nil {
+		return nil, err
+	}
+	err = res.All(ctx, &out)
+	return out, err
 }

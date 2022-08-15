@@ -11,6 +11,7 @@ func init() {
 
 type AdminApi interface {
 	User() UserApi
+	Airdrop() AirdropApi
 	Status() StatusApi
 	ChannelUser() ChannelUserApi
 	UserTwitterAuth() UserTwitterAuthApi
@@ -25,6 +26,9 @@ func New() AdminApi {
 
 func (*adminApi) User() UserApi {
 	return NewUserApi()
+}
+func (*adminApi) Airdrop() AirdropApi {
+	return NewAirdropApi()
 }
 
 func (*adminApi) Status() StatusApi {

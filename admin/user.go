@@ -25,6 +25,12 @@ type (
 		Tag  enum.TagType
 		Note string
 	}
+	RankUserParams struct {
+		Pipe bson.A
+	}
+	UserRank struct {
+		*models.AggregateOutput
+	}
 )
 type UserApi interface {
 	PageUser(ctx context.Context, params *AdminUserParams) ([]*User, pagination.Pagination, error)
@@ -35,6 +41,8 @@ type UserApi interface {
 	FindTag(ctx context.Context, params *AdminTagParams) (*UserTag, error)
 	CreateTag(ctx context.Context, uid uint64, in *CreateUserTagInput) (*UserTag, error)
 	DeleteTag(ctx context.Context, uid uint64, tagArr ...enum.TagType) (*UserTag, error)
+	RankUser(ctx context.Context, params *RankUserParams) ([]*UserRank, error)
+	Count(ctx context.Context, params *AdminUserParams) (int64, error)
 }
 
 type userApi struct {
@@ -212,4 +220,21 @@ func (a *userApi) FindTag(ctx context.Context, params *AdminTagParams) (*UserTag
 
 	return &UserTag{Tag: tag}, nil
 
+}
+
+func (a *userApi) RankUser(ctx context.Context, params *RankUserParams) ([]*UserRank, error) {
+
+	ranks, err := models.AggregateUser(ctx, &models.AggregateParams{Pipe: params.Pipe})
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*UserRank, len(ranks))
+	for i, rank := range ranks {
+		result[i] = &UserRank{rank}
+	}
+	return result, nil
+}
+
+func (api *userApi) Count(ctx context.Context, params *AdminUserParams) (int64, error) {
+	return models.CountUser(ctx, params)
 }
