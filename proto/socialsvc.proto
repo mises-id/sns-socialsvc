@@ -1385,6 +1385,8 @@ message ChannelInfoResponse {
   uint64 total_channel_user = 3;
   float airdrop_amount = 4;
   string medium_url = 5;
+  string ios_link = 6;
+  string ios_medium_link = 7;
 }
 
 message GetChannelUserRequest {

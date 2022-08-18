@@ -30,6 +30,8 @@ type (
 	ChannelUrlOutput struct {
 		Url              string
 		MediumUrl        string
+		IosLink          string
+		IosMediumLink    string
 		TotalChannelUser uint64
 		AirdropAmount    float64 //mises
 	}
@@ -57,7 +59,9 @@ func ChannelInfo(ctx context.Context, in *ChannelUrlInput) (*ChannelUrlOutput, e
 	}
 	url := getChannelUrl(ctx, channel, "")
 	out.Url = url
+	out.IosLink = getChannelIosLink(ctx, channel, "")
 	if in.Medium != "" {
+		out.IosMediumLink = getChannelIosLink(ctx, channel, in.Medium)
 		out.MediumUrl = getChannelUrl(ctx, channel, in.Medium)
 	}
 	if in.Type != "url" {
@@ -104,4 +108,16 @@ func getChannelUrl(ctx context.Context, ch *models.ChannelList, medium string) s
 	}
 	googlePlay := googlePlayUrl + appid + "&referrer=" + url.QueryEscape(referrer)
 	return playAppUrl + url.QueryEscape(googlePlay)
+}
+
+func getChannelIosLink(ctx context.Context, ch *models.ChannelList, medium string) string {
+	appid := env.Envs.GooglePlayAppID
+	appStoreID := env.Envs.AppStoreID
+	iosID := "site.mises.browser.ios"
+	referrer := "utm_source=" + utils.AddChannelUrlProfix(ch.ID.Hex())
+	if medium != "" {
+		referrer += "&utm_medium=" + medium
+	}
+	baseLink := "https://mises.page.link/?link=https://home.mises.site"
+	return fmt.Sprintf("%s/&apn=%s&isi=%s&ibi=%s&%s", baseLink, appid, appStoreID, iosID, referrer)
 }
