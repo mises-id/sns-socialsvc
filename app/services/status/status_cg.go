@@ -10,6 +10,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/admin"
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/app/services/recommend"
 	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -62,7 +63,7 @@ func NewListStatus(ctx context.Context, in *NewListStatusInput) ([]*models.Statu
 	return status_list, nil
 }
 
-/* func ListRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) (*NewRecommendOutput, error) {
+func ListRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) (*NewRecommendOutput, error) {
 	statusIDs, err := recommend.ListStatus(ctx, &recommend.ListStatusInput{UID: uid, Num: 10})
 	if err != nil {
 		return nil, err
@@ -85,7 +86,7 @@ func NewListStatus(ctx context.Context, in *NewListStatusInput) ([]*models.Statu
 	recommend.ListStatusAfter(ctx, uid, status_list)
 	return out, nil
 }
-*/
+
 // new recommend status
 func NewRecommendStatus(ctx context.Context, uid uint64, in *NewRecommendInput) (*NewRecommendOutput, error) {
 	var totalNum, following2Num, recommendPoolNum, commonPoolNum int64

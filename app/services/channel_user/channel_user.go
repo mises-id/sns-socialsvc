@@ -12,7 +12,6 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models/search"
 	"github.com/mises-id/sns-socialsvc/app/services/user_twitter"
 	airdropLib "github.com/mises-id/sns-socialsvc/lib/airdrop"
-	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -54,6 +53,10 @@ func airdropToStop() {
 func airdropTx(ctx context.Context) {
 	airdrops, err := getChannelAirdropList(ctx)
 	if err != nil {
+		airdropToStop()
+		return
+	}
+	if len(airdrops) == 0 {
 		airdropToStop()
 		return
 	}
@@ -261,8 +264,6 @@ func txGeneratedAfter(ctx context.Context, id primitive.ObjectID, tx_id string) 
 
 //create channel airdrop
 func CretaeChannelAirdrop(ctx context.Context) error {
-
-	utils.WirteLogDay("./log/create_channel_airdrop.log")
 	if !models.GetAirdropStatus(ctx) {
 		return nil
 	}

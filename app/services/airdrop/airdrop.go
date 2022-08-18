@@ -56,6 +56,10 @@ func airdropTx(ctx context.Context) {
 		airdropToStop()
 		return
 	}
+	if len(airdrops) == 0 {
+		airdropToStop()
+		return
+	}
 	for _, airdrop := range airdrops {
 		if err := airdropRun(ctx, airdrop); err != nil {
 			fmt.Println("airdrop run error: ", err.Error())
