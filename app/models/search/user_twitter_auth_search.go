@@ -1,7 +1,10 @@
 package search
 
 import (
+	"time"
+
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
+	"github.com/mises-id/sns-socialsvc/config/env"
 	"github.com/mises-id/sns-socialsvc/lib/db/odm"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
 	"go.mongodb.org/mongo-driver/bson"
@@ -18,6 +21,9 @@ type (
 		TwitterUserId   string
 		TwitterUserIds  []string
 		TwitterUserName string
+		ValidStates     int
+		StartTime       *time.Time `json:"start_time" query:"start_time"`
+		EndTime         *time.Time `json:"end_time" query:"end_time"`
 		//sort
 		SortKey  string
 		SortType enum.SortType
@@ -57,6 +63,23 @@ func (params *UserTwitterAuthSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.TwitterUserName != "" {
 		chain = chain.Where(bson.M{"twitter_user.username": params.TwitterUserName})
 	}
+	if params.StartTime != nil && params.EndTime == nil {
+		chain = chain.Where(bson.M{"created_at": bson.M{"$gte": params.StartTime}})
+	}
+	if params.StartTime == nil && params.EndTime != nil {
+		chain = chain.Where(bson.M{"created_at": bson.M{"$lte": params.EndTime}})
+	}
+	if params.StartTime != nil && params.EndTime != nil {
+
+		chain = chain.Where(bson.M{"$and": bson.A{bson.M{"created_at": bson.M{"$gte": params.StartTime}}, bson.M{"created_at": bson.M{"$lte": params.EndTime}}}})
+	}
+	if params.ValidStates == 1 {
+		validRegisterDate := env.Envs.VALID_TWITTER_REGISTER_DATE
+		timeFormat := "2006-01-02"
+		st, _ := time.Parse(timeFormat, validRegisterDate)
+		chain = chain.Where(bson.M{"$and": bson.A{bson.M{"twitter_user.created_at": bson.M{"$lt": &st}}, bson.M{"twitter_user.followers_count": bson.M{"$gte": 0}}}})
+	}
+
 	//sort
 	if params.SortKey != "" && params.SortType != 0 {
 		chain = chain.Sort(bson.M{params.SortKey: params.SortType})

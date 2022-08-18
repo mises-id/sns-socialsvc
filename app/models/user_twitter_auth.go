@@ -40,6 +40,13 @@ type (
 		IsValid          bool               `bson:"-"`
 		User             *User              `bson:"-"`
 	}
+	UserTwitterAuthRank struct {
+		ID    string `bson:"_id"`
+		Count int64  `bson:"count"`
+	}
+	RankUserTwitterAuthParams struct {
+		Pipe bson.A
+	}
 )
 
 func CreateUserTwitterAuth(ctx context.Context, data *UserTwitterAuth) error {
@@ -188,4 +195,20 @@ func preloadUserTwitterAuthUser(ctx context.Context, in ...*UserTwitterAuth) err
 		i.User = userMap[i.UID]
 	}
 	return nil
+}
+
+func RankUserTwitterAuth(ctx context.Context, params *RankUserTwitterAuthParams) ([]*UserTwitterAuthRank, error) {
+	out := make([]*UserTwitterAuthRank, 0)
+	pipe := bson.A{
+		bson.M{"$group": bson.M{"_id": nil, "count": bson.M{"$sum": 1}}},
+	}
+	if params.Pipe != nil && len(params.Pipe) > 0 {
+		pipe = params.Pipe
+	}
+	res, err := db.DB().Collection("usertwitterauths").Aggregate(ctx, pipe)
+	if err != nil {
+		return nil, err
+	}
+	err = res.All(ctx, &out)
+	return out, err
 }
