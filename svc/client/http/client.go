@@ -71,6 +71,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var FindMisesUserZeroEndpoint endpoint.Endpoint
+	{
+		FindMisesUserZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/mises_user/"),
+			EncodeHTTPFindMisesUserZeroRequest,
+			DecodeHTTPFindMisesUserResponse,
+			options...,
+		).Endpoint()
+	}
 	var UpdateUserProfileZeroEndpoint endpoint.Endpoint
 	{
 		UpdateUserProfileZeroEndpoint = httptransport.NewClient(
@@ -655,6 +665,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 	return svc.Endpoints{
 		SignInEndpoint:                  SignInZeroEndpoint,
 		FindUserEndpoint:                FindUserZeroEndpoint,
+		FindMisesUserEndpoint:           FindMisesUserZeroEndpoint,
 		UpdateUserProfileEndpoint:       UpdateUserProfileZeroEndpoint,
 		UpdateUserAvatarEndpoint:        UpdateUserAvatarZeroEndpoint,
 		UpdateUserNameEndpoint:          UpdateUserNameZeroEndpoint,
@@ -786,6 +797,33 @@ func DecodeHTTPFindUserResponse(_ context.Context, r *http.Response) (interface{
 	}
 
 	var resp pb.FindUserResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPFindMisesUserResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded FindMisesUserResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPFindMisesUserResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.FindMisesUserResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -2504,6 +2542,81 @@ func EncodeHTTPFindUserOneRequest(_ context.Context, r *http.Request, request in
 	_ = tmp
 
 	values.Add("uid", fmt.Sprint(req.Uid))
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPFindMisesUserZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a findmisesuser request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPFindMisesUserZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.FindMisesUserRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"mises_user",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("misesid", fmt.Sprint(req.Misesid))
+
+	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPFindMisesUserOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a findmisesuser request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPFindMisesUserOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.FindMisesUserRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"mises_user",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	values.Add("misesid", fmt.Sprint(req.Misesid))
 
 	values.Add("current_uid", fmt.Sprint(req.CurrentUid))
 

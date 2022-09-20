@@ -35,6 +35,7 @@ import (
 type Endpoints struct {
 	SignInEndpoint                  endpoint.Endpoint
 	FindUserEndpoint                endpoint.Endpoint
+	FindMisesUserEndpoint           endpoint.Endpoint
 	UpdateUserProfileEndpoint       endpoint.Endpoint
 	UpdateUserAvatarEndpoint        endpoint.Endpoint
 	UpdateUserNameEndpoint          endpoint.Endpoint
@@ -111,6 +112,14 @@ func (e Endpoints) FindUser(ctx context.Context, in *pb.FindUserRequest) (*pb.Fi
 		return nil, err
 	}
 	return response.(*pb.FindUserResponse), nil
+}
+
+func (e Endpoints) FindMisesUser(ctx context.Context, in *pb.FindMisesUserRequest) (*pb.FindMisesUserResponse, error) {
+	response, err := e.FindMisesUserEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.FindMisesUserResponse), nil
 }
 
 func (e Endpoints) UpdateUserProfile(ctx context.Context, in *pb.UpdateUserProfileRequest) (*pb.UpdateUserResponse, error) {
@@ -594,6 +603,17 @@ func MakeFindUserEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.FindUserRequest)
 		v, err := s.FindUser(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeFindMisesUserEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.FindMisesUserRequest)
+		v, err := s.FindMisesUser(ctx, req)
 		if err != nil {
 			return nil, err
 		}
@@ -1248,6 +1268,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 	included := map[string]struct{}{
 		"SignIn":                  {},
 		"FindUser":                {},
+		"FindMisesUser":           {},
 		"UpdateUserProfile":       {},
 		"UpdateUserAvatar":        {},
 		"UpdateUserName":          {},
@@ -1321,6 +1342,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		}
 		if inc == "FindUser" {
 			e.FindUserEndpoint = middleware(e.FindUserEndpoint)
+		}
+		if inc == "FindMisesUser" {
+			e.FindMisesUserEndpoint = middleware(e.FindMisesUserEndpoint)
 		}
 		if inc == "UpdateUserProfile" {
 			e.UpdateUserProfileEndpoint = middleware(e.UpdateUserProfileEndpoint)
@@ -1512,6 +1536,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 	included := map[string]struct{}{
 		"SignIn":                  {},
 		"FindUser":                {},
+		"FindMisesUser":           {},
 		"UpdateUserProfile":       {},
 		"UpdateUserAvatar":        {},
 		"UpdateUserName":          {},
@@ -1585,6 +1610,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "FindUser" {
 			e.FindUserEndpoint = middleware("FindUser", e.FindUserEndpoint)
+		}
+		if inc == "FindMisesUser" {
+			e.FindMisesUserEndpoint = middleware("FindMisesUser", e.FindMisesUserEndpoint)
 		}
 		if inc == "UpdateUserProfile" {
 			e.UpdateUserProfileEndpoint = middleware("UpdateUserProfile", e.UpdateUserProfileEndpoint)

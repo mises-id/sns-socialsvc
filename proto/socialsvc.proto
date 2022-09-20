@@ -36,6 +36,17 @@ service Social {
       }
     };
   }
+  rpc FindMisesUser (FindMisesUserRequest) returns (FindMisesUserResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/mises_user"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/mises_user/"
+      }
+    };
+  }
 
   //update user info
   rpc UpdateUserProfile (UpdateUserProfileRequest) returns (UpdateUserResponse) {
@@ -813,6 +824,16 @@ message UserInfo {
   string intro = 20;
 }
 
+message FindMisesUserRequest {
+  string misesid = 1;
+  uint64 current_uid = 2;
+}
+
+message FindMisesUserResponse {
+  uint64 code = 1;
+  UserInfo user = 2;
+  bool is_followed = 3;
+}
 message FindUserRequest {
   uint64 uid = 1;
   uint64 current_uid = 2;

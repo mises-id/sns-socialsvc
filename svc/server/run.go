@@ -55,6 +55,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 	var (
 		signinEndpoint                  = svc.MakeSignInEndpoint(service)
 		finduserEndpoint                = svc.MakeFindUserEndpoint(service)
+		findmisesuserEndpoint           = svc.MakeFindMisesUserEndpoint(service)
 		updateuserprofileEndpoint       = svc.MakeUpdateUserProfileEndpoint(service)
 		updateuseravatarEndpoint        = svc.MakeUpdateUserAvatarEndpoint(service)
 		updateusernameEndpoint          = svc.MakeUpdateUserNameEndpoint(service)
@@ -118,6 +119,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 	endpoints := svc.Endpoints{
 		SignInEndpoint:                  signinEndpoint,
 		FindUserEndpoint:                finduserEndpoint,
+		FindMisesUserEndpoint:           findmisesuserEndpoint,
 		UpdateUserProfileEndpoint:       updateuserprofileEndpoint,
 		UpdateUserAvatarEndpoint:        updateuseravatarEndpoint,
 		UpdateUserNameEndpoint:          updateusernameEndpoint,

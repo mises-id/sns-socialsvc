@@ -41,6 +41,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCFindUserResponse,
 			serverOptions...,
 		),
+		findmisesuser: grpctransport.NewServer(
+			endpoints.FindMisesUserEndpoint,
+			DecodeGRPCFindMisesUserRequest,
+			EncodeGRPCFindMisesUserResponse,
+			serverOptions...,
+		),
 		updateuserprofile: grpctransport.NewServer(
 			endpoints.UpdateUserProfileEndpoint,
 			DecodeGRPCUpdateUserProfileRequest,
@@ -396,6 +402,7 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 type grpcServer struct {
 	signin                  grpctransport.Handler
 	finduser                grpctransport.Handler
+	findmisesuser           grpctransport.Handler
 	updateuserprofile       grpctransport.Handler
 	updateuseravatar        grpctransport.Handler
 	updateusername          grpctransport.Handler
@@ -472,6 +479,14 @@ func (s *grpcServer) FindUser(ctx context.Context, req *pb.FindUserRequest) (*pb
 		return nil, err
 	}
 	return rep.(*pb.FindUserResponse), nil
+}
+
+func (s *grpcServer) FindMisesUser(ctx context.Context, req *pb.FindMisesUserRequest) (*pb.FindMisesUserResponse, error) {
+	_, rep, err := s.findmisesuser.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.FindMisesUserResponse), nil
 }
 
 func (s *grpcServer) UpdateUserProfile(ctx context.Context, req *pb.UpdateUserProfileRequest) (*pb.UpdateUserResponse, error) {
@@ -954,6 +969,13 @@ func DecodeGRPCFindUserRequest(_ context.Context, grpcReq interface{}) (interfac
 	return req, nil
 }
 
+// DecodeGRPCFindMisesUserRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC findmisesuser request to a user-domain findmisesuser request. Primarily useful in a server.
+func DecodeGRPCFindMisesUserRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.FindMisesUserRequest)
+	return req, nil
+}
+
 // DecodeGRPCUpdateUserProfileRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC updateuserprofile request to a user-domain updateuserprofile request. Primarily useful in a server.
 func DecodeGRPCUpdateUserProfileRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -1373,6 +1395,13 @@ func EncodeGRPCSignInResponse(_ context.Context, response interface{}) (interfac
 // user-domain finduser response to a gRPC finduser reply. Primarily useful in a server.
 func EncodeGRPCFindUserResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.FindUserResponse)
+	return resp, nil
+}
+
+// EncodeGRPCFindMisesUserResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain findmisesuser response to a gRPC findmisesuser reply. Primarily useful in a server.
+func EncodeGRPCFindMisesUserResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.FindMisesUserResponse)
 	return resp, nil
 }
 
