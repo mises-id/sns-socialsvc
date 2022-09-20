@@ -115,9 +115,10 @@ func getChannelIosLink(ctx context.Context, ch *models.ChannelList, medium strin
 	appStoreID := env.Envs.AppStoreID
 	iosID := "site.mises.browser.ios"
 	referrer := "utm_source=" + utils.AddChannelUrlProfix(ch.ID.Hex())
+	ifl := "https://testflight.apple.com/join/Tk1BxD1i"
 	if medium != "" {
 		referrer += "&utm_medium=" + medium
 	}
 	baseLink := "https://mises.page.link/?link=https://home.mises.site"
-	return fmt.Sprintf("%s/&apn=%s&isi=%s&ibi=%s&%s", baseLink, appid, appStoreID, iosID, referrer)
+	return fmt.Sprintf("%s/&apn=%s&isi=%s&ibi=%s&ifl=%s&%s", baseLink, appid, appStoreID, iosID, ifl, referrer)
 }

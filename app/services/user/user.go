@@ -36,6 +36,22 @@ func FindUser(ctx context.Context, uid uint64) (*models.User, error) {
 	}
 	return user, nil
 }
+func FindMisesUser(ctx context.Context, misesid string) (*models.User, error) {
+	user, err := models.FindUserByMisesid(ctx, misesid)
+	if err != nil {
+		return nil, err
+	}
+	if err = models.PreloadUserData(ctx, user); err != nil {
+		return nil, err
+	}
+	models.UserMergeUserExt(ctx, user)
+	user.AirdropStatus = models.GetAirdropStatus(ctx)
+	user.NewFansCount, err = models.NewFansCount(ctx, user.UID)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
 
 func UpdateUserConfig(ctx context.Context, currentUID uint64, in *UserConfig) (*UserConfig, error) {
 	return GetUserConfig(ctx, currentUID, currentUID)

@@ -84,6 +84,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("GET").Path("/mises_user/").Handler(httptransport.NewServer(
+		endpoints.FindMisesUserEndpoint,
+		DecodeHTTPFindMisesUserZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/mises_user").Handler(httptransport.NewServer(
+		endpoints.FindMisesUserEndpoint,
+		DecodeHTTPFindMisesUserOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("POST").Path("/user/profile/").Handler(httptransport.NewServer(
 		endpoints.UpdateUserProfileEndpoint,
 		DecodeHTTPUpdateUserProfileZeroRequest,
@@ -1089,6 +1102,108 @@ func DecodeHTTPFindUserOneRequest(_ context.Context, r *http.Request) (interface
 			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidFindUser from query, queryParams: %v", queryParams))
 		}
 		req.CurrentUid = CurrentUidFindUser
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPFindMisesUserZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded findmisesuser request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPFindMisesUserZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.FindMisesUserRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if MisesidFindMisesUserStrArr, ok := queryParams["misesid"]; ok {
+		MisesidFindMisesUserStr := MisesidFindMisesUserStrArr[0]
+		MisesidFindMisesUser := MisesidFindMisesUserStr
+		req.Misesid = MisesidFindMisesUser
+	}
+
+	if CurrentUidFindMisesUserStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidFindMisesUserStr := CurrentUidFindMisesUserStrArr[0]
+		CurrentUidFindMisesUser, err := strconv.ParseUint(CurrentUidFindMisesUserStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidFindMisesUser from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidFindMisesUser
+	}
+
+	return &req, err
+}
+
+// DecodeHTTPFindMisesUserOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded findmisesuser request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPFindMisesUserOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.FindMisesUserRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	if MisesidFindMisesUserStrArr, ok := queryParams["misesid"]; ok {
+		MisesidFindMisesUserStr := MisesidFindMisesUserStrArr[0]
+		MisesidFindMisesUser := MisesidFindMisesUserStr
+		req.Misesid = MisesidFindMisesUser
+	}
+
+	if CurrentUidFindMisesUserStrArr, ok := queryParams["current_uid"]; ok {
+		CurrentUidFindMisesUserStr := CurrentUidFindMisesUserStrArr[0]
+		CurrentUidFindMisesUser, err := strconv.ParseUint(CurrentUidFindMisesUserStr, 10, 64)
+		if err != nil {
+			return nil, errors.Wrap(err, fmt.Sprintf("Error while extracting CurrentUidFindMisesUser from query, queryParams: %v", queryParams))
+		}
+		req.CurrentUid = CurrentUidFindMisesUser
 	}
 
 	return &req, err

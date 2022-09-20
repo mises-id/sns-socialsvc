@@ -1061,3 +1061,15 @@ func (s socialService) TwitterFollow(ctx context.Context, in *pb.TwitterFollowRe
 	resp.Code = 0
 	return &resp, nil
 }
+
+func (s socialService) FindMisesUser(ctx context.Context, in *pb.FindMisesUserRequest) (*pb.FindMisesUserResponse, error) {
+	var resp pb.FindMisesUserResponse
+	user, err := userSVC.FindMisesUser(contextWithCurrentUID(ctx, in), in.Misesid)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	resp.User = factory.NewUserInfo(user)
+	resp.IsFollowed = user.IsFollowed
+	return &resp, nil
+}

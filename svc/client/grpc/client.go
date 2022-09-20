@@ -62,6 +62,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var findmisesuserEndpoint endpoint.Endpoint
+	{
+		findmisesuserEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"FindMisesUser",
+			EncodeGRPCFindMisesUserRequest,
+			DecodeGRPCFindMisesUserResponse,
+			pb.FindMisesUserResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	var updateuserprofileEndpoint endpoint.Endpoint
 	{
 		updateuserprofileEndpoint = grpctransport.NewClient(
@@ -819,6 +832,7 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 	return svc.Endpoints{
 		SignInEndpoint:                  signinEndpoint,
 		FindUserEndpoint:                finduserEndpoint,
+		FindMisesUserEndpoint:           findmisesuserEndpoint,
 		UpdateUserProfileEndpoint:       updateuserprofileEndpoint,
 		UpdateUserAvatarEndpoint:        updateuseravatarEndpoint,
 		UpdateUserNameEndpoint:          updateusernameEndpoint,
@@ -893,6 +907,13 @@ func DecodeGRPCSignInResponse(_ context.Context, grpcReply interface{}) (interfa
 // gRPC finduser reply to a user-domain finduser response. Primarily useful in a client.
 func DecodeGRPCFindUserResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.FindUserResponse)
+	return reply, nil
+}
+
+// DecodeGRPCFindMisesUserResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC findmisesuser reply to a user-domain findmisesuser response. Primarily useful in a client.
+func DecodeGRPCFindMisesUserResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.FindMisesUserResponse)
 	return reply, nil
 }
 
@@ -1315,6 +1336,13 @@ func EncodeGRPCSignInRequest(_ context.Context, request interface{}) (interface{
 // user-domain finduser request to a gRPC finduser request. Primarily useful in a client.
 func EncodeGRPCFindUserRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.FindUserRequest)
+	return req, nil
+}
+
+// EncodeGRPCFindMisesUserRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain findmisesuser request to a gRPC findmisesuser request. Primarily useful in a client.
+func EncodeGRPCFindMisesUserRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.FindMisesUserRequest)
 	return req, nil
 }
 

@@ -314,7 +314,7 @@ func FindUserByMisesids(ctx context.Context, misesids ...string) ([]*User, error
 }
 func FindUserByMisesid(ctx context.Context, misesid string) (*User, error) {
 	user := &User{}
-	err := db.ODM(ctx).Where(bson.M{"misesid": misesid}).Last(&user).Error
+	err := db.ODM(ctx).Where(bson.M{"misesid": utils.AddMisesidProfix(misesid)}).Last(&user).Error
 	if err != nil {
 		return nil, err
 	}
