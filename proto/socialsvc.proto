@@ -704,6 +704,18 @@ service Social {
       }
     };
   }
+  rpc Complaint (ComplaintRequest) returns (ComplaintResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      post: "/user/complaint"
+      body: "*"
+      additional_bindings {
+        // Trailing slashes are different routes
+        post: "/user/complaint/"
+        body: "*"
+      }
+    };
+  }
   rpc GetUserConfig (GetUserConfigRequest) returns (GetUserConfigResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
@@ -792,6 +804,16 @@ message SignInResponse {
   uint64 code = 1;
   string jwt = 2;
   bool is_created = 3;
+}
+message ComplaintRequest {
+  uint64 current_uid = 1;
+  string target_type = 2;
+  string target_id = 3;
+  string reason = 4;
+}
+
+message ComplaintResponse {
+  uint64 code = 1;
 }
 
 message UserAvatar {

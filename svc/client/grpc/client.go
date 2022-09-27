@@ -738,6 +738,19 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		).Endpoint()
 	}
 
+	var complaintEndpoint endpoint.Endpoint
+	{
+		complaintEndpoint = grpctransport.NewClient(
+			conn,
+			"socialsvc.Social",
+			"Complaint",
+			EncodeGRPCComplaintRequest,
+			DecodeGRPCComplaintResponse,
+			pb.ComplaintResponse{},
+			clientOptions...,
+		).Endpoint()
+	}
+
 	var getuserconfigEndpoint endpoint.Endpoint
 	{
 		getuserconfigEndpoint = grpctransport.NewClient(
@@ -884,6 +897,7 @@ func New(conn *grpc.ClientConn, options ...ClientOption) (pb.SocialServer, error
 		GetNftAssetEndpoint:             getnftassetEndpoint,
 		PageNftEventEndpoint:            pagenfteventEndpoint,
 		UpdateUserConfigEndpoint:        updateuserconfigEndpoint,
+		ComplaintEndpoint:               complaintEndpoint,
 		GetUserConfigEndpoint:           getuserconfigEndpoint,
 		UpdateOpenseaNftEndpoint:        updateopenseanftEndpoint,
 		GetTwitterAuthUrlEndpoint:       gettwitterauthurlEndpoint,
@@ -1271,6 +1285,13 @@ func DecodeGRPCPageNftEventResponse(_ context.Context, grpcReply interface{}) (i
 // gRPC updateuserconfig reply to a user-domain updateuserconfig response. Primarily useful in a client.
 func DecodeGRPCUpdateUserConfigResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
 	reply := grpcReply.(*pb.UpdateUserConfigResponse)
+	return reply, nil
+}
+
+// DecodeGRPCComplaintResponse is a transport/grpc.DecodeResponseFunc that converts a
+// gRPC complaint reply to a user-domain complaint response. Primarily useful in a client.
+func DecodeGRPCComplaintResponse(_ context.Context, grpcReply interface{}) (interface{}, error) {
+	reply := grpcReply.(*pb.ComplaintResponse)
 	return reply, nil
 }
 
@@ -1700,6 +1721,13 @@ func EncodeGRPCPageNftEventRequest(_ context.Context, request interface{}) (inte
 // user-domain updateuserconfig request to a gRPC updateuserconfig request. Primarily useful in a client.
 func EncodeGRPCUpdateUserConfigRequest(_ context.Context, request interface{}) (interface{}, error) {
 	req := request.(*pb.UpdateUserConfigRequest)
+	return req, nil
+}
+
+// EncodeGRPCComplaintRequest is a transport/grpc.EncodeRequestFunc that converts a
+// user-domain complaint request to a gRPC complaint request. Primarily useful in a client.
+func EncodeGRPCComplaintRequest(_ context.Context, request interface{}) (interface{}, error) {
+	req := request.(*pb.ComplaintRequest)
 	return req, nil
 }
 
