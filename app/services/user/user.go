@@ -143,3 +143,17 @@ func preloadAvatar(ctx context.Context, users ...*models.User) error {
 	}
 	return nil */
 }
+
+func CreateComplaint(ctx context.Context, uid uint64, params *models.CreateComplaintParams) (*models.Complaint, error) {
+	if params.TargetType == "" {
+		params.TargetType = "status"
+	}
+	if params.TargetID == "" {
+		return nil, codes.ErrInvalidArgument.Newf("invalid target id")
+	}
+	if params.Reason == "" {
+		return nil, codes.ErrInvalidArgument
+	}
+	params.UID = uid
+	return models.CreateComplaint(ctx, params)
+}

@@ -1073,3 +1073,17 @@ func (s socialService) FindMisesUser(ctx context.Context, in *pb.FindMisesUserRe
 	resp.IsFollowed = user.IsFollowed
 	return &resp, nil
 }
+
+func (s socialService) Complaint(ctx context.Context, in *pb.ComplaintRequest) (*pb.ComplaintResponse, error) {
+	var resp pb.ComplaintResponse
+	params := &models.CreateComplaintParams{
+		TargetType: in.TargetType,
+		TargetID:   in.TargetId,
+		Reason:     in.Reason,
+	}
+	_, err := userSVC.CreateComplaint(ctx, in.CurrentUid, params)
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}

@@ -591,6 +591,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var ComplaintZeroEndpoint endpoint.Endpoint
+	{
+		ComplaintZeroEndpoint = httptransport.NewClient(
+			"POST",
+			copyURL(u, "/user/complaint/"),
+			EncodeHTTPComplaintZeroRequest,
+			DecodeHTTPComplaintResponse,
+			options...,
+		).Endpoint()
+	}
 	var GetUserConfigZeroEndpoint endpoint.Endpoint
 	{
 		GetUserConfigZeroEndpoint = httptransport.NewClient(
@@ -717,6 +727,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		GetNftAssetEndpoint:             GetNftAssetZeroEndpoint,
 		PageNftEventEndpoint:            PageNftEventZeroEndpoint,
 		UpdateUserConfigEndpoint:        UpdateUserConfigZeroEndpoint,
+		ComplaintEndpoint:               ComplaintZeroEndpoint,
 		GetUserConfigEndpoint:           GetUserConfigZeroEndpoint,
 		UpdateOpenseaNftEndpoint:        UpdateOpenseaNftZeroEndpoint,
 		GetTwitterAuthUrlEndpoint:       GetTwitterAuthUrlZeroEndpoint,
@@ -2201,6 +2212,33 @@ func DecodeHTTPUpdateUserConfigResponse(_ context.Context, r *http.Response) (in
 	}
 
 	var resp pb.UpdateUserConfigResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPComplaintResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded ComplaintResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPComplaintResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.ComplaintResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -7229,6 +7267,111 @@ func EncodeHTTPUpdateUserConfigOneRequest(_ context.Context, r *http.Request, re
 	toRet.CurrentUid = req.CurrentUid
 
 	toRet.NftState = req.NftState
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPComplaintZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a complaint request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPComplaintZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ComplaintRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"complaint",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.ComplaintRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.TargetType = req.TargetType
+
+	toRet.TargetId = req.TargetId
+
+	toRet.Reason = req.Reason
+
+	encoder := json.NewEncoder(&buf)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(toRet); err != nil {
+		return errors.Wrapf(err, "couldn't encode body as json %v", toRet)
+	}
+	r.Body = ioutil.NopCloser(&buf)
+	return nil
+}
+
+// EncodeHTTPComplaintOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a complaint request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPComplaintOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.ComplaintRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"user",
+		"complaint",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	// Set the body parameters
+	var buf bytes.Buffer
+	toRet := request.(*pb.ComplaintRequest)
+
+	toRet.CurrentUid = req.CurrentUid
+
+	toRet.TargetType = req.TargetType
+
+	toRet.TargetId = req.TargetId
+
+	toRet.Reason = req.Reason
 
 	encoder := json.NewEncoder(&buf)
 	encoder.SetEscapeHTML(false)

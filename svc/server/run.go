@@ -107,6 +107,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		getnftassetEndpoint             = svc.MakeGetNftAssetEndpoint(service)
 		pagenfteventEndpoint            = svc.MakePageNftEventEndpoint(service)
 		updateuserconfigEndpoint        = svc.MakeUpdateUserConfigEndpoint(service)
+		complaintEndpoint               = svc.MakeComplaintEndpoint(service)
 		getuserconfigEndpoint           = svc.MakeGetUserConfigEndpoint(service)
 		updateopenseanftEndpoint        = svc.MakeUpdateOpenseaNftEndpoint(service)
 		gettwitterauthurlEndpoint       = svc.MakeGetTwitterAuthUrlEndpoint(service)
@@ -171,6 +172,7 @@ func NewEndpoints(service pb.SocialServer) svc.Endpoints {
 		GetNftAssetEndpoint:             getnftassetEndpoint,
 		PageNftEventEndpoint:            pagenfteventEndpoint,
 		UpdateUserConfigEndpoint:        updateuserconfigEndpoint,
+		ComplaintEndpoint:               complaintEndpoint,
 		GetUserConfigEndpoint:           getuserconfigEndpoint,
 		UpdateOpenseaNftEndpoint:        updateopenseanftEndpoint,
 		GetTwitterAuthUrlEndpoint:       gettwitterauthurlEndpoint,

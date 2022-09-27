@@ -87,6 +87,7 @@ type Endpoints struct {
 	GetNftAssetEndpoint             endpoint.Endpoint
 	PageNftEventEndpoint            endpoint.Endpoint
 	UpdateUserConfigEndpoint        endpoint.Endpoint
+	ComplaintEndpoint               endpoint.Endpoint
 	GetUserConfigEndpoint           endpoint.Endpoint
 	UpdateOpenseaNftEndpoint        endpoint.Endpoint
 	GetTwitterAuthUrlEndpoint       endpoint.Endpoint
@@ -528,6 +529,14 @@ func (e Endpoints) UpdateUserConfig(ctx context.Context, in *pb.UpdateUserConfig
 		return nil, err
 	}
 	return response.(*pb.UpdateUserConfigResponse), nil
+}
+
+func (e Endpoints) Complaint(ctx context.Context, in *pb.ComplaintRequest) (*pb.ComplaintResponse, error) {
+	response, err := e.ComplaintEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.ComplaintResponse), nil
 }
 
 func (e Endpoints) GetUserConfig(ctx context.Context, in *pb.GetUserConfigRequest) (*pb.GetUserConfigResponse, error) {
@@ -1182,6 +1191,17 @@ func MakeUpdateUserConfigEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeComplaintEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ComplaintRequest)
+		v, err := s.Complaint(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeGetUserConfigEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.GetUserConfigRequest)
@@ -1320,6 +1340,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"GetNftAsset":             {},
 		"PageNftEvent":            {},
 		"UpdateUserConfig":        {},
+		"Complaint":               {},
 		"GetUserConfig":           {},
 		"UpdateOpenseaNft":        {},
 		"GetTwitterAuthUrl":       {},
@@ -1499,6 +1520,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "UpdateUserConfig" {
 			e.UpdateUserConfigEndpoint = middleware(e.UpdateUserConfigEndpoint)
 		}
+		if inc == "Complaint" {
+			e.ComplaintEndpoint = middleware(e.ComplaintEndpoint)
+		}
 		if inc == "GetUserConfig" {
 			e.GetUserConfigEndpoint = middleware(e.GetUserConfigEndpoint)
 		}
@@ -1588,6 +1612,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"GetNftAsset":             {},
 		"PageNftEvent":            {},
 		"UpdateUserConfig":        {},
+		"Complaint":               {},
 		"GetUserConfig":           {},
 		"UpdateOpenseaNft":        {},
 		"GetTwitterAuthUrl":       {},
@@ -1766,6 +1791,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "UpdateUserConfig" {
 			e.UpdateUserConfigEndpoint = middleware("UpdateUserConfig", e.UpdateUserConfigEndpoint)
+		}
+		if inc == "Complaint" {
+			e.ComplaintEndpoint = middleware("Complaint", e.ComplaintEndpoint)
 		}
 		if inc == "GetUserConfig" {
 			e.GetUserConfigEndpoint = middleware("GetUserConfig", e.GetUserConfigEndpoint)
