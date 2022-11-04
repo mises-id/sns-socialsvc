@@ -88,15 +88,17 @@ func NewUserTwitterAuth(in *models.UserTwitterAuth) *pb.UserTwitterAuth {
 		return nil
 	}
 	out := &pb.UserTwitterAuth{
-		TwitterUserId:    in.TwitterUserId,
-		Misesid:          utils.RemoveMisesidProfix(in.Misesid),
-		Name:             in.TwitterUser.Name,
-		Username:         in.TwitterUser.UserName,
-		FollowersCount:   in.TwitterUser.FollowersCount,
-		TweetCount:       in.TwitterUser.TweetCount,
-		TwitterCreatedAt: uint64(in.TwitterUser.CreatedAt.Unix()),
-		Amount:           float32(utils.UMisesToMises(uint64(in.Amount))),
-		CreatedAt:        uint64(in.CreatedAt.Unix()),
+		TwitterUserId: in.TwitterUserId,
+		Misesid:       utils.RemoveMisesidProfix(in.Misesid),
+		Amount:        float32(utils.UMisesToMises(uint64(in.Amount))),
+		CreatedAt:     uint64(in.CreatedAt.Unix()),
+	}
+	if in.TwitterUser != nil {
+		out.Name = in.TwitterUser.Name
+		out.Username = in.TwitterUser.UserName
+		out.FollowersCount = in.TwitterUser.FollowersCount
+		out.TweetCount = in.TwitterUser.TweetCount
+		out.TwitterCreatedAt = uint64(in.TwitterUser.CreatedAt.Unix())
 	}
 	return out
 }

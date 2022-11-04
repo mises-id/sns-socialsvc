@@ -55,6 +55,7 @@ func CreateUserTwitterAuth(ctx context.Context, data *UserTwitterAuth) error {
 	created["tweet_info"] = data.TweetInfo
 	created["oauth_token"] = data.OauthToken
 	created["oauth_token_secret"] = data.OauthTokenSecret
+	created["is_find_twitter_user"] = data.IsFindTwitterUser
 	opt := &options.FindOneAndUpdateOptions{}
 	opt.SetUpsert(true)
 	opt.SetReturnDocument(1)

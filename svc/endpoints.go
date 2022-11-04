@@ -94,6 +94,8 @@ type Endpoints struct {
 	GetAirdropInfoEndpoint          endpoint.Endpoint
 	TwitterCallbackEndpoint         endpoint.Endpoint
 	TwitterFollowEndpoint           endpoint.Endpoint
+	LookupTwitterEndpoint           endpoint.Endpoint
+	SendTweetEndpoint               endpoint.Endpoint
 	ReceiveAirdropEndpoint          endpoint.Endpoint
 }
 
@@ -585,6 +587,22 @@ func (e Endpoints) TwitterFollow(ctx context.Context, in *pb.TwitterFollowReques
 		return nil, err
 	}
 	return response.(*pb.TwitterFollowResponse), nil
+}
+
+func (e Endpoints) LookupTwitter(ctx context.Context, in *pb.LookupTwitterRequest) (*pb.LookupTwitterResponse, error) {
+	response, err := e.LookupTwitterEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.LookupTwitterResponse), nil
+}
+
+func (e Endpoints) SendTweet(ctx context.Context, in *pb.SendTweetRequest) (*pb.SendTweetResponse, error) {
+	response, err := e.SendTweetEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.SendTweetResponse), nil
 }
 
 func (e Endpoints) ReceiveAirdrop(ctx context.Context, in *pb.ReceiveAirdropRequest) (*pb.ReceiveAirdropResponse, error) {
@@ -1268,6 +1286,28 @@ func MakeTwitterFollowEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeLookupTwitterEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.LookupTwitterRequest)
+		v, err := s.LookupTwitter(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
+func MakeSendTweetEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.SendTweetRequest)
+		v, err := s.SendTweet(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeReceiveAirdropEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.ReceiveAirdropRequest)
@@ -1347,6 +1387,8 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"GetAirdropInfo":          {},
 		"TwitterCallback":         {},
 		"TwitterFollow":           {},
+		"LookupTwitter":           {},
+		"SendTweet":               {},
 		"ReceiveAirdrop":          {},
 	}
 
@@ -1541,6 +1583,12 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "TwitterFollow" {
 			e.TwitterFollowEndpoint = middleware(e.TwitterFollowEndpoint)
 		}
+		if inc == "LookupTwitter" {
+			e.LookupTwitterEndpoint = middleware(e.LookupTwitterEndpoint)
+		}
+		if inc == "SendTweet" {
+			e.SendTweetEndpoint = middleware(e.SendTweetEndpoint)
+		}
 		if inc == "ReceiveAirdrop" {
 			e.ReceiveAirdropEndpoint = middleware(e.ReceiveAirdropEndpoint)
 		}
@@ -1619,6 +1667,8 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"GetAirdropInfo":          {},
 		"TwitterCallback":         {},
 		"TwitterFollow":           {},
+		"LookupTwitter":           {},
+		"SendTweet":               {},
 		"ReceiveAirdrop":          {},
 	}
 
@@ -1812,6 +1862,12 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "TwitterFollow" {
 			e.TwitterFollowEndpoint = middleware("TwitterFollow", e.TwitterFollowEndpoint)
+		}
+		if inc == "LookupTwitter" {
+			e.LookupTwitterEndpoint = middleware("LookupTwitter", e.LookupTwitterEndpoint)
+		}
+		if inc == "SendTweet" {
+			e.SendTweetEndpoint = middleware("SendTweet", e.SendTweetEndpoint)
 		}
 		if inc == "ReceiveAirdrop" {
 			e.ReceiveAirdropEndpoint = middleware("ReceiveAirdrop", e.ReceiveAirdropEndpoint)

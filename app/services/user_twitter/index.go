@@ -50,7 +50,7 @@ var (
 )
 
 const (
-	followTwitterNum = 45
+	followTwitterNum = 12
 )
 
 type (
@@ -103,7 +103,6 @@ func GetAirdropInfo(ctx context.Context, uid uint64) (*AirdropInfoOutput, error)
 	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	}
-
 	if user_twitter != nil {
 		user_twitter.IsValid = IsValidTwitterUser(user_twitter.TwitterUser)
 		if user_twitter.IsValid {
@@ -125,6 +124,7 @@ func GetAirdropInfo(ctx context.Context, uid uint64) (*AirdropInfoOutput, error)
 //receive airdrop
 func ReceiveAirdrop(ctx context.Context, uid uint64, tweet string) error {
 	//check twitter auth
+	return codes.ErrForbidden.Newf("Please wait.")
 	user_twitter, err := models.FindUserTwitterAuthByUid(ctx, uid)
 	if err != nil {
 		return codes.ErrForbidden.Newf("Twitter is unauthorized")
@@ -323,20 +323,7 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 		fmt.Println("Twitter callback FindUserTwitterAuthByUid err: ", err.Error())
 		return callback2
 	}
-	twitter_user, err := getTwitterUserById(ctx, twitter_user_id)
-	if err != nil {
-		fmt.Println("Twitter callback getTwitterUserById err: ", err.Error())
-		return callback2
-	}
-	callback0 = getTwitterCallbackUrl("0", *twitter_user.Username, userMisesid)
-	TwitterUser := &models.TwitterUser{
-		TwitterUserId:  *twitter_user.ID,
-		UserName:       *twitter_user.Username,
-		Name:           *twitter_user.Name,
-		CreatedAt:      *twitter_user.CreatedAt,
-		FollowersCount: uint64(*twitter_user.PublicMetrics.FollowersCount),
-		TweetCount:     uint64(*twitter_user.PublicMetrics.TweetCount),
-	}
+	callback0 = getTwitterCallbackUrl("0", "", userMisesid)
 	//check airdrop
 	airdrop, err := models.FindAirdropByUid(ctx, uid)
 
@@ -347,12 +334,12 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 			return callback0
 		}
 		add := &models.UserTwitterAuth{
-			UID:              uid,
-			Misesid:          user.Misesid,
-			TwitterUserId:    twitter_user_id,
-			TwitterUser:      TwitterUser,
-			OauthToken:       oauth_token_new,
-			OauthTokenSecret: oauth_token_secret,
+			UID:               uid,
+			Misesid:           user.Misesid,
+			TwitterUserId:     twitter_user_id,
+			IsFindTwitterUser: false,
+			OauthToken:        oauth_token_new,
+			OauthTokenSecret:  oauth_token_secret,
 		}
 		err = models.CreateUserTwitterAuth(ctx, add)
 
@@ -361,8 +348,8 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 		user_twitter.OauthToken = oauth_token_new
 		user_twitter.OauthTokenSecret = oauth_token_secret
 		if airdrop == nil {
-			user_twitter.TwitterUser = TwitterUser
 			user_twitter.TwitterUserId = twitter_user_id
+			user_twitter.IsFindTwitterUser = false
 		}
 		err = models.UpdateUserTwitterAuth(ctx, user_twitter)
 	}

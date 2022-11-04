@@ -781,6 +781,28 @@ service Social {
       }
     };
   }
+  rpc LookupTwitter (LookupTwitterRequest) returns (LookupTwitterResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/twitter/lookup"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/twitter/lookup/"
+      }
+    };
+  }
+  rpc SendTweet (SendTweetRequest) returns (SendTweetResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/twitter/send_tweet"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/twitter/send_tweet/"
+      }
+    };
+  }
   rpc ReceiveAirdrop (ReceiveAirdropRequest) returns (ReceiveAirdropResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
@@ -1415,6 +1437,18 @@ message TwitterFollowRequest {
   
 }
 message TwitterFollowResponse {
+  uint64 code = 1;
+}
+message SendTweetRequest {
+  
+}
+message SendTweetResponse {
+  uint64 code = 1;
+}
+message LookupTwitterRequest {
+  
+}
+message LookupTwitterResponse {
   uint64 code = 1;
 }
 message ChannelInfoRequest {

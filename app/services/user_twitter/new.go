@@ -7,6 +7,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/search"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 )
 
 const (
@@ -95,14 +96,15 @@ func runSendTweet(ctx context.Context) error {
 		return nil
 	}
 	//do list
-	/* for _, user_twitter := range user_twitter_list {
-
-
-	} */
+	for _, user_twitter := range user_twitter_list {
+		uid := user_twitter.UID
+		mises := utils.UMisesToMises(uint64(GetTwitterAirdropCoin(ctx, user_twitter)))
+		misesid := utils.RemoveMisesidProfix(user_twitter.Misesid)
+		tweet := fmt.Sprintf("I have claimed $%f $MIS airdrop by using Mises Browser @Mises001, which supports Web3 sites and extensions on mobile.\n\nhttps://www.mises.site/download?MisesID=%s\n\n#Mises #Browser #web3 #extension", mises, misesid)
+		if err := sendTweet(ctx, user_twitter, tweet); err != nil {
+			fmt.Printf("uid[%d] send tweet err:%s ", uid, err.Error())
+			continue
+		}
+	}
 	return nil
-}
-
-func getTweetTemp(ctx context.Context) string {
-
-	return ""
 }

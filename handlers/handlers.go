@@ -1087,3 +1087,23 @@ func (s socialService) Complaint(ctx context.Context, in *pb.ComplaintRequest) (
 	}
 	return &resp, nil
 }
+
+func (s socialService) LookupTwitter(ctx context.Context, in *pb.LookupTwitterRequest) (*pb.LookupTwitterResponse, error) {
+	var resp pb.LookupTwitterResponse
+	err := user_twitter.PlanLookupTwitterUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	return &resp, nil
+}
+
+func (s socialService) SendTweet(ctx context.Context, in *pb.SendTweetRequest) (*pb.SendTweetResponse, error) {
+	var resp pb.SendTweetResponse
+	err := user_twitter.PlanSendTweet(ctx)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	return &resp, nil
+}
