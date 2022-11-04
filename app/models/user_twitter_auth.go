@@ -25,19 +25,22 @@ type (
 		CreatedAt      time.Time `bson:"created_at"`
 	}
 	UserTwitterAuth struct {
-		ID               primitive.ObjectID `bson:"_id,omitempty"`
-		UID              uint64             `bson:"uid"`
-		Misesid          string             `bson:"misesid,omitempty"`
-		TwitterUserId    string             `bson:"twitter_user_id"`
-		OauthToken       string             `bson:"oauth_token"`
-		OauthTokenSecret string             `bson:"oauth_token_secret"`
-		TwitterUser      *TwitterUser       `bson:"twitter_user"`
-		TweetInfo        *TweetInfo         `bson:"tweet_info"`
-		UpdatedAt        time.Time          `bson:"updated_at,omitempty"`
-		CreatedAt        time.Time          `bson:"created_at"`
-		Amount           int64              `bson:"-"`
-		IsValid          bool               `bson:"-"`
-		IsFollowed       bool               `bson:"is_followed"`
+		ID                primitive.ObjectID `bson:"_id,omitempty"`
+		UID               uint64             `bson:"uid"`
+		Misesid           string             `bson:"misesid,omitempty"`
+		TwitterUserId     string             `bson:"twitter_user_id"`
+		OauthToken        string             `bson:"oauth_token"`
+		OauthTokenSecret  string             `bson:"oauth_token_secret"`
+		TwitterUser       *TwitterUser       `bson:"twitter_user"`
+		TweetInfo         *TweetInfo         `bson:"tweet_info"`
+		UpdatedAt         time.Time          `bson:"updated_at,omitempty"`
+		CreatedAt         time.Time          `bson:"created_at"`
+		Amount            int64              `bson:"-"`
+		IsValid           bool               `bson:"-"`
+		IsAirdrop         bool               `bson:"is_airdrop"`
+		SendTweeState     int                `bson:"send_tweet_state"`
+		IsFindTwitterUser bool               `bson:"is_find_twitter_user"`
+		IsFollowed        bool               `bson:"is_followed"`
 	}
 )
 
@@ -80,6 +83,25 @@ func UpdateUserTwitterAuthFollew(ctx context.Context, data *UserTwitterAuth) err
 
 	update := bson.M{}
 	update["is_followed"] = data.IsFollowed
+	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
+	return err
+}
+func UpdateUserTwitterAuthSendTweet(ctx context.Context, data *UserTwitterAuth) error {
+
+	update := bson.M{}
+	update["send_tweet_state"] = data.SendTweeState
+	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
+	return err
+}
+func UpdateUserTwitterAuthTwitterUser(ctx context.Context, data *UserTwitterAuth) error {
+
+	update := bson.M{}
+	update["twitter_user"] = data.TwitterUser
+	update["is_followed"] = data.IsFollowed
+	update["is_find_twitter_user"] = data.IsFindTwitterUser
+	if data.IsAirdrop == true {
+		update["send_tweet_state"] = data.SendTweeState
+	}
 	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
 	return err
 }

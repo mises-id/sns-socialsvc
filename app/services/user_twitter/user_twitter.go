@@ -237,6 +237,9 @@ func checkMisesidOrTwitterUserIdIsExists(misesid string, twitter_user *models.Tw
 }
 
 func IsValidTwitterUser(twitter_user *models.TwitterUser) (is_valid bool) {
+	if twitter_user == nil {
+		return is_valid
+	}
 	if twitter_user.FollowersCount == 0 {
 		return is_valid
 	}
