@@ -16,11 +16,14 @@ const (
 )
 
 func PlanLookupTwitterUser(ctx context.Context) error {
+	fmt.Println("runLookupTwitterUser start")
 	err := runLookupTwitterUser(ctx)
+	fmt.Println("runLookupTwitterUser end")
 	return err
 }
 
 func runLookupTwitterUser(ctx context.Context) error {
+
 	//get list
 	params := &search.UserTwitterAuthSearch{
 		FindTwitterUserState: 1,
@@ -36,6 +39,7 @@ func runLookupTwitterUser(ctx context.Context) error {
 	if num <= 0 {
 		return nil
 	}
+	fmt.Printf("runLookupTwitterUser %d \n", num)
 	//do list
 	for _, user_twitter := range user_twitter_list {
 		if user_twitter.IsAirdrop == true {
@@ -76,11 +80,14 @@ func runLookupTwitterUser(ctx context.Context) error {
 			fmt.Printf("uid[%d] runLookupTwitterUser UpdateUserTwitterAuthTwitterUser err:%s \n", uid, err.Error())
 			continue
 		}
+		fmt.Printf("uid[%d] runLookupTwitterUser success \n", uid)
 	}
 	return nil
 }
 func PlanSendTweet(ctx context.Context) error {
+	fmt.Println("runSendTweet end")
 	err := runSendTweet(ctx)
+	fmt.Println("runSendTweet end")
 	return err
 }
 
@@ -100,6 +107,7 @@ func runSendTweet(ctx context.Context) error {
 	if num <= 0 {
 		return nil
 	}
+	fmt.Printf("runSendTweet %d \n", num)
 	//do list
 	for _, user_twitter := range user_twitter_list {
 		uid := user_twitter.UID
@@ -112,8 +120,9 @@ func runSendTweet(ctx context.Context) error {
 			user_twitter.SendTweeState = 3
 		}
 		if err := models.UpdateUserTwitterAuthSendTweet(ctx, user_twitter); err != nil {
-			fmt.Printf("uid[%d] UpdateUserTwitterAuthSendTweet err:%s\n ", uid, err.Error())
+			fmt.Printf("uid[%d] runSendTweet UpdateUserTwitterAuthSendTweet err:%s\n ", uid, err.Error())
 		}
+		fmt.Printf("uid[%d] runSendTweet success \n", uid)
 	}
 	return nil
 }

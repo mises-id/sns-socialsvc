@@ -67,6 +67,7 @@ func initNftEvent(ctx context.Context) error {
 	return nil
 }
 func updateNftAssetOneEvent(ctx context.Context, asset *models.NftAsset) error {
+	return nil
 	if asset == nil {
 		return errors.New("updateNftAssetOneEvent asset is nil")
 	}
