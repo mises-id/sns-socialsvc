@@ -334,12 +334,12 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 			return callback0
 		}
 		add := &models.UserTwitterAuth{
-			UID:               uid,
-			Misesid:           user.Misesid,
-			TwitterUserId:     twitter_user_id,
-			IsFindTwitterUser: false,
-			OauthToken:        oauth_token_new,
-			OauthTokenSecret:  oauth_token_secret,
+			UID:                  uid,
+			Misesid:              user.Misesid,
+			TwitterUserId:        twitter_user_id,
+			FindTwitterUserState: 1,
+			OauthToken:           oauth_token_new,
+			OauthTokenSecret:     oauth_token_secret,
 		}
 		err = models.CreateUserTwitterAuth(ctx, add)
 
@@ -349,7 +349,7 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 		user_twitter.OauthTokenSecret = oauth_token_secret
 		if airdrop == nil {
 			user_twitter.TwitterUserId = twitter_user_id
-			user_twitter.IsFindTwitterUser = false
+			user_twitter.FindTwitterUserState = 1
 		}
 		err = models.UpdateUserTwitterAuth(ctx, user_twitter)
 	}

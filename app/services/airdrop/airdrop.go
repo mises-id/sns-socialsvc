@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	getListNum              = 10
+	getListNum              = 5
 	userTwitterAuthMaxIdKey = "user_twiter_auth_max_id"
 	airdropStop             chan int
 	airdropDo               bool
@@ -30,7 +30,7 @@ type FaucetCallback struct {
 }
 
 func AirdropTwitter(ctx context.Context) {
-	totalAirdropNum = 100
+	totalAirdropNum = 20
 	airdropStop = make(chan int)
 	airdropDo = true
 	fmt.Println("airdrop start")

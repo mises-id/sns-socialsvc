@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	lookupUserNum = 15
+	lookupUserNum = 10
 	sendTweetNum  = 3
 )
 
@@ -23,10 +23,10 @@ func PlanLookupTwitterUser(ctx context.Context) error {
 func runLookupTwitterUser(ctx context.Context) error {
 	//get list
 	params := &search.UserTwitterAuthSearch{
-		IsFindTwitterUserState: 1,
-		SortType:               enum.SortAsc,
-		SortKey:                "_id",
-		ListNum:                int64(lookupUserNum),
+		FindTwitterUserState: 1,
+		SortType:             enum.SortAsc,
+		SortKey:              "_id",
+		ListNum:              int64(lookupUserNum),
 	}
 	user_twitter_list, err := models.ListUserTwitterAuth(ctx, params)
 	if err != nil {
@@ -41,9 +41,12 @@ func runLookupTwitterUser(ctx context.Context) error {
 		if user_twitter.IsAirdrop == true {
 			continue
 		}
+		uid := user_twitter.UID
 		twitter_user, err := getTwitterUserById(ctx, user_twitter.TwitterUserId)
 		if err != nil {
-			fmt.Println("runLookupTwitterUser getTwitterUserById err: ", err.Error())
+			fmt.Printf("uid[%d] runLookupTwitterUser getTwitterUserById err:%s \n", uid, err.Error())
+			user_twitter.FindTwitterUserState = 3
+			models.UpdateUserTwitterAuthFindState(ctx, user_twitter)
 			continue
 		}
 		TwitterUser := &models.TwitterUser{
@@ -58,17 +61,19 @@ func runLookupTwitterUser(ctx context.Context) error {
 		//is_valid
 		if IsValidTwitterUser(user_twitter.TwitterUser) {
 			if err := createAirdrop(ctx, user_twitter); err != nil {
-				fmt.Println("runLookupTwitterUser createAirdrop err: ", err.Error())
+				fmt.Printf("uid[%d] runLookupTwitterUser createAirdrop err:%s \n", uid, err.Error())
+				user_twitter.FindTwitterUserState = 3
+				models.UpdateUserTwitterAuthFindState(ctx, user_twitter)
 				continue
 			}
 			user_twitter.IsAirdrop = true
 			user_twitter.SendTweeState = 1
 		}
-		user_twitter.IsFindTwitterUser = true
+		user_twitter.FindTwitterUserState = 2
 		//update
 		err = models.UpdateUserTwitterAuthTwitterUser(ctx, user_twitter)
 		if err != nil {
-			fmt.Println("runLookupTwitterUser UpdateUserTwitterAuthTwitterUser err: ", err.Error())
+			fmt.Printf("uid[%d] runLookupTwitterUser UpdateUserTwitterAuthTwitterUser err:%s \n", uid, err.Error())
 			continue
 		}
 	}
@@ -100,10 +105,14 @@ func runSendTweet(ctx context.Context) error {
 		uid := user_twitter.UID
 		mises := utils.UMisesToMises(uint64(GetTwitterAirdropCoin(ctx, user_twitter)))
 		misesid := utils.RemoveMisesidProfix(user_twitter.Misesid)
-		tweet := fmt.Sprintf("I have claimed $%f $MIS airdrop by using Mises Browser @Mises001, which supports Web3 sites and extensions on mobile.\n\nhttps://www.mises.site/download?MisesID=%s\n\n#Mises #Browser #web3 #extension", mises, misesid)
+		tweet := fmt.Sprintf("I have claimed $%.2f $MIS airdrop by using Mises Browser @Mises001, which supports Web3 sites and extensions on mobile.\n\nhttps://www.mises.site/download?MisesID=%s\n\n#Mises #Browser #web3 #extension", mises, misesid)
+		user_twitter.SendTweeState = 2
 		if err := sendTweet(ctx, user_twitter, tweet); err != nil {
-			fmt.Printf("uid[%d] send tweet err:%s ", uid, err.Error())
-			continue
+			fmt.Printf("uid[%d] send tweet err:%s \n", uid, err.Error())
+			user_twitter.SendTweeState = 3
+		}
+		if err := models.UpdateUserTwitterAuthSendTweet(ctx, user_twitter); err != nil {
+			fmt.Printf("uid[%d] UpdateUserTwitterAuthSendTweet err:%s\n ", uid, err.Error())
 		}
 	}
 	return nil

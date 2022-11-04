@@ -12,21 +12,21 @@ import (
 
 type (
 	UserTwitterAuthSearch struct {
-		GID                    primitive.ObjectID
-		UID                    uint64
-		UIDs                   []uint64
-		Misesid                string
-		Misesids               []string
-		TwitterUserId          string
-		TwitterUserIds         []string
-		StartTime              *time.Time
-		EndTime                *time.Time
-		FollowState            int
-		TweetInfoState         int
-		IsAirdropState         int
-		TwitterUserState       int
-		IsFindTwitterUserState int
-		SendTweetState         int
+		GID                  primitive.ObjectID
+		UID                  uint64
+		UIDs                 []uint64
+		Misesid              string
+		Misesids             []string
+		TwitterUserId        string
+		TwitterUserIds       []string
+		StartTime            *time.Time
+		EndTime              *time.Time
+		FollowState          int
+		TweetInfoState       int
+		IsAirdropState       int
+		TwitterUserState     int
+		FindTwitterUserState int
+		SendTweetState       int
 		//sort
 		SortKey  string
 		SortType enum.SortType
@@ -69,8 +69,8 @@ func (params *UserTwitterAuthSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.SendTweetState > 0 {
 		chain = chain.Where(bson.M{"send_tweet_state": params.SendTweetState})
 	}
-	if params.IsFindTwitterUserState == 1 {
-		chain = chain.Where(bson.M{"is_find_twitter_user": false})
+	if params.FindTwitterUserState > 0 {
+		chain = chain.Where(bson.M{"find_twitter_user_state": params.FindTwitterUserState})
 	}
 	if params.StartTime != nil {
 		chain = chain.Where(bson.M{"created_at": bson.M{"$gte": params.StartTime}})
