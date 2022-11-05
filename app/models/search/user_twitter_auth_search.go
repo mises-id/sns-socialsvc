@@ -63,8 +63,8 @@ func (params *UserTwitterAuthSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.TwitterUserIds != nil && len(params.TwitterUserIds) > 0 {
 		chain = chain.Where(bson.M{"twitter_user_id": bson.M{"$in": params.TwitterUserIds}})
 	}
-	if params.FollowState == 1 {
-		chain = chain.Where(bson.M{"is_followed": false})
+	if params.FollowState > 0 {
+		chain = chain.Where(bson.M{"follow_state": params.FollowState})
 	}
 	if params.SendTweetState > 0 {
 		chain = chain.Where(bson.M{"send_tweet_state": params.SendTweetState})

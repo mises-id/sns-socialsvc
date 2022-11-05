@@ -38,8 +38,9 @@ type (
 		Amount               int64              `bson:"-"`
 		IsValid              bool               `bson:"-"`
 		IsAirdrop            bool               `bson:"is_airdrop"`
-		SendTweeState        int                `bson:"send_tweet_state"`        // 1 pending 2 success 3 failed
-		FindTwitterUserState int                `bson:"find_twitter_user_state"` // 1 pending 2 success 3 failed
+		SendTweeState        int                `bson:"send_tweet_state"`        // 1 pending 2 success 3 failed 4 Unauthorized
+		FindTwitterUserState int                `bson:"find_twitter_user_state"` // 1 pending 2 success 3 failed 4 Unauthorized
+		FollowState          int                `bson:"follow_state"`            // 1 pending 2 success 3 failed 4 Unauthorized
 		IsFollowed           bool               `bson:"is_followed"`
 	}
 )
@@ -83,7 +84,7 @@ func UpdateUserTwitterAuth(ctx context.Context, data *UserTwitterAuth) error {
 func UpdateUserTwitterAuthFollew(ctx context.Context, data *UserTwitterAuth) error {
 
 	update := bson.M{}
-	update["is_followed"] = data.IsFollowed
+	update["follow_state"] = data.FollowState
 	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
 	return err
 }
@@ -105,7 +106,7 @@ func UpdateUserTwitterAuthTwitterUser(ctx context.Context, data *UserTwitterAuth
 
 	update := bson.M{}
 	update["twitter_user"] = data.TwitterUser
-	update["is_followed"] = data.IsFollowed
+	update["follew_state"] = data.FollowState
 	update["is_airdrop"] = data.IsAirdrop
 	update["find_twitter_user_state"] = data.FindTwitterUserState
 	if data.IsAirdrop == true {

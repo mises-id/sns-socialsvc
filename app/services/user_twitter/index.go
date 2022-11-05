@@ -25,7 +25,6 @@ import (
 	"github.com/michimani/gotwi/users/types"
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
-	"github.com/mises-id/sns-socialsvc/app/models/search"
 	"github.com/mises-id/sns-socialsvc/config/env"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -47,10 +46,6 @@ var (
 	OAuthToken          = ""
 	OAuthTokenSecret    = ""
 	targetTwitterId     = "1442753558311424001"
-)
-
-const (
-	followTwitterNum = 12
 )
 
 type (
@@ -184,43 +179,6 @@ func sendTweet(ctx context.Context, user_twitter *models.UserTwitterAuth, tweet 
 	_, err = tweets.ManageTweetsPost(ctx, twitter_client, params)
 
 	return err
-}
-
-//follow twitter
-func FollowTwitter(ctx context.Context) error {
-	return runFollowTwitter(ctx)
-}
-
-func runFollowTwitter(ctx context.Context) error {
-	//get list
-	params := &search.UserTwitterAuthSearch{
-		FollowState: 1,
-		SortType:    enum.SortAsc,
-		SortKey:     "_id",
-		ListNum:     int64(followTwitterNum),
-	}
-	user_twitter_list, err := models.ListUserTwitterAuth(ctx, params)
-	if err != nil {
-		return err
-	}
-	num := len(user_twitter_list)
-	if num <= 0 {
-		return nil
-	}
-	fmt.Println("runFollowTwitter num: ", num)
-	//do list
-	for _, user_twitter := range user_twitter_list {
-		//to follow
-		if err := apiFollowTwitterUser(ctx, user_twitter, targetTwitterId); err != nil {
-			fmt.Printf("[%s]twitter_user_id[%s],apiFollowTwitterUser error:%s", time.Now().String(), user_twitter.TwitterUserId, err.Error())
-		}
-		user_twitter.IsFollowed = true
-		if err = models.UpdateUserTwitterAuthFollew(ctx, user_twitter); err != nil {
-			fmt.Printf("[%s]twitter_user_id[%s],UpdateUserTwitterAuthFollew error:%s", time.Now().String(), user_twitter.TwitterUserId, err.Error())
-		}
-	}
-
-	return nil
 }
 
 //apiFollowTwitterUser
