@@ -25,19 +25,23 @@ type (
 		CreatedAt      time.Time `bson:"created_at"`
 	}
 	UserTwitterAuth struct {
-		ID               primitive.ObjectID `bson:"_id,omitempty"`
-		UID              uint64             `bson:"uid"`
-		Misesid          string             `bson:"misesid,omitempty"`
-		TwitterUserId    string             `bson:"twitter_user_id"`
-		OauthToken       string             `bson:"oauth_token"`
-		OauthTokenSecret string             `bson:"oauth_token_secret"`
-		TwitterUser      *TwitterUser       `bson:"twitter_user"`
-		TweetInfo        *TweetInfo         `bson:"tweet_info"`
-		UpdatedAt        time.Time          `bson:"updated_at,omitempty"`
-		CreatedAt        time.Time          `bson:"created_at"`
-		Amount           int64              `bson:"-"`
-		IsValid          bool               `bson:"-"`
-		IsFollowed       bool               `bson:"is_followed"`
+		ID                   primitive.ObjectID `bson:"_id,omitempty"`
+		UID                  uint64             `bson:"uid"`
+		Misesid              string             `bson:"misesid,omitempty"`
+		TwitterUserId        string             `bson:"twitter_user_id"`
+		OauthToken           string             `bson:"oauth_token"`
+		OauthTokenSecret     string             `bson:"oauth_token_secret"`
+		TwitterUser          *TwitterUser       `bson:"twitter_user"`
+		TweetInfo            *TweetInfo         `bson:"tweet_info"`
+		UpdatedAt            time.Time          `bson:"updated_at,omitempty"`
+		CreatedAt            time.Time          `bson:"created_at"`
+		Amount               int64              `bson:"-"`
+		IsValid              bool               `bson:"-"`
+		IsAirdrop            bool               `bson:"is_airdrop"`
+		SendTweeState        int                `bson:"send_tweet_state"`        // 1 pending 2 success 3 failed 4 Unauthorized
+		FindTwitterUserState int                `bson:"find_twitter_user_state"` // 1 pending 2 success 3 failed 4 Unauthorized
+		FollowState          int                `bson:"follow_state"`            // 1 pending 2 success 3 failed 4 Unauthorized
+		IsFollowed           bool               `bson:"is_followed"`
 	}
 )
 
@@ -52,6 +56,7 @@ func CreateUserTwitterAuth(ctx context.Context, data *UserTwitterAuth) error {
 	created["tweet_info"] = data.TweetInfo
 	created["oauth_token"] = data.OauthToken
 	created["oauth_token_secret"] = data.OauthTokenSecret
+	created["find_twitter_user_state"] = data.FindTwitterUserState
 	opt := &options.FindOneAndUpdateOptions{}
 	opt.SetUpsert(true)
 	opt.SetReturnDocument(1)
@@ -79,7 +84,34 @@ func UpdateUserTwitterAuth(ctx context.Context, data *UserTwitterAuth) error {
 func UpdateUserTwitterAuthFollew(ctx context.Context, data *UserTwitterAuth) error {
 
 	update := bson.M{}
-	update["is_followed"] = data.IsFollowed
+	update["follow_state"] = data.FollowState
+	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
+	return err
+}
+func UpdateUserTwitterAuthSendTweet(ctx context.Context, data *UserTwitterAuth) error {
+
+	update := bson.M{}
+	update["send_tweet_state"] = data.SendTweeState
+	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
+	return err
+}
+func UpdateUserTwitterAuthFindState(ctx context.Context, data *UserTwitterAuth) error {
+
+	update := bson.M{}
+	update["find_twitter_user_state"] = data.FindTwitterUserState
+	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
+	return err
+}
+func UpdateUserTwitterAuthTwitterUser(ctx context.Context, data *UserTwitterAuth) error {
+
+	update := bson.M{}
+	update["twitter_user"] = data.TwitterUser
+	update["follew_state"] = data.FollowState
+	update["is_airdrop"] = data.IsAirdrop
+	update["find_twitter_user_state"] = data.FindTwitterUserState
+	if data.IsAirdrop == true {
+		update["send_tweet_state"] = data.SendTweeState
+	}
 	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
 	return err
 }

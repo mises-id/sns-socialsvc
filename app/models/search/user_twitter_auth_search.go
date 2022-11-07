@@ -1,6 +1,8 @@
 package search
 
 import (
+	"time"
+
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/lib/db/odm"
 	"github.com/mises-id/sns-socialsvc/lib/pagination"
@@ -10,14 +12,21 @@ import (
 
 type (
 	UserTwitterAuthSearch struct {
-		GID            primitive.ObjectID
-		UID            uint64
-		UIDs           []uint64
-		Misesid        string
-		Misesids       []string
-		TwitterUserId  string
-		TwitterUserIds []string
-		FollowState    int
+		GID                  primitive.ObjectID
+		UID                  uint64
+		UIDs                 []uint64
+		Misesid              string
+		Misesids             []string
+		TwitterUserId        string
+		TwitterUserIds       []string
+		StartTime            *time.Time
+		EndTime              *time.Time
+		FollowState          int
+		TweetInfoState       int
+		IsAirdropState       int
+		TwitterUserState     int
+		FindTwitterUserState int
+		SendTweetState       int
 		//sort
 		SortKey  string
 		SortType enum.SortType
@@ -54,8 +63,20 @@ func (params *UserTwitterAuthSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.TwitterUserIds != nil && len(params.TwitterUserIds) > 0 {
 		chain = chain.Where(bson.M{"twitter_user_id": bson.M{"$in": params.TwitterUserIds}})
 	}
-	if params.FollowState == 1 {
-		chain = chain.Where(bson.M{"is_followed": false})
+	if params.FollowState > 0 {
+		chain = chain.Where(bson.M{"follow_state": params.FollowState})
+	}
+	if params.SendTweetState > 0 {
+		chain = chain.Where(bson.M{"send_tweet_state": params.SendTweetState})
+	}
+	if params.FindTwitterUserState > 0 {
+		chain = chain.Where(bson.M{"find_twitter_user_state": params.FindTwitterUserState})
+	}
+	if params.StartTime != nil {
+		chain = chain.Where(bson.M{"created_at": bson.M{"$gte": params.StartTime}})
+	}
+	if params.TweetInfoState == 1 {
+		chain = chain.Where(bson.M{"tweet_info": nil})
 	}
 	//sort
 	if params.SortKey != "" && params.SortType != 0 {

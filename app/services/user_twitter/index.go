@@ -25,7 +25,6 @@ import (
 	"github.com/michimani/gotwi/users/types"
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
-	"github.com/mises-id/sns-socialsvc/app/models/search"
 	"github.com/mises-id/sns-socialsvc/config/env"
 	"github.com/mises-id/sns-socialsvc/lib/codes"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -47,10 +46,6 @@ var (
 	OAuthToken          = ""
 	OAuthTokenSecret    = ""
 	targetTwitterId     = "1442753558311424001"
-)
-
-const (
-	followTwitterNum = 45
 )
 
 type (
@@ -103,7 +98,6 @@ func GetAirdropInfo(ctx context.Context, uid uint64) (*AirdropInfoOutput, error)
 	if err != nil && err != mongo.ErrNoDocuments {
 		return nil, err
 	}
-
 	if user_twitter != nil {
 		user_twitter.IsValid = IsValidTwitterUser(user_twitter.TwitterUser)
 		if user_twitter.IsValid {
@@ -125,6 +119,7 @@ func GetAirdropInfo(ctx context.Context, uid uint64) (*AirdropInfoOutput, error)
 //receive airdrop
 func ReceiveAirdrop(ctx context.Context, uid uint64, tweet string) error {
 	//check twitter auth
+	return codes.ErrForbidden.Newf("Please wait.")
 	user_twitter, err := models.FindUserTwitterAuthByUid(ctx, uid)
 	if err != nil {
 		return codes.ErrForbidden.Newf("Twitter is unauthorized")
@@ -186,43 +181,6 @@ func sendTweet(ctx context.Context, user_twitter *models.UserTwitterAuth, tweet 
 	return err
 }
 
-//follow twitter
-func FollowTwitter(ctx context.Context) error {
-	return runFollowTwitter(ctx)
-}
-
-func runFollowTwitter(ctx context.Context) error {
-	//get list
-	params := &search.UserTwitterAuthSearch{
-		FollowState: 1,
-		SortType:    enum.SortAsc,
-		SortKey:     "_id",
-		ListNum:     int64(followTwitterNum),
-	}
-	user_twitter_list, err := models.ListUserTwitterAuth(ctx, params)
-	if err != nil {
-		return err
-	}
-	num := len(user_twitter_list)
-	if num <= 0 {
-		return nil
-	}
-	fmt.Println("runFollowTwitter num: ", num)
-	//do list
-	for _, user_twitter := range user_twitter_list {
-		//to follow
-		if err := apiFollowTwitterUser(ctx, user_twitter, targetTwitterId); err != nil {
-			fmt.Printf("[%s]twitter_user_id[%s],apiFollowTwitterUser error:%s", time.Now().String(), user_twitter.TwitterUserId, err.Error())
-		}
-		user_twitter.IsFollowed = true
-		if err = models.UpdateUserTwitterAuthFollew(ctx, user_twitter); err != nil {
-			fmt.Printf("[%s]twitter_user_id[%s],UpdateUserTwitterAuthFollew error:%s", time.Now().String(), user_twitter.TwitterUserId, err.Error())
-		}
-	}
-
-	return nil
-}
-
 //apiFollowTwitterUser
 func apiFollowTwitterUser(ctx context.Context, user_twitter *models.UserTwitterAuth, target_user_id string) error {
 	if user_twitter == nil {
@@ -275,6 +233,90 @@ func getTwitterCallbackUrl(code, username, misesid string) string {
 
 //twitter auth callback
 func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifier string) string {
+
+	var (
+		callback0 string = getTwitterCallbackUrl("0", "", "")
+		callback1 string = getTwitterCallbackUrl("1", "", "")
+		callback2 string = getTwitterCallbackUrl("2", "", "")
+	)
+	if oauth_token == "" || oauth_verifier == "" {
+		fmt.Printf("Oauth_token[%s],oauth_verifier[%s] err", oauth_token, oauth_verifier)
+		return callback2
+	}
+	user, err := models.FindUser(ctx, uid)
+	if err != nil {
+		fmt.Println("Twitter callback find user err: ", err.Error())
+		return callback2
+	}
+	userMisesid := user.Misesid
+	callback2 = getTwitterCallbackUrl("2", "", userMisesid)
+	//find twitter user
+	access_token, err := AccessToken(ctx, oauth_token, oauth_verifier)
+	if err != nil {
+		fmt.Println("Twitter callback access token err: ", err.Error())
+		return callback2
+	}
+	params, _ := url.ParseQuery(access_token)
+	user_ids, ok := params["user_id"]
+	if !ok || len(user_ids) <= 0 {
+		fmt.Println("Twitter callback user_id err: ", err.Error())
+		return callback2
+	}
+	oauth_tokens, ok := params["oauth_token"]
+	oauth_token_secrets, ok := params["oauth_token_secret"]
+	twitter_user_id := user_ids[0]
+	oauth_token_new := oauth_tokens[0]
+	oauth_token_secret := oauth_token_secrets[0]
+	//check twitter_user_id
+	twitter_auth, err := models.FindUserTwitterAuthByTwitterUserId(ctx, twitter_user_id)
+
+	if twitter_auth != nil && twitter_auth.UID != uid {
+		callback1 = getTwitterCallbackUrl("1", twitter_auth.TwitterUser.UserName, userMisesid)
+		fmt.Println("FindUserTwitterAuthByTwitterUserId exist ")
+		return callback1
+	}
+	//check uid
+	user_twitter, err := models.FindUserTwitterAuthByUid(ctx, uid)
+	if err != nil && err != mongo.ErrNoDocuments {
+		fmt.Println("Twitter callback FindUserTwitterAuthByUid err: ", err.Error())
+		return callback2
+	}
+	callback0 = getTwitterCallbackUrl("0", "", userMisesid)
+	//check airdrop
+	airdrop, err := models.FindAirdropByUid(ctx, uid)
+
+	if user_twitter == nil {
+		//create
+		if airdrop != nil {
+			fmt.Println("Twitter callback airdrop exist")
+			return callback0
+		}
+		add := &models.UserTwitterAuth{
+			UID:                  uid,
+			Misesid:              user.Misesid,
+			TwitterUserId:        twitter_user_id,
+			FindTwitterUserState: 1,
+			OauthToken:           oauth_token_new,
+			OauthTokenSecret:     oauth_token_secret,
+		}
+		err = models.CreateUserTwitterAuth(ctx, add)
+
+	} else {
+		//update
+		user_twitter.OauthToken = oauth_token_new
+		user_twitter.OauthTokenSecret = oauth_token_secret
+		if airdrop == nil {
+			user_twitter.TwitterUserId = twitter_user_id
+			user_twitter.FindTwitterUserState = 1
+		}
+		err = models.UpdateUserTwitterAuth(ctx, user_twitter)
+	}
+	if err != nil {
+		fmt.Println("Twitter callback save err: ", err.Error())
+	}
+	return callback0
+}
+func TwitterCallbackOld(ctx context.Context, uid uint64, oauth_token, oauth_verifier string) string {
 
 	var (
 		callback0 string = getTwitterCallbackUrl("0", "", "")

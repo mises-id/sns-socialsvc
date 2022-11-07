@@ -661,6 +661,26 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var LookupTwitterZeroEndpoint endpoint.Endpoint
+	{
+		LookupTwitterZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/twitter/lookup/"),
+			EncodeHTTPLookupTwitterZeroRequest,
+			DecodeHTTPLookupTwitterResponse,
+			options...,
+		).Endpoint()
+	}
+	var SendTweetZeroEndpoint endpoint.Endpoint
+	{
+		SendTweetZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/twitter/send_tweet/"),
+			EncodeHTTPSendTweetZeroRequest,
+			DecodeHTTPSendTweetResponse,
+			options...,
+		).Endpoint()
+	}
 	var ReceiveAirdropZeroEndpoint endpoint.Endpoint
 	{
 		ReceiveAirdropZeroEndpoint = httptransport.NewClient(
@@ -734,6 +754,8 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		GetAirdropInfoEndpoint:          GetAirdropInfoZeroEndpoint,
 		TwitterCallbackEndpoint:         TwitterCallbackZeroEndpoint,
 		TwitterFollowEndpoint:           TwitterFollowZeroEndpoint,
+		LookupTwitterEndpoint:           LookupTwitterZeroEndpoint,
+		SendTweetEndpoint:               SendTweetZeroEndpoint,
 		ReceiveAirdropEndpoint:          ReceiveAirdropZeroEndpoint,
 	}, nil
 }
@@ -2401,6 +2423,60 @@ func DecodeHTTPTwitterFollowResponse(_ context.Context, r *http.Response) (inter
 	}
 
 	var resp pb.TwitterFollowResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPLookupTwitterResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded LookupTwitterResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPLookupTwitterResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.LookupTwitterResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPSendTweetResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded SendTweetResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPSendTweetResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.SendTweetResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -7807,6 +7883,144 @@ func EncodeHTTPTwitterFollowOneRequest(_ context.Context, r *http.Request, reque
 		"",
 		"twitter",
 		"follow",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPLookupTwitterZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a lookuptwitter request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPLookupTwitterZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.LookupTwitterRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"twitter",
+		"lookup",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPLookupTwitterOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a lookuptwitter request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPLookupTwitterOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.LookupTwitterRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"twitter",
+		"lookup",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPSendTweetZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a sendtweet request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPSendTweetZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.SendTweetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"twitter",
+		"send_tweet",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPSendTweetOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a sendtweet request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPSendTweetOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.SendTweetRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"twitter",
+		"send_tweet",
 	}, "/")
 	u, err := url.Parse(path)
 	if err != nil {
