@@ -66,6 +66,16 @@ func FindChannelUserByID(ctx context.Context, id primitive.ObjectID) (*ChannelUs
 	}
 	return res, result.Decode(res)
 }
+func FindChannelUserByUID(ctx context.Context, uid uint64) (*ChannelUser, error) {
+	res := &ChannelUser{}
+	result := db.DB().Collection("channelusers").FindOne(ctx, &bson.M{
+		"uid": uid,
+	})
+	if result.Err() != nil {
+		return nil, result.Err()
+	}
+	return res, result.Decode(res)
+}
 
 func ListChannelUser(ctx context.Context, params IAdminParams) ([]*ChannelUser, error) {
 
