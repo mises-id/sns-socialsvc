@@ -52,7 +52,7 @@ func New() IClient {
 			app: nil,
 		}
 	}
-	mo := sdk.MSdkOption{
+	mo := types.MSdkOption{
 		ChainID:    env.Envs.MisesChainID,
 		Debug:      true,
 		PassPhrase: "mises.site",
