@@ -15,7 +15,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/khaiql/dbcleaner v2.3.0+incompatible
 	github.com/michimani/gotwi v0.10.0
-	github.com/mises-id/sdk v0.0.0-20220422062246-abc698ec55a2
+	github.com/mises-id/sdk v0.0.0-20221108052606-a5196f11407d
 	github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220623061854-3cb69fa867f2
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1

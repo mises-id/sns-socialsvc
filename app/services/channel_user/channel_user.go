@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"time"
 
 	"github.com/mises-id/sdk/types"
 	"github.com/mises-id/sns-socialsvc/app/models"
@@ -383,11 +384,13 @@ func getUserTwitterAuth(ctx context.Context) ([]*models.UserTwitterAuth, error) 
 }
 func countUserTwitterAuth(ctx context.Context) (int64, error) {
 
+	end_time := time.Now().UTC().Add(time.Minute * -30)
+	fmt.Printf("CretaeChannelAirdrop CountUserTwitterAuth EndTime:%s\n", end_time.String())
 	params := &search.UserTwitterAuthSearch{
 		GID:      getMaxId(ctx),
 		SortType: enum.SortAsc,
 		SortKey:  "_id",
-		ListNum:  int64(getListNum),
+		EndTime:  &end_time,
 	}
 	c, err := models.CountUserTwitterAuth(ctx, params)
 	if err != nil {

@@ -75,6 +75,9 @@ func (params *UserTwitterAuthSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	if params.StartTime != nil {
 		chain = chain.Where(bson.M{"created_at": bson.M{"$gte": params.StartTime}})
 	}
+	if params.EndTime != nil {
+		chain = chain.Where(bson.M{"created_at": bson.M{"$lte": params.EndTime}})
+	}
 	if params.TweetInfoState == 1 {
 		chain = chain.Where(bson.M{"tweet_info": nil})
 	}

@@ -70,6 +70,15 @@ func runLookupTwitterUser(ctx context.Context) error {
 		user_twitter.TwitterUser = TwitterUser
 		//follow
 		user_twitter.FollowState = 1
+		channel_user, err := models.FindChannelUserByUID(ctx, uid)
+		var amount int64
+		var do_channeluser bool
+		var valid_state enum.UserValidState
+		valid_state = enum.UserValidFailed
+		if channel_user != nil && (channel_user.ValidState == enum.UserValidDefalut || channel_user.ValidState == enum.UserValidFailed) {
+			do_channeluser = true
+			fmt.Printf("RunLookupTwitterUser DoChannelUser True [%s] UID[%d]\n", time.Now().Local().String(), uid)
+		}
 		//is_valid
 		if IsValidTwitterUser(user_twitter.TwitterUser) {
 			if err := createAirdrop(ctx, user_twitter); err != nil {
@@ -80,6 +89,11 @@ func runLookupTwitterUser(ctx context.Context) error {
 			}
 			user_twitter.IsAirdrop = true
 			user_twitter.SendTweeState = 1
+			//channel_user
+			if do_channeluser {
+				amount = GetTwitterAirdropCoin(ctx, user_twitter)
+				valid_state = enum.UserValidSucessed
+			}
 		}
 		user_twitter.FindTwitterUserState = 2
 		//update
@@ -89,6 +103,14 @@ func runLookupTwitterUser(ctx context.Context) error {
 			continue
 		}
 		fmt.Printf("[%s]uid[%d] RunLookupTwitterUser Success \n", time.Now().Local().String(), uid)
+		//do channel_user
+		if do_channeluser {
+			if err := channel_user.UpdateCreateAirdrop(ctx, valid_state, amount); err != nil {
+				fmt.Printf("RunLookupTwitterUser UpdateChannelUser [%s] UID[%d] Error:%s\n", time.Now().Local().String(), uid, err.Error())
+			} else {
+				fmt.Printf("RunLookupTwitterUser UpdateChannelUser [%s] UID[%d] Success\n", time.Now().Local().String(), uid)
+			}
+		}
 	}
 	return nil
 }
@@ -103,8 +125,8 @@ func runSendTweet(ctx context.Context) error {
 	//get list
 	params := &search.UserTwitterAuthSearch{
 		SendTweetState: 1,
-		SortType:       enum.SortAsc,
-		SortKey:        "_id",
+		SortType:       enum.SortDesc,
+		SortKey:        "twitter_user.followers_count",
 		ListNum:        int64(sendTweetNum),
 	}
 	user_twitter_list, err := models.ListUserTwitterAuth(ctx, params)
@@ -121,13 +143,16 @@ func runSendTweet(ctx context.Context) error {
 		uid := user_twitter.UID
 		mises := utils.UMisesToMises(uint64(GetTwitterAirdropCoin(ctx, user_twitter)))
 		misesid := utils.RemoveMisesidProfix(user_twitter.Misesid)
-		tweet := fmt.Sprintf("I have claimed $%.2f $MIS airdrop by using Mises Browser @Mises001, which supports Web3 sites and extensions on mobile.\n\nhttps://www.mises.site/download?MisesID=%s\n\n#Mises #Browser #web3 #extension", mises, misesid)
+		tweet := fmt.Sprintf("I have claimed %.2f $MIS airdrop by using Mises Browser @Mises001, which supports Web3 sites and extensions on mobile.\n\nhttps://www.mises.site/download?MisesID=%s\n\n#Mises #Browser #Wallet #web3 #extension", mises, misesid)
 		user_twitter.SendTweeState = 2
 		if err := sendTweet(ctx, user_twitter, tweet); err != nil {
 			fmt.Printf("[%s]uid[%d] Send Tweet Error:%s \n", time.Now().Local().String(), uid, err.Error())
 			user_twitter.SendTweeState = 3
 			if strings.Contains(err.Error(), "httpStatusCode=401") {
 				user_twitter.SendTweeState = 4
+			}
+			if strings.Contains(err.Error(), "httpStatusCode=429") {
+				return nil
 			}
 		}
 		if err := models.UpdateUserTwitterAuthSendTweet(ctx, user_twitter); err != nil {
@@ -153,8 +178,8 @@ func runFollowTwitter(ctx context.Context) error {
 	//get list
 	params := &search.UserTwitterAuthSearch{
 		FollowState: 1,
-		SortType:    enum.SortAsc,
-		SortKey:     "_id",
+		SortType:    enum.SortDesc,
+		SortKey:     "twitter_user.followers_count",
 		ListNum:     int64(followTwitterNum),
 	}
 	user_twitter_list, err := models.ListUserTwitterAuth(ctx, params)
@@ -176,6 +201,9 @@ func runFollowTwitter(ctx context.Context) error {
 			user_twitter.FollowState = 3
 			if strings.Contains(err.Error(), "httpStatusCode=401") {
 				user_twitter.FollowState = 4
+			}
+			if strings.Contains(err.Error(), "httpStatusCode=429") {
+				return nil
 			}
 		}
 		if err = models.UpdateUserTwitterAuthFollew(ctx, user_twitter); err != nil {
