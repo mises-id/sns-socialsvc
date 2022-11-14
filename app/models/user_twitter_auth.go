@@ -102,11 +102,17 @@ func UpdateUserTwitterAuthFindState(ctx context.Context, data *UserTwitterAuth) 
 	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
 	return err
 }
+
+func DeleteUserTwitterAuthByID(ctx context.Context, id primitive.ObjectID) error {
+	_, err := db.DB().Collection("usertwitterauths").DeleteOne(ctx, bson.M{"_id": id})
+	return err
+}
+
 func UpdateUserTwitterAuthTwitterUser(ctx context.Context, data *UserTwitterAuth) error {
 
 	update := bson.M{}
 	update["twitter_user"] = data.TwitterUser
-	update["follew_state"] = data.FollowState
+	update["follow_state"] = data.FollowState
 	update["is_airdrop"] = data.IsAirdrop
 	update["find_twitter_user_state"] = data.FindTwitterUserState
 	if data.IsAirdrop == true {

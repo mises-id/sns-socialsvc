@@ -9,7 +9,6 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/search"
-	"github.com/mises-id/sns-socialsvc/lib/utils"
 )
 
 const (
@@ -54,7 +53,10 @@ func runLookupTwitterUser(ctx context.Context) error {
 			fmt.Printf("[%s]uid[%d] RunLookupTwitterUser GetTwitterUserById Error:%s \n", time.Now().Local().String(), uid, err.Error())
 			user_twitter.FindTwitterUserState = 3
 			if strings.Contains(err.Error(), "httpStatusCode=401") {
-				user_twitter.FindTwitterUserState = 4
+				//user_twitter.FindTwitterUserState = 4
+				//delete
+				models.DeleteUserTwitterAuthByID(ctx, user_twitter.ID)
+				continue
 			}
 			models.UpdateUserTwitterAuthFindState(ctx, user_twitter)
 			continue
@@ -91,7 +93,7 @@ func runLookupTwitterUser(ctx context.Context) error {
 			user_twitter.SendTweeState = 1
 			//channel_user
 			if do_channeluser {
-				amount = GetTwitterAirdropCoin(ctx, user_twitter)
+				amount = GetTwitterAirdropCoin(ctx, user_twitter) / 10
 				valid_state = enum.UserValidSucessed
 			}
 		}
@@ -141,11 +143,21 @@ func runSendTweet(ctx context.Context) error {
 	//do list
 	for _, user_twitter := range user_twitter_list {
 		uid := user_twitter.UID
-		mises := utils.UMisesToMises(uint64(GetTwitterAirdropCoin(ctx, user_twitter)))
+		user_twitter.SendTweeState = 2
+		/* mises := utils.UMisesToMises(uint64(GetTwitterAirdropCoin(ctx, user_twitter)))
 		misesid := utils.RemoveMisesidProfix(user_twitter.Misesid)
 		tweet := fmt.Sprintf("I have claimed %.2f $MIS airdrop by using Mises Browser @Mises001, which supports Web3 sites and extensions on mobile.\n\nhttps://www.mises.site/download?MisesID=%s\n\n#Mises #Browser #Wallet #web3 #extension", mises, misesid)
-		user_twitter.SendTweeState = 2
 		if err := sendTweet(ctx, user_twitter, tweet); err != nil {
+			fmt.Printf("[%s]uid[%d] Send Tweet Error:%s \n", time.Now().Local().String(), uid, err.Error())
+			user_twitter.SendTweeState = 3
+			if strings.Contains(err.Error(), "httpStatusCode=401") {
+				user_twitter.SendTweeState = 4
+			}
+			if strings.Contains(err.Error(), "httpStatusCode=429") {
+				return nil
+			}
+		} */
+		if err := reTweet(ctx, user_twitter); err != nil {
 			fmt.Printf("[%s]uid[%d] Send Tweet Error:%s \n", time.Now().Local().String(), uid, err.Error())
 			user_twitter.SendTweeState = 3
 			if strings.Contains(err.Error(), "httpStatusCode=401") {
