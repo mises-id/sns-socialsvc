@@ -67,6 +67,7 @@ func runLookupTwitterUser(ctx context.Context) error {
 			Name:           *twitter_user.Name,
 			CreatedAt:      *twitter_user.CreatedAt,
 			FollowersCount: uint64(*twitter_user.PublicMetrics.FollowersCount),
+			FollowingCount: uint64(*twitter_user.PublicMetrics.FollowingCount),
 			TweetCount:     uint64(*twitter_user.PublicMetrics.TweetCount),
 		}
 		user_twitter.TwitterUser = TwitterUser
@@ -164,7 +165,23 @@ func runSendTweet(ctx context.Context) error {
 				user_twitter.SendTweeState = 4
 			}
 			if strings.Contains(err.Error(), "httpStatusCode=429") {
-				return nil
+				user_twitter.SendTweeState = 5
+			}
+		}
+		//like tweet
+		user_twitter.LikeTweeState = 2
+		if user_twitter.SendTweeState == 4 {
+			user_twitter.LikeTweeState = 4
+		} else {
+			if err := likeTweet(ctx, user_twitter); err != nil {
+				fmt.Printf("[%s]uid[%d] Like Tweet Error:%s \n", time.Now().Local().String(), uid, err.Error())
+				user_twitter.LikeTweeState = 3
+				if strings.Contains(err.Error(), "httpStatusCode=401") {
+					user_twitter.LikeTweeState = 4
+				}
+				if strings.Contains(err.Error(), "httpStatusCode=429") {
+					user_twitter.LikeTweeState = 5
+				}
 			}
 		}
 		if err := models.UpdateUserTwitterAuthSendTweet(ctx, user_twitter); err != nil {
@@ -173,6 +190,9 @@ func runSendTweet(ctx context.Context) error {
 		}
 		if user_twitter.SendTweeState == 2 {
 			fmt.Printf("[%s]uid[%d] RunSendTweet Success \n", time.Now().Local().String(), uid)
+		}
+		if user_twitter.LikeTweeState == 2 {
+			fmt.Printf("[%s]uid[%d] LikeTweet Success \n", time.Now().Local().String(), uid)
 		}
 	}
 	return nil
@@ -215,11 +235,11 @@ func runFollowTwitter(ctx context.Context) error {
 				user_twitter.FollowState = 4
 			}
 			if strings.Contains(err.Error(), "httpStatusCode=429") {
-				return nil
+				user_twitter.FollowState = 5
 			}
 		}
-		if err = models.UpdateUserTwitterAuthFollew(ctx, user_twitter); err != nil {
-			fmt.Printf("[%s]uid[%d],RunFollowTwitter UpdateUserTwitterAuthFollew Error:%s\n", time.Now().String(), uid, err.Error())
+		if err = models.UpdateUserTwitterAuthFollow(ctx, user_twitter); err != nil {
+			fmt.Printf("[%s]uid[%d],RunFollowTwitter UpdateUserTwitterAuthFollow Error:%s\n", time.Now().String(), uid, err.Error())
 			continue
 		}
 		if user_twitter.FollowState == 2 {

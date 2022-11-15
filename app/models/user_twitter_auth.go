@@ -21,6 +21,7 @@ type (
 		Name           string    `bson:"name"`
 		UserName       string    `bson:"username"`
 		FollowersCount uint64    `bson:"followers_count"`
+		FollowingCount uint64    `bson:"following_count"`
 		TweetCount     uint64    `bson:"tweet_count"`
 		CreatedAt      time.Time `bson:"created_at"`
 	}
@@ -39,6 +40,7 @@ type (
 		IsValid              bool               `bson:"-"`
 		IsAirdrop            bool               `bson:"is_airdrop"`
 		SendTweeState        int                `bson:"send_tweet_state"`        // 1 pending 2 success 3 failed 4 Unauthorized
+		LikeTweeState        int                `bson:"like_tweet_state"`        // 1 pending 2 success 3 failed 4 Unauthorized
 		FindTwitterUserState int                `bson:"find_twitter_user_state"` // 1 pending 2 success 3 failed 4 Unauthorized
 		FollowState          int                `bson:"follow_state"`            // 1 pending 2 success 3 failed 4 Unauthorized
 		IsFollowed           bool               `bson:"is_followed"`
@@ -74,6 +76,7 @@ func UpdateUserTwitterAuth(ctx context.Context, data *UserTwitterAuth) error {
 	update := bson.M{}
 	update["updated_at"] = time.Now()
 	update["twitter_user_id"] = data.TwitterUserId
+	update["find_twitter_user_state"] = data.FindTwitterUserState
 	update["twitter_user"] = data.TwitterUser
 	update["oauth_token"] = data.OauthToken
 	update["oauth_token_secret"] = data.OauthTokenSecret
@@ -81,7 +84,7 @@ func UpdateUserTwitterAuth(ctx context.Context, data *UserTwitterAuth) error {
 	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
 	return err
 }
-func UpdateUserTwitterAuthFollew(ctx context.Context, data *UserTwitterAuth) error {
+func UpdateUserTwitterAuthFollow(ctx context.Context, data *UserTwitterAuth) error {
 
 	update := bson.M{}
 	update["follow_state"] = data.FollowState
@@ -92,6 +95,7 @@ func UpdateUserTwitterAuthSendTweet(ctx context.Context, data *UserTwitterAuth) 
 
 	update := bson.M{}
 	update["send_tweet_state"] = data.SendTweeState
+	update["like_tweet_state"] = data.LikeTweeState
 	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
 	return err
 }
