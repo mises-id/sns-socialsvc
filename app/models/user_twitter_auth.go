@@ -25,6 +25,13 @@ type (
 		TweetCount     uint64    `bson:"tweet_count"`
 		CreatedAt      time.Time `bson:"created_at"`
 	}
+	CheckResult struct {
+		CheckNum          int `bson:"check_num"`
+		ZeroTweetNum      int `bson:"zero_tweet_num"`
+		ZeroFollowerNum   int `bson:"zero_follower_num"`
+		TotalFollowerNum  int `bson:"total_follower_num"`
+		RecentRegisterNum int `bson:"recent_register_num"`
+	}
 	UserTwitterAuth struct {
 		ID                   primitive.ObjectID `bson:"_id,omitempty"`
 		UID                  uint64             `bson:"uid"`
@@ -33,17 +40,20 @@ type (
 		OauthToken           string             `bson:"oauth_token"`
 		OauthTokenSecret     string             `bson:"oauth_token_secret"`
 		TwitterUser          *TwitterUser       `bson:"twitter_user"`
+		CheckResult          *CheckResult       `bson:"check_result"`
 		TweetInfo            *TweetInfo         `bson:"tweet_info"`
 		UpdatedAt            time.Time          `bson:"updated_at,omitempty"`
 		CreatedAt            time.Time          `bson:"created_at"`
-		Amount               int64              `bson:"-"`
+		Amount               int64              `bson:"amount"`
 		IsValid              bool               `bson:"-"`
 		IsAirdrop            bool               `bson:"is_airdrop"`
 		SendTweeState        int                `bson:"send_tweet_state"`        // 1 pending 2 success 3 failed 4 Unauthorized
 		LikeTweeState        int                `bson:"like_tweet_state"`        // 1 pending 2 success 3 failed 4 Unauthorized
 		FindTwitterUserState int                `bson:"find_twitter_user_state"` // 1 pending 2 success 3 failed 4 Unauthorized
 		FollowState          int                `bson:"follow_state"`            // 1 pending 2 success 3 failed 4 Unauthorized
+		ValidState           int                `bson:"valid_state"`             // 2 valid 3 invalid 4 need check
 		IsFollowed           bool               `bson:"is_followed"`
+		Ipaddr               string             `bson:"ipaddr"`
 	}
 )
 
@@ -116,11 +126,14 @@ func UpdateUserTwitterAuthTwitterUser(ctx context.Context, data *UserTwitterAuth
 
 	update := bson.M{}
 	update["twitter_user"] = data.TwitterUser
+	update["amount"] = data.Amount
 	update["follow_state"] = data.FollowState
+	update["valid_state"] = data.ValidState
 	update["is_airdrop"] = data.IsAirdrop
 	update["find_twitter_user_state"] = data.FindTwitterUserState
-	if data.IsAirdrop == true {
-		update["send_tweet_state"] = data.SendTweeState
+	update["send_tweet_state"] = data.SendTweeState
+	if data.CheckResult != nil {
+		update["check_result"] = data.CheckResult
 	}
 	_, err := db.DB().Collection("usertwitterauths").UpdateByID(ctx, data.ID, bson.D{{Key: "$set", Value: update}})
 	return err

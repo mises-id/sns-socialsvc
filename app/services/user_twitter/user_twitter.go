@@ -258,26 +258,45 @@ func GetTwitterAirdropCoin(ctx context.Context, userTwitter *models.UserTwitterA
 	if userTwitter == nil || userTwitter.TwitterUser == nil {
 		return 0
 	}
-	if userTwitter.TwitterUser.FollowersCount == 0 {
+	followers_count := userTwitter.TwitterUser.FollowersCount
+	following_count := userTwitter.TwitterUser.FollowingCount
+	tweet_count := userTwitter.TwitterUser.TweetCount
+	if followers_count == 0 {
 		return 0
 	}
-	if userTwitter.TwitterUser.TweetCount == 0 {
-		return 1
-	}
-	var max, umises, mises, perFollowerMises uint64
+	var max, umises, mises, perFollowerMises, score uint64
 	umises = 1
+	score = 100
 	mises = 1000000 * umises
-	perFollowerMises = 40000
-	if userTwitter.TwitterUser.TweetCount <= 10 {
-		perFollowerMises = 10000
+	//do score
+	if tweet_count == 0 || following_count == 0 {
+		score = 1
 	}
+	if tweet_count <= 10 || following_count <= 10 {
+		score = 10
+	}
+	//followers quality
+	if userTwitter.CheckResult != nil && userTwitter.CheckResult.CheckNum > 0 {
+		checkNum := userTwitter.CheckResult.CheckNum
+		if userTwitter.CheckResult.ZeroTweetNum*2 >= checkNum || userTwitter.CheckResult.ZeroFollowerNum*2 >= checkNum {
+			score = 1
+		}
+		if userTwitter.CheckResult.RecentRegisterNum*5 >= checkNum*4 {
+			score = 1
+		}
+		if userTwitter.CheckResult.TotalFollowerNum >= 1000*checkNum {
+			score = 100
+		}
+	}
+	if score <= 0 {
+		score = 1
+	}
+	if score > 100 {
+		score = 100
+	}
+	perFollowerMises = 40000 * score / 100
 	max = 100 * mises
-	/* tweet_count := userTwitter.TwitterUser.TweetCount
-	if tweet_count > 500 {
-		tweet_count = 500
-	} */
-	//coin := mises + 10000*umises*tweet_count + 5000*umises*userTwitter.TwitterUser.FollowersCount
-	coin := mises + perFollowerMises*umises*userTwitter.TwitterUser.FollowersCount
+	coin := mises + perFollowerMises*umises*followers_count
 	if coin > max {
 		coin = max
 	}

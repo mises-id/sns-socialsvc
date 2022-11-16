@@ -23,6 +23,7 @@ import (
 	tweetsType "github.com/michimani/gotwi/tweets/types"
 	"github.com/michimani/gotwi/users"
 	"github.com/michimani/gotwi/users/types"
+	usersType "github.com/michimani/gotwi/users/types"
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/config/env"
@@ -100,9 +101,14 @@ func GetAirdropInfo(ctx context.Context, uid uint64) (*AirdropInfoOutput, error)
 		return nil, err
 	}
 	if user_twitter != nil {
-		user_twitter.IsValid = IsValidTwitterUser(user_twitter.TwitterUser)
+		/* user_twitter.IsValid = IsValidTwitterUser(user_twitter.TwitterUser)
 		if user_twitter.IsValid {
 			user_twitter.Amount = GetTwitterAirdropCoin(ctx, user_twitter)
+		} */
+		if user_twitter.ValidState == 2 {
+			user_twitter.IsValid = true
+		} else {
+			user_twitter.TwitterUser = nil
 		}
 	}
 	airdrop, err := models.FindAirdropByUid(ctx, uid)
@@ -149,7 +155,7 @@ func ReceiveAirdrop(ctx context.Context, uid uint64, tweet string) error {
 		fmt.Printf("[%s]uid[%d] UpdateUserTwitterAuthFollow err:%s ", time.Now().String(), uid, err.Error())
 	}
 	//create airdrop order
-	if err := createAirdrop(ctx, user_twitter); err != nil {
+	if _, err := createAirdrop(ctx, user_twitter); err != nil {
 		return err
 	}
 	//cancel auth token
@@ -236,6 +242,34 @@ func likeTweet(ctx context.Context, user_twitter *models.UserTwitterAuth) error 
 	return err
 }
 
+//user followers
+func userFollowers(ctx context.Context, user_twitter *models.UserTwitterAuth) (*usersType.FollowsFollowersResponse, error) {
+	if user_twitter.OauthToken == "" || user_twitter.OauthTokenSecret == "" {
+		return nil, codes.ErrForbidden.Newf("OAuthToken and OAuthTokenSecret is required")
+	}
+	transport := &http.Transport{Proxy: setProxy()}
+	client := &http.Client{Transport: transport}
+	in := &gotwi.NewGotwiClientInput{
+		HTTPClient:           client,
+		AuthenticationMethod: gotwi.AuthenMethodOAuth1UserContext,
+		OAuthToken:           user_twitter.OauthToken,
+		OAuthTokenSecret:     user_twitter.OauthTokenSecret,
+	}
+	twitter_client, err := gotwi.NewGotwiClient(in)
+	if err != nil {
+		return nil, err
+	}
+	params := &usersType.FollowsFollowersParams{
+		ID:         user_twitter.TwitterUserId,
+		MaxResults: 20,
+		UserFields: fields.UserFieldList{
+			fields.UserFieldCreatedAt,
+			fields.UserFieldPublicMetrics,
+		},
+	}
+	return users.FollowsFollowers(ctx, twitter_client, params)
+}
+
 //apiFollowTwitterUser
 func apiFollowTwitterUser(ctx context.Context, user_twitter *models.UserTwitterAuth, target_user_id string) error {
 	if user_twitter == nil {
@@ -265,21 +299,21 @@ func apiFollowTwitterUser(ctx context.Context, user_twitter *models.UserTwitterA
 	return err
 }
 
-func createAirdrop(ctx context.Context, user_twitter *models.UserTwitterAuth) error {
+func createAirdrop(ctx context.Context, user_twitter *models.UserTwitterAuth) (*models.Airdrop, error) {
+	coin := GetTwitterAirdropCoin(ctx, user_twitter)
+	if coin <= 0 {
+		return nil, errors.New("coin is zero")
+	}
 	airdropAdd := &models.Airdrop{
 		UID:       user_twitter.UID,
 		Misesid:   user_twitter.Misesid,
 		Status:    enum.AirdropDefault,
 		Type:      enum.AirdropTwitter,
-		Coin:      GetTwitterAirdropCoin(ctx, user_twitter),
+		Coin:      coin,
 		TxID:      "",
 		CreatedAt: time.Now(),
 	}
-	_, err := models.CreateAirdrop(ctx, airdropAdd)
-	if err != nil {
-		return err
-	}
-	return nil
+	return models.CreateAirdrop(ctx, airdropAdd)
 }
 
 func getTwitterCallbackUrl(code, username, misesid string) string {
@@ -360,10 +394,10 @@ func TwitterCallback(ctx context.Context, uid uint64, oauth_token, oauth_verifie
 		//update
 		user_twitter.OauthToken = oauth_token_new
 		user_twitter.OauthTokenSecret = oauth_token_secret
-		if airdrop == nil {
+		/* if airdrop == nil && user_twitter.ValidState != 3 {
 			user_twitter.TwitterUserId = twitter_user_id
 			user_twitter.FindTwitterUserState = 1
-		}
+		} */
 		err = models.UpdateUserTwitterAuth(ctx, user_twitter)
 	}
 	if err != nil {

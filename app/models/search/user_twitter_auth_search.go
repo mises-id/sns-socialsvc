@@ -27,6 +27,7 @@ type (
 		TwitterUserState     int
 		FindTwitterUserState int
 		SendTweetState       int
+		ValidState           int
 		//sort
 		SortKey  string
 		SortType enum.SortType
@@ -65,6 +66,9 @@ func (params *UserTwitterAuthSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	}
 	if params.FollowState > 0 {
 		chain = chain.Where(bson.M{"follow_state": params.FollowState})
+	}
+	if params.ValidState > 0 {
+		chain = chain.Where(bson.M{"valid_state": params.ValidState})
 	}
 	if params.SendTweetState > 0 {
 		chain = chain.Where(bson.M{"send_tweet_state": params.SendTweetState})
