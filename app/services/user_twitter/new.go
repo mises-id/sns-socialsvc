@@ -9,12 +9,13 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/search"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 )
 
 const (
 	lookupUserNum       = 10
 	sendTweetNum        = 3
-	followTwitterNum    = 3
+	followTwitterNum    = 5
 	checkTwitterUserNum = 5
 )
 
@@ -88,7 +89,7 @@ func runLookupTwitterUser(ctx context.Context) error {
 		followers_count := user_twitter.TwitterUser.FollowersCount
 		//is_valid
 		if IsValidTwitterUser(user_twitter.TwitterUser) {
-			if followers_count >= 2000 && followers_count <= 5000 {
+			if followers_count >= 500 && followers_count <= 10000 {
 				user_twitter.ValidState = 4
 				fmt.Printf("[%s]uid[%d] RunLookupTwitterUser CheckValidState FollowersCount[%d]", time.Now().Local().String(), uid, followers_count)
 			} else {
@@ -140,8 +141,7 @@ func runSendTweet(ctx context.Context) error {
 	//get list
 	params := &search.UserTwitterAuthSearch{
 		SendTweetState: 1,
-		SortType:       enum.SortDesc,
-		SortKey:        "twitter_user.followers_count",
+		SortBy:         followerSortOrIDAsc(),
 		ListNum:        int64(sendTweetNum),
 	}
 	user_twitter_list, err := models.ListUserTwitterAuth(ctx, params)
@@ -222,8 +222,7 @@ func runFollowTwitter(ctx context.Context) error {
 	//get list
 	params := &search.UserTwitterAuthSearch{
 		FollowState: 1,
-		SortType:    enum.SortDesc,
-		SortKey:     "twitter_user.followers_count",
+		SortBy:      followerSortOrIDAsc(),
 		ListNum:     int64(followTwitterNum),
 	}
 	user_twitter_list, err := models.ListUserTwitterAuth(ctx, params)
@@ -269,12 +268,21 @@ func PlanCheckTwitterUser(ctx context.Context) error {
 	return err
 }
 
+func followerSortOrIDAsc() string {
+	sort := "followers_count_sort"
+	m := utils.GetRand(1, 100) % 3
+	if m == 0 {
+		sort = "id_asc"
+	}
+	return sort
+}
+
 func runCheckTwitterUser(ctx context.Context) error {
 	//get list
+
 	params := &search.UserTwitterAuthSearch{
 		ValidState: 4,
-		SortType:   enum.SortDesc,
-		SortKey:    "twitter_user.followers_count",
+		SortBy:     followerSortOrIDAsc(),
 		ListNum:    int64(checkTwitterUserNum),
 	}
 	user_twitter_list, err := models.ListUserTwitterAuth(ctx, params)

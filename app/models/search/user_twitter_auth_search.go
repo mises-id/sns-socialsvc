@@ -30,6 +30,7 @@ type (
 		ValidState           int
 		//sort
 		SortKey  string
+		SortBy   string
 		SortType enum.SortType
 		//limit
 		ListNum int64
@@ -86,6 +87,17 @@ func (params *UserTwitterAuthSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 		chain = chain.Where(bson.M{"tweet_info": nil})
 	}
 	//sort
+	if params.SortBy != "" {
+		switch params.SortBy {
+		case "followers_count_sort":
+			chain = chain.Sort(bson.D{
+				bson.E{"twitter_user.followers_count", -1},
+				bson.E{"_id", 1},
+			})
+		case "id_asc":
+			chain = chain.Sort(bson.M{"_id": 1})
+		}
+	}
 	if params.SortKey != "" && params.SortType != 0 {
 		chain = chain.Sort(bson.M{params.SortKey: params.SortType})
 	}
