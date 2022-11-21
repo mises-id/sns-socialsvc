@@ -14,7 +14,7 @@ import (
 
 const (
 	lookupUserNum       = 10
-	sendTweetNum        = 3
+	sendTweetNum        = 5
 	followTwitterNum    = 5
 	checkTwitterUserNum = 5
 )
@@ -89,7 +89,7 @@ func runLookupTwitterUser(ctx context.Context) error {
 		followers_count := user_twitter.TwitterUser.FollowersCount
 		//is_valid
 		if IsValidTwitterUser(user_twitter.TwitterUser) {
-			if followers_count >= 500 && followers_count <= 10000 {
+			if followers_count >= 350 && followers_count <= 10000 {
 				user_twitter.ValidState = 4
 				fmt.Printf("[%s]uid[%d] RunLookupTwitterUser CheckValidState FollowersCount[%d]", time.Now().Local().String(), uid, followers_count)
 			} else {
@@ -274,6 +274,7 @@ func followerSortOrIDAsc() string {
 	if m == 0 {
 		sort = "id_asc"
 	}
+	sort = "id_asc"
 	return sort
 }
 
