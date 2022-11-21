@@ -32,7 +32,7 @@ type (
 
 //airdrop channel
 func AirdropChannel(ctx context.Context) {
-	totalAirdropNum = 100
+	totalAirdropNum = 50
 	airdropStop = make(chan int)
 	airdropDo = true
 	fmt.Println("airdrop channel start")

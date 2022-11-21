@@ -681,6 +681,16 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 			options...,
 		).Endpoint()
 	}
+	var CheckTwitterUserZeroEndpoint endpoint.Endpoint
+	{
+		CheckTwitterUserZeroEndpoint = httptransport.NewClient(
+			"GET",
+			copyURL(u, "/twitter/check_user/"),
+			EncodeHTTPCheckTwitterUserZeroRequest,
+			DecodeHTTPCheckTwitterUserResponse,
+			options...,
+		).Endpoint()
+	}
 	var ReceiveAirdropZeroEndpoint endpoint.Endpoint
 	{
 		ReceiveAirdropZeroEndpoint = httptransport.NewClient(
@@ -756,6 +766,7 @@ func New(instance string, options ...httptransport.ClientOption) (pb.SocialServe
 		TwitterFollowEndpoint:           TwitterFollowZeroEndpoint,
 		LookupTwitterEndpoint:           LookupTwitterZeroEndpoint,
 		SendTweetEndpoint:               SendTweetZeroEndpoint,
+		CheckTwitterUserEndpoint:        CheckTwitterUserZeroEndpoint,
 		ReceiveAirdropEndpoint:          ReceiveAirdropZeroEndpoint,
 	}, nil
 }
@@ -2477,6 +2488,33 @@ func DecodeHTTPSendTweetResponse(_ context.Context, r *http.Response) (interface
 	}
 
 	var resp pb.SendTweetResponse
+	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
+		return nil, errorDecoder(buf)
+	}
+
+	return &resp, nil
+}
+
+// DecodeHTTPCheckTwitterUserResponse is a transport/http.DecodeResponseFunc that decodes
+// a JSON-encoded CheckTwitterUserResponse response from the HTTP response body.
+// If the response has a non-200 status code, we will interpret that as an
+// error and attempt to decode the specific error message from the response
+// body. Primarily useful in a client.
+func DecodeHTTPCheckTwitterUserResponse(_ context.Context, r *http.Response) (interface{}, error) {
+	defer r.Body.Close()
+	buf, err := ioutil.ReadAll(r.Body)
+	if err == io.EOF {
+		return nil, errors.New("response http body empty")
+	}
+	if err != nil {
+		return nil, errors.Wrap(err, "cannot read http body")
+	}
+
+	if r.StatusCode != http.StatusOK {
+		return nil, errors.Wrapf(errorDecoder(buf), "status code: '%d'", r.StatusCode)
+	}
+
+	var resp pb.CheckTwitterUserResponse
 	if err = jsonpb.UnmarshalString(string(buf), &resp); err != nil {
 		return nil, errorDecoder(buf)
 	}
@@ -8021,6 +8059,75 @@ func EncodeHTTPSendTweetOneRequest(_ context.Context, r *http.Request, request i
 		"",
 		"twitter",
 		"send_tweet",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPCheckTwitterUserZeroRequest is a transport/http.EncodeRequestFunc
+// that encodes a checktwitteruser request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPCheckTwitterUserZeroRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.CheckTwitterUserRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"twitter",
+		"check_user",
+		"",
+	}, "/")
+	u, err := url.Parse(path)
+	if err != nil {
+		return errors.Wrapf(err, "couldn't unmarshal path %q", path)
+	}
+	r.URL.RawPath = u.RawPath
+	r.URL.Path = u.Path
+
+	// Set the query parameters
+	values := r.URL.Query()
+	var tmp []byte
+	_ = tmp
+
+	r.URL.RawQuery = values.Encode()
+	return nil
+}
+
+// EncodeHTTPCheckTwitterUserOneRequest is a transport/http.EncodeRequestFunc
+// that encodes a checktwitteruser request into the various portions of
+// the http request (path, query, and body).
+func EncodeHTTPCheckTwitterUserOneRequest(_ context.Context, r *http.Request, request interface{}) error {
+	strval := ""
+	_ = strval
+	req := request.(*pb.CheckTwitterUserRequest)
+	_ = req
+
+	r.Header.Set("transport", "HTTPJSON")
+	r.Header.Set("request-url", r.URL.Path)
+
+	// Set the path parameters
+	path := strings.Join([]string{
+		"",
+		"twitter",
+		"check_user",
 	}, "/")
 	u, err := url.Parse(path)
 	if err != nil {

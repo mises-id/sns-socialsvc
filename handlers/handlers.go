@@ -1107,3 +1107,13 @@ func (s socialService) SendTweet(ctx context.Context, in *pb.SendTweetRequest) (
 	resp.Code = 0
 	return &resp, nil
 }
+
+func (s socialService) CheckTwitterUser(ctx context.Context, in *pb.CheckTwitterUserRequest) (*pb.CheckTwitterUserResponse, error) {
+	var resp pb.CheckTwitterUserResponse
+	err := user_twitter.PlanCheckTwitterUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	resp.Code = 0
+	return &resp, nil
+}
