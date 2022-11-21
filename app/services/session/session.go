@@ -27,10 +27,16 @@ type (
 	referrerData struct {
 		utm_source string
 	}
+
+	SignInParams struct {
+		Auth      string
+		Referrer  string
+		UserAgent *models.UserAgent
+	}
 )
 
-func SignIn(ctx context.Context, auth, referrer string) (string, bool, error) {
-	misesid, pubkey, err := misesClient.Auth(auth)
+func SignIn(ctx context.Context, params *SignInParams) (string, bool, error) {
+	misesid, pubkey, err := misesClient.Auth(params.Auth)
 	if err != nil {
 		logrus.Errorf("mises verify error: %v", err)
 		return "", false, codes.ErrAuthorizeFailed
@@ -39,9 +45,12 @@ func SignIn(ctx context.Context, auth, referrer string) (string, bool, error) {
 	if err != nil {
 		return "", created, err
 	}
+	//signin after
+	signinAfter(ctx, user, params)
 	if !user.OnChain && len(pubkey) > 0 {
 		chainUserRegister(ctx, misesid, pubkey)
 	}
+	referrer := params.Referrer
 	//referrer not empty
 	if referrer != "" && user.ChannelID.IsZero() && (user.CreatedAt.Unix()+24*60*60-time.Now().UTC().Unix()) > 0 {
 		err := models.InsertReferrer(ctx, user.UID, referrer)
@@ -66,6 +75,10 @@ func SignIn(ctx context.Context, auth, referrer string) (string, bool, error) {
 	})
 	token, err := at.SignedString([]byte(secret))
 	return token, created, err
+}
+
+func signinAfter(ctx context.Context, user *models.User, params *SignInParams) error {
+	return models.CreateUserLoginLog(ctx, user.UID, params.UserAgent)
 }
 
 func Auth(ctx context.Context, authToken string) (*models.User, error) {

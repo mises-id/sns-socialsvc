@@ -73,6 +73,23 @@ type Avatar struct {
 	Small  string
 }
 
+type (
+	UserLoginLog struct {
+		ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+		UID       uint64             `bson:"uid" json:"uid"`
+		UserAgent *UserAgent         `json:"user_agent" bson:"user_agent"`
+		CreatedAt time.Time          `bson:"created_at" json:"created_at"`
+	}
+	UserAgent struct {
+		Ua       string `json:"ua" bson:"ua"`
+		Ipaddr   string `json:"ipaddr" bson:"ipaddr"`
+		Os       string `json:"os" bson:"os"`
+		Browser  string `json:"browser" bson:"browser"`
+		Platform string `json:"platform" bson:"platform"`
+		DeviceId string `json:"device_id" bson:"device_id"`
+	}
+)
+
 func (u *User) Validate(ctx context.Context) error {
 	if err := u.validateUsername(ctx); err != nil {
 		return err
@@ -262,6 +279,17 @@ func createMisesUser(ctx context.Context, misesid, pubkey string) (*User, error)
 	_, err = db.DB().Collection("users").InsertOne(ctx, user)
 	return user, err
 }
+
+func CreateUserLoginLog(ctx context.Context, uid uint64, user_agent *UserAgent) error {
+	log := &UserLoginLog{
+		UID:       uid,
+		UserAgent: user_agent,
+		CreatedAt: time.Now(),
+	}
+	_, err := db.DB().Collection("userloginlogs").InsertOne(ctx, log)
+	return err
+}
+
 func FindUserEthAddress(ctx context.Context, uid uint64) (*User, error) {
 	user, err := FindUser(ctx, uid)
 	if err != nil {

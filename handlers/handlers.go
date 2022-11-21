@@ -50,7 +50,21 @@ type socialService struct{}
 
 func (s socialService) SignIn(ctx context.Context, in *pb.SignInRequest) (*pb.SignInResponse, error) {
 	var resp pb.SignInResponse
-	jwt, created, err := sessionSVC.SignIn(ctx, in.Auth, in.Referrer)
+	params := &sessionSVC.SignInParams{
+		Auth:     in.Auth,
+		Referrer: in.Referrer,
+	}
+	if in.UserAgent != nil {
+		user_agent := &models.UserAgent{
+			Ua:       in.UserAgent.Ua,
+			Ipaddr:   in.UserAgent.Ipaddr,
+			Os:       in.UserAgent.Os,
+			Platform: in.UserAgent.Platform,
+			Browser:  in.UserAgent.Browser,
+		}
+		params.UserAgent = user_agent
+	}
+	jwt, created, err := sessionSVC.SignIn(ctx, params)
 	if err != nil {
 		return nil, err
 	}

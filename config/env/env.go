@@ -40,6 +40,8 @@ type Env struct {
 	TwitterAuthSuccessCallback  string        `env:"TwitterAuthSuccessCallback" envDefault:""`
 	TWEET_TAG                   string        `env:"TWEET_TAG"`
 	VALID_TWITTER_REGISTER_DATE string        `env:"VALID_TWITTER_REGISTER_DATE"`
+	MinCheckFollowers           uint64        `env:"MinCheckFollowers" envDefault:"350"`
+	MaxCheckFollowers           uint64        `env:"MaxCheckFollowers" envDefault:"10000"`
 	RootPath                    string
 }
 
