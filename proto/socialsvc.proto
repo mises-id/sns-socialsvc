@@ -828,9 +828,19 @@ service Social {
   
 }
 
+message UserAgent {
+  string ua = 1;
+  string ipaddr = 2;
+  string browser = 3;
+  string platform = 4;
+  string os = 5;
+  string device_id = 6;
+}
+
 message SignInRequest {
   string auth = 1;
   string referrer = 2;
+  UserAgent user_agent = 3;
 }
 
 message SignInResponse {

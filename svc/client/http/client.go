@@ -2585,6 +2585,13 @@ func EncodeHTTPSignInZeroRequest(_ context.Context, r *http.Request, request int
 
 	values.Add("referrer", fmt.Sprint(req.Referrer))
 
+	tmp, err = json.Marshal(req.UserAgent)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.UserAgent")
+	}
+	strval = string(tmp)
+	values.Add("user_agent", strval)
+
 	r.URL.RawQuery = values.Encode()
 	return nil
 }
@@ -2621,6 +2628,13 @@ func EncodeHTTPSignInOneRequest(_ context.Context, r *http.Request, request inte
 	values.Add("auth", fmt.Sprint(req.Auth))
 
 	values.Add("referrer", fmt.Sprint(req.Referrer))
+
+	tmp, err = json.Marshal(req.UserAgent)
+	if err != nil {
+		return errors.Wrap(err, "failed to marshal req.UserAgent")
+	}
+	strval = string(tmp)
+	values.Add("user_agent", strval)
 
 	r.URL.RawQuery = values.Encode()
 	return nil

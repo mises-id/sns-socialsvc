@@ -9,6 +9,7 @@ import (
 	"github.com/mises-id/sns-socialsvc/app/models"
 	"github.com/mises-id/sns-socialsvc/app/models/enum"
 	"github.com/mises-id/sns-socialsvc/app/models/search"
+	"github.com/mises-id/sns-socialsvc/config/env"
 	"github.com/mises-id/sns-socialsvc/lib/utils"
 )
 
@@ -89,7 +90,9 @@ func runLookupTwitterUser(ctx context.Context) error {
 		followers_count := user_twitter.TwitterUser.FollowersCount
 		//is_valid
 		if IsValidTwitterUser(user_twitter.TwitterUser) {
-			if followers_count >= 350 && followers_count <= 10000 {
+			min_check_followers := env.Envs.MinCheckFollowers
+			max_check_followers := env.Envs.MaxCheckFollowers
+			if min_check_followers > 0 && max_check_followers > 0 && followers_count >= min_check_followers && followers_count <= max_check_followers {
 				user_twitter.ValidState = 4
 				fmt.Printf("[%s]uid[%d] RunLookupTwitterUser CheckValidState FollowersCount[%d]", time.Now().Local().String(), uid, followers_count)
 			} else {

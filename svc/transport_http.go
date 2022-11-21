@@ -1000,6 +1000,16 @@ func DecodeHTTPSignInZeroRequest(_ context.Context, r *http.Request) (interface{
 		req.Referrer = ReferrerSignIn
 	}
 
+	if UserAgentSignInStrArr, ok := queryParams["user_agent"]; ok {
+		UserAgentSignInStr := UserAgentSignInStrArr[0]
+
+		err = json.Unmarshal([]byte(UserAgentSignInStr), req.UserAgent)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode UserAgentSignIn from %v", UserAgentSignInStr)
+		}
+
+	}
+
 	return &req, err
 }
 
@@ -1046,6 +1056,16 @@ func DecodeHTTPSignInOneRequest(_ context.Context, r *http.Request) (interface{}
 		ReferrerSignInStr := ReferrerSignInStrArr[0]
 		ReferrerSignIn := ReferrerSignInStr
 		req.Referrer = ReferrerSignIn
+	}
+
+	if UserAgentSignInStrArr, ok := queryParams["user_agent"]; ok {
+		UserAgentSignInStr := UserAgentSignInStrArr[0]
+
+		err = json.Unmarshal([]byte(UserAgentSignInStr), req.UserAgent)
+		if err != nil {
+			return nil, errors.Wrapf(err, "couldn't decode UserAgentSignIn from %v", UserAgentSignInStr)
+		}
+
 	}
 
 	return &req, err
