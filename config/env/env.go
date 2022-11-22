@@ -39,6 +39,7 @@ type Env struct {
 	OpenseaApiKey               string        `env:"OpenseaApiKey" envDefault:""`
 	TwitterAuthSuccessCallback  string        `env:"TwitterAuthSuccessCallback" envDefault:""`
 	TWEET_TAG                   string        `env:"TWEET_TAG"`
+	ReplyText                   string        `env:"ReplyText" envDefault:"@Mises001"`
 	VALID_TWITTER_REGISTER_DATE string        `env:"VALID_TWITTER_REGISTER_DATE"`
 	MinCheckFollowers           uint64        `env:"MinCheckFollowers" envDefault:"350"`
 	MaxCheckFollowers           uint64        `env:"MaxCheckFollowers" envDefault:"10000"`

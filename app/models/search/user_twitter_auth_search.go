@@ -28,6 +28,8 @@ type (
 		FindTwitterUserState int
 		SendTweetState       int
 		ValidState           int
+		MinFollower          int
+		MaxFollower          int
 		//sort
 		SortKey  string
 		SortBy   string
@@ -76,6 +78,12 @@ func (params *UserTwitterAuthSearch) BuildAdminSearch(chain *odm.DB) *odm.DB {
 	}
 	if params.FindTwitterUserState > 0 {
 		chain = chain.Where(bson.M{"find_twitter_user_state": params.FindTwitterUserState})
+	}
+	if params.MinFollower > 0 {
+		chain = chain.Where(bson.M{"twitter_user.followers_count": bson.M{"$gte": params.MinFollower}})
+	}
+	if params.MaxFollower > 0 {
+		chain = chain.Where(bson.M{"twitter_user.followers_count": bson.M{"$lte": params.MaxFollower}})
 	}
 	if params.StartTime != nil {
 		chain = chain.Where(bson.M{"created_at": bson.M{"$gte": params.StartTime}})

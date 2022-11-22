@@ -16,6 +16,7 @@ import (
 const (
 	lookupUserNum       = 10
 	sendTweetNum        = 5
+	replyTweetNum       = 10
 	followTwitterNum    = 5
 	checkTwitterUserNum = 5
 )
@@ -160,19 +161,6 @@ func runSendTweet(ctx context.Context) error {
 	for _, user_twitter := range user_twitter_list {
 		uid := user_twitter.UID
 		user_twitter.SendTweeState = 2
-		/* mises := utils.UMisesToMises(uint64(GetTwitterAirdropCoin(ctx, user_twitter)))
-		misesid := utils.RemoveMisesidProfix(user_twitter.Misesid)
-		tweet := fmt.Sprintf("I have claimed %.2f $MIS airdrop by using Mises Browser @Mises001, which supports Web3 sites and extensions on mobile.\n\nhttps://www.mises.site/download?MisesID=%s\n\n#Mises #Browser #Wallet #web3 #extension", mises, misesid)
-		if err := sendTweet(ctx, user_twitter, tweet); err != nil {
-			fmt.Printf("[%s]uid[%d] Send Tweet Error:%s \n", time.Now().Local().String(), uid, err.Error())
-			user_twitter.SendTweeState = 3
-			if strings.Contains(err.Error(), "httpStatusCode=401") {
-				user_twitter.SendTweeState = 4
-			}
-			if strings.Contains(err.Error(), "httpStatusCode=429") {
-				return nil
-			}
-		} */
 		if err := reTweet(ctx, user_twitter); err != nil {
 			fmt.Printf("[%s]uid[%d] Send Tweet Error:%s \n", time.Now().Local().String(), uid, err.Error())
 			user_twitter.SendTweeState = 3
@@ -205,6 +193,73 @@ func runSendTweet(ctx context.Context) error {
 		}
 		if user_twitter.SendTweeState == 2 {
 			fmt.Printf("[%s]uid[%d] RunSendTweet Success \n", time.Now().Local().String(), uid)
+		}
+		if user_twitter.LikeTweeState == 2 {
+			fmt.Printf("[%s]uid[%d] LikeTweet Success \n", time.Now().Local().String(), uid)
+		}
+	}
+	return nil
+}
+func PlanReplyTweet(ctx context.Context) error {
+	fmt.Printf("[%s]RunReplyTweet Start\n", time.Now().Local().String())
+	err := runReplyTweet(ctx)
+	fmt.Printf("[%s]RunReplyTweet End\n", time.Now().Local().String())
+	return err
+}
+
+func runReplyTweet(ctx context.Context) error {
+	//get list
+	params := &search.UserTwitterAuthSearch{
+		SendTweetState: 1,
+		MaxFollower:    1000,
+		SortBy:         "id_asc",
+		ListNum:        int64(replyTweetNum),
+	}
+	user_twitter_list, err := models.ListUserTwitterAuth(ctx, params)
+	if err != nil {
+		return err
+	}
+	num := len(user_twitter_list)
+	if num <= 0 {
+		return nil
+	}
+	fmt.Printf("[%s]RunReplyTweet %d \n", time.Now().Local().String(), num)
+	//do list
+	for _, user_twitter := range user_twitter_list {
+		uid := user_twitter.UID
+		user_twitter.SendTweeState = 2
+		if err := replyTweet(ctx, user_twitter, env.Envs.ReplyText); err != nil {
+			fmt.Printf("[%s]uid[%d] Reply Tweet Error:%s \n", time.Now().Local().String(), uid, err.Error())
+			user_twitter.SendTweeState = 3
+			if strings.Contains(err.Error(), "httpStatusCode=401") {
+				user_twitter.SendTweeState = 4
+			}
+			if strings.Contains(err.Error(), "httpStatusCode=429") {
+				user_twitter.SendTweeState = 5
+			}
+		}
+		//like tweet
+		user_twitter.LikeTweeState = 2
+		if user_twitter.SendTweeState == 4 {
+			user_twitter.LikeTweeState = 4
+		} else {
+			if err := likeTweet(ctx, user_twitter); err != nil {
+				fmt.Printf("[%s]uid[%d] Like Tweet Error:%s \n", time.Now().Local().String(), uid, err.Error())
+				user_twitter.LikeTweeState = 3
+				if strings.Contains(err.Error(), "httpStatusCode=401") {
+					user_twitter.LikeTweeState = 4
+				}
+				if strings.Contains(err.Error(), "httpStatusCode=429") {
+					user_twitter.LikeTweeState = 5
+				}
+			}
+		}
+		if err := models.UpdateUserTwitterAuthSendTweet(ctx, user_twitter); err != nil {
+			fmt.Printf("[%s]uid[%d] RunReplyTweet UpdateUserTwitterAuthSendTweet Error:%s\n ", time.Now().Local().String(), uid, err.Error())
+			continue
+		}
+		if user_twitter.SendTweeState == 2 {
+			fmt.Printf("[%s]uid[%d] RunReplyTweet Success \n", time.Now().Local().String(), uid)
 		}
 		if user_twitter.LikeTweeState == 2 {
 			fmt.Printf("[%s]uid[%d] LikeTweet Success \n", time.Now().Local().String(), uid)
@@ -277,7 +332,6 @@ func followerSortOrIDAsc() string {
 	if m == 0 {
 		sort = "id_asc"
 	}
-	sort = "id_asc"
 	return sort
 }
 

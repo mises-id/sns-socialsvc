@@ -407,6 +407,12 @@ func MakeGRPCServer(endpoints Endpoints, options ...grpctransport.ServerOption) 
 			EncodeGRPCSendTweetResponse,
 			serverOptions...,
 		),
+		replytweet: grpctransport.NewServer(
+			endpoints.ReplyTweetEndpoint,
+			DecodeGRPCReplyTweetRequest,
+			EncodeGRPCReplyTweetResponse,
+			serverOptions...,
+		),
 		checktwitteruser: grpctransport.NewServer(
 			endpoints.CheckTwitterUserEndpoint,
 			DecodeGRPCCheckTwitterUserRequest,
@@ -487,6 +493,7 @@ type grpcServer struct {
 	twitterfollow           grpctransport.Handler
 	lookuptwitter           grpctransport.Handler
 	sendtweet               grpctransport.Handler
+	replytweet              grpctransport.Handler
 	checktwitteruser        grpctransport.Handler
 	receiveairdrop          grpctransport.Handler
 }
@@ -997,6 +1004,14 @@ func (s *grpcServer) SendTweet(ctx context.Context, req *pb.SendTweetRequest) (*
 	return rep.(*pb.SendTweetResponse), nil
 }
 
+func (s *grpcServer) ReplyTweet(ctx context.Context, req *pb.ReplyTweetRequest) (*pb.ReplyTweetResponse, error) {
+	_, rep, err := s.replytweet.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return rep.(*pb.ReplyTweetResponse), nil
+}
+
 func (s *grpcServer) CheckTwitterUser(ctx context.Context, req *pb.CheckTwitterUserRequest) (*pb.CheckTwitterUserResponse, error) {
 	_, rep, err := s.checktwitteruser.ServeGRPC(ctx, req)
 	if err != nil {
@@ -1456,6 +1471,13 @@ func DecodeGRPCSendTweetRequest(_ context.Context, grpcReq interface{}) (interfa
 	return req, nil
 }
 
+// DecodeGRPCReplyTweetRequest is a transport/grpc.DecodeRequestFunc that converts a
+// gRPC replytweet request to a user-domain replytweet request. Primarily useful in a server.
+func DecodeGRPCReplyTweetRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(*pb.ReplyTweetRequest)
+	return req, nil
+}
+
 // DecodeGRPCCheckTwitterUserRequest is a transport/grpc.DecodeRequestFunc that converts a
 // gRPC checktwitteruser request to a user-domain checktwitteruser request. Primarily useful in a server.
 func DecodeGRPCCheckTwitterUserRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -1910,6 +1932,13 @@ func EncodeGRPCLookupTwitterResponse(_ context.Context, response interface{}) (i
 // user-domain sendtweet response to a gRPC sendtweet reply. Primarily useful in a server.
 func EncodeGRPCSendTweetResponse(_ context.Context, response interface{}) (interface{}, error) {
 	resp := response.(*pb.SendTweetResponse)
+	return resp, nil
+}
+
+// EncodeGRPCReplyTweetResponse is a transport/grpc.EncodeResponseFunc that converts a
+// user-domain replytweet response to a gRPC replytweet reply. Primarily useful in a server.
+func EncodeGRPCReplyTweetResponse(_ context.Context, response interface{}) (interface{}, error) {
+	resp := response.(*pb.ReplyTweetResponse)
 	return resp, nil
 }
 

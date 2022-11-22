@@ -877,6 +877,19 @@ func MakeHTTPHandler(endpoints Endpoints, responseEncoder httptransport.EncodeRe
 		serverOptions...,
 	))
 
+	m.Methods("GET").Path("/twitter/reply_tweet/").Handler(httptransport.NewServer(
+		endpoints.ReplyTweetEndpoint,
+		DecodeHTTPReplyTweetZeroRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+	m.Methods("GET").Path("/twitter/reply_tweet").Handler(httptransport.NewServer(
+		endpoints.ReplyTweetEndpoint,
+		DecodeHTTPReplyTweetOneRequest,
+		responseEncoder,
+		serverOptions...,
+	))
+
 	m.Methods("GET").Path("/twitter/check_user/").Handler(httptransport.NewServer(
 		endpoints.CheckTwitterUserEndpoint,
 		DecodeHTTPCheckTwitterUserZeroRequest,
@@ -7047,6 +7060,78 @@ func DecodeHTTPSendTweetZeroRequest(_ context.Context, r *http.Request) (interfa
 func DecodeHTTPSendTweetOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	defer r.Body.Close()
 	var req pb.SendTweetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPReplyTweetZeroRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded replytweet request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPReplyTweetZeroRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ReplyTweetRequest
+	buf, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, errors.Wrapf(err, "cannot read body of http request")
+	}
+	if len(buf) > 0 {
+		// AllowUnknownFields stops the unmarshaler from failing if the JSON contains unknown fields.
+		unmarshaller := jsonpb.Unmarshaler{
+			AllowUnknownFields: true,
+		}
+		if err = unmarshaller.Unmarshal(bytes.NewBuffer(buf), &req); err != nil {
+			const size = 8196
+			if len(buf) > size {
+				buf = buf[:size]
+			}
+			return nil, httpError{errors.Wrapf(err, "request body '%s': cannot parse non-json request body", buf),
+				http.StatusBadRequest,
+				nil,
+			}
+		}
+	}
+
+	pathParams := encodePathParams(mux.Vars(r))
+	_ = pathParams
+
+	queryParams := r.URL.Query()
+	_ = queryParams
+
+	return &req, err
+}
+
+// DecodeHTTPReplyTweetOneRequest is a transport/http.DecodeRequestFunc that
+// decodes a JSON-encoded replytweet request from the HTTP request
+// body. Primarily useful in a server.
+func DecodeHTTPReplyTweetOneRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	defer r.Body.Close()
+	var req pb.ReplyTweetRequest
 	buf, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, errors.Wrapf(err, "cannot read body of http request")
