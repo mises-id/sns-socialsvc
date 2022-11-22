@@ -188,6 +188,35 @@ func sendTweet(ctx context.Context, user_twitter *models.UserTwitterAuth, tweet 
 	return err
 }
 
+//reply tweet
+func replyTweet(ctx context.Context, user_twitter *models.UserTwitterAuth, reply string) error {
+
+	if user_twitter.OauthToken == "" || user_twitter.OauthTokenSecret == "" {
+		return codes.ErrForbidden.Newf("OAuthToken and OAuthTokenSecret is required")
+	}
+	transport := &http.Transport{Proxy: setProxy()}
+	client := &http.Client{Transport: transport}
+	in := &gotwi.NewGotwiClientInput{
+		HTTPClient:           client,
+		AuthenticationMethod: gotwi.AuthenMethodOAuth1UserContext,
+		OAuthToken:           user_twitter.OauthToken,
+		OAuthTokenSecret:     user_twitter.OauthTokenSecret,
+	}
+	twitter_client, err := gotwi.NewGotwiClient(in)
+	if err != nil {
+		return err
+	}
+	params := &tweetsType.ManageTweetsPostParams{
+		Text: &reply,
+		Reply: &tweetsType.ManageTweetsPostParamsReply{
+			InReplyToTweetID: targetRetweetID,
+		},
+	}
+	_, err = tweets.ManageTweetsPost(ctx, twitter_client, params)
+
+	return err
+}
+
 //retweet
 func reTweet(ctx context.Context, user_twitter *models.UserTwitterAuth) error {
 

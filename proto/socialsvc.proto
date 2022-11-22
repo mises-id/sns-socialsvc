@@ -803,6 +803,17 @@ service Social {
       }
     };
   }
+  rpc ReplyTweet (ReplyTweetRequest) returns (ReplyTweetResponse) {
+    option (google.api.http) = {
+      // All fields (In) are query parameters of the http request unless otherwise specified
+      get: "/twitter/reply_tweet"
+
+      additional_bindings {
+        // Trailing slashes are different routes
+        get: "/twitter/reply_tweet/"
+      }
+    };
+  }
   rpc CheckTwitterUser (CheckTwitterUserRequest) returns (CheckTwitterUserResponse) {
     option (google.api.http) = {
       // All fields (In) are query parameters of the http request unless otherwise specified
@@ -1464,6 +1475,12 @@ message SendTweetRequest {
   
 }
 message SendTweetResponse {
+  uint64 code = 1;
+}
+message ReplyTweetRequest {
+  
+}
+message ReplyTweetResponse {
   uint64 code = 1;
 }
 message CheckTwitterUserRequest {

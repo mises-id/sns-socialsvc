@@ -96,6 +96,7 @@ type Endpoints struct {
 	TwitterFollowEndpoint           endpoint.Endpoint
 	LookupTwitterEndpoint           endpoint.Endpoint
 	SendTweetEndpoint               endpoint.Endpoint
+	ReplyTweetEndpoint              endpoint.Endpoint
 	CheckTwitterUserEndpoint        endpoint.Endpoint
 	ReceiveAirdropEndpoint          endpoint.Endpoint
 }
@@ -604,6 +605,14 @@ func (e Endpoints) SendTweet(ctx context.Context, in *pb.SendTweetRequest) (*pb.
 		return nil, err
 	}
 	return response.(*pb.SendTweetResponse), nil
+}
+
+func (e Endpoints) ReplyTweet(ctx context.Context, in *pb.ReplyTweetRequest) (*pb.ReplyTweetResponse, error) {
+	response, err := e.ReplyTweetEndpoint(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+	return response.(*pb.ReplyTweetResponse), nil
 }
 
 func (e Endpoints) CheckTwitterUser(ctx context.Context, in *pb.CheckTwitterUserRequest) (*pb.CheckTwitterUserResponse, error) {
@@ -1317,6 +1326,17 @@ func MakeSendTweetEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	}
 }
 
+func MakeReplyTweetEndpoint(s pb.SocialServer) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
+		req := request.(*pb.ReplyTweetRequest)
+		v, err := s.ReplyTweet(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+		return v, nil
+	}
+}
+
 func MakeCheckTwitterUserEndpoint(s pb.SocialServer) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(*pb.CheckTwitterUserRequest)
@@ -1409,6 +1429,7 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		"TwitterFollow":           {},
 		"LookupTwitter":           {},
 		"SendTweet":               {},
+		"ReplyTweet":              {},
 		"CheckTwitterUser":        {},
 		"ReceiveAirdrop":          {},
 	}
@@ -1610,6 +1631,9 @@ func (e *Endpoints) WrapAllExcept(middleware endpoint.Middleware, excluded ...st
 		if inc == "SendTweet" {
 			e.SendTweetEndpoint = middleware(e.SendTweetEndpoint)
 		}
+		if inc == "ReplyTweet" {
+			e.ReplyTweetEndpoint = middleware(e.ReplyTweetEndpoint)
+		}
 		if inc == "CheckTwitterUser" {
 			e.CheckTwitterUserEndpoint = middleware(e.CheckTwitterUserEndpoint)
 		}
@@ -1693,6 +1717,7 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		"TwitterFollow":           {},
 		"LookupTwitter":           {},
 		"SendTweet":               {},
+		"ReplyTweet":              {},
 		"CheckTwitterUser":        {},
 		"ReceiveAirdrop":          {},
 	}
@@ -1893,6 +1918,9 @@ func (e *Endpoints) WrapAllLabeledExcept(middleware func(string, endpoint.Endpoi
 		}
 		if inc == "SendTweet" {
 			e.SendTweetEndpoint = middleware("SendTweet", e.SendTweetEndpoint)
+		}
+		if inc == "ReplyTweet" {
+			e.ReplyTweetEndpoint = middleware("ReplyTweet", e.ReplyTweetEndpoint)
 		}
 		if inc == "CheckTwitterUser" {
 			e.CheckTwitterUserEndpoint = middleware("CheckTwitterUser", e.CheckTwitterUserEndpoint)
