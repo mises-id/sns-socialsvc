@@ -274,7 +274,7 @@ func createMisesUser(ctx context.Context, misesid, pubkey string) (*User, error)
 	}
 	address, err := PubkeyToEthAddress(pubkey)
 	if err == nil {
-		user.EthAddress = address
+		user.EthAddress = strings.ToLower(address)
 	}
 	_, err = db.DB().Collection("users").InsertOne(ctx, user)
 	return user, err

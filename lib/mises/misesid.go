@@ -42,6 +42,9 @@ func (c *ClientImpl) Register(misesUID string, pubKey string) error {
 		), false,
 	)
 }
+
+var ethSignaturePrefix = "address"
+
 func (c *ClientImpl) Auth(auth string) (string, string, error) {
 	// just for staging environment
 	if env.Envs.DebugMisesPrefix != "" {
@@ -50,7 +53,12 @@ func (c *ClientImpl) Auth(auth string) (string, string, error) {
 			return arr[1], "", nil
 		}
 	}
+	// eth signature
+	if strings.HasPrefix(auth, ethSignaturePrefix) {
+		return AuthWithEthSignature(auth)
+	}
 
+	// mises signature
 	return c.client.VerifyLogin(auth)
 }
 func New() Client {
