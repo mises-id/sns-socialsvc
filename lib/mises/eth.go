@@ -1,7 +1,6 @@
 package mises
 
 import (
-	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -11,7 +10,9 @@ import (
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/cosmos/btcutil/bech32"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/mises-id/sns-socialsvc/lib/utils"
 	"golang.org/x/crypto/ripemd160"
 )
 
@@ -28,7 +29,10 @@ func AuthWithEthSignature(auth string) (misesid string, misPubkey string, err er
 
 	// verify signature
 	sinMsg := "address=" + address + "&nonce=" + nonce
-	if !VerifySignature(sinMsg, ethPubkey, sigStr) {
+	//isValid := VerifySignature(sinMsg, ethPubkey, sigStr)
+	//isValid := VerifyEIP191Signature(sinMsg, ethPubkey, sigStr)
+	isValid, ethPubkey := VerifyEIP191SignatureByAddress(sinMsg, address, sigStr)
+	if !isValid {
 		err = errors.New("Invalid auth signature")
 		return
 	}
@@ -41,31 +45,84 @@ func AuthWithEthSignature(auth string) (misesid string, misPubkey string, err er
 	return
 }
 
-func VerifySignature(msg, pubkey, sigStr string) bool {
+func VerifyEIP191SignatureByAddress(msg, address, sigStr string) (ok bool, ethPubkey string) {
 
-	hash := toHash(msg)
-	sig, err := hex.DecodeString(sigStr)
+	hash := eip191Hash(msg)
+	sigBytes, err := hexutil.Decode(utils.AddHexPrefix(sigStr))
 	if err != nil {
 		fmt.Println("sig DecodeString error: ", err.Error())
-		return false
+		return
+	}
+	sigBytes[64] %= 27
+	if sigBytes[64] != 0 && sigBytes[64] != 1 {
+		fmt.Println("Invalid signature recovery byte")
+		return
+	}
+	pkey, err := crypto.SigToPub(hash.Bytes(), sigBytes)
+	if err != nil {
+		fmt.Println("Failed to recover public key from signature")
+		return
+	}
+
+	sigAddress := crypto.PubkeyToAddress(*pkey)
+	ethPubkey = hex.EncodeToString(crypto.FromECDSAPub(pkey))
+	if err != nil {
+		fmt.Println("publicKey DecodeString error: ", err.Error())
+		return
+	}
+	if sigAddress.Hex() != address {
+		fmt.Println("Signer address must match message address")
+		return
+	}
+
+	return true, ethPubkey
+}
+
+func VerifyEIP191Signature(msg, pubkey, sigStr string) (ok bool) {
+
+	hash := eip191Hash(msg)
+	sigBytes, err := hexutil.Decode(utils.AddHexPrefix(sigStr))
+	if err != nil {
+		fmt.Println("sig DecodeString error: ", err.Error())
+		return
+	}
+	sigBytes[64] %= 27
+	if sigBytes[64] != 0 && sigBytes[64] != 1 {
+		fmt.Println("Invalid signature recovery byte")
+		return
 	}
 	publicKeyBytes, err := hex.DecodeString(pubkey)
 	if err != nil {
 		fmt.Println("publicKey DecodeString error: ", err.Error())
-		return false
+		return
 	}
-	sigPublicKey, err := crypto.Ecrecover(hash.Bytes(), sig)
+	signatureNoRecoverID := sigBytes[:len(sigBytes)-1] // remove recovery ID
+
+	return crypto.VerifySignature(publicKeyBytes, hash.Bytes(), signatureNoRecoverID)
+}
+
+func VerifySignature(msg, pubkey, sigStr string) (ok bool) {
+
+	hash := toHash(msg)
+
+	sig, err := hex.DecodeString(utils.RemoveHexPrefix(sigStr))
 	if err != nil {
-		fmt.Println("Ecrecover error: ", err.Error())
-		return false
+		fmt.Println("sig DecodeString error: ", err.Error())
+		return
 	}
-	matches := bytes.Equal(sigPublicKey, publicKeyBytes)
-	if !matches {
-		return false
+	publicKeyBytes, err := hex.DecodeString(pubkey)
+	if err != nil {
+		fmt.Println("publicKey DecodeString error: ", err.Error())
+		return
 	}
 	signatureNoRecoverID := sig[:len(sig)-1] // remove recovery ID
 
 	return crypto.VerifySignature(publicKeyBytes, hash.Bytes(), signatureNoRecoverID)
+}
+
+func eip191Hash(data string) common.Hash {
+	msg := fmt.Sprintf("\x19Ethereum Signed Message:\n%d%s", len(data), data)
+	return crypto.Keccak256Hash([]byte(msg))
 }
 
 func toHash(msg string) (hash common.Hash) {
