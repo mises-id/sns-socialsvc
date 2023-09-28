@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/cosmos/btcutil/bech32"
@@ -27,11 +28,14 @@ func AuthWithEthSignature(auth string) (misesid string, misPubkey string, err er
 	nonce := v.Get("nonce")
 	ethPubkey := v.Get("pubkey")
 
+	if sigStr == "" {
+		return "", "", errors.New("Signature cannot be empty")
+	}
 	// verify signature
-	sinMsg := "address=" + address + "&nonce=" + nonce
+	sigMsg := "address=" + address + "&nonce=" + nonce
 	//isValid := VerifySignature(sinMsg, ethPubkey, sigStr)
 	//isValid := VerifyEIP191Signature(sinMsg, ethPubkey, sigStr)
-	isValid, ethPubkey := VerifyEIP191SignatureByAddress(sinMsg, address, sigStr)
+	isValid, ethPubkey := VerifyEIP191SignatureByAddress(sigMsg, address, sigStr)
 	if !isValid {
 		err = errors.New("Invalid auth signature")
 		return
@@ -53,6 +57,10 @@ func VerifyEIP191SignatureByAddress(msg, address, sigStr string) (ok bool, ethPu
 		fmt.Println("sig DecodeString error: ", err.Error())
 		return
 	}
+	if len(sigBytes) < 64 {
+		fmt.Println("Invalid signature")
+		return
+	}
 	sigBytes[64] %= 27
 	if sigBytes[64] != 0 && sigBytes[64] != 1 {
 		fmt.Println("Invalid signature recovery byte")
@@ -67,11 +75,11 @@ func VerifyEIP191SignatureByAddress(msg, address, sigStr string) (ok bool, ethPu
 	sigAddress := crypto.PubkeyToAddress(*pkey)
 	ethPubkey = hex.EncodeToString(crypto.FromECDSAPub(pkey))
 	if err != nil {
-		fmt.Println("publicKey DecodeString error: ", err.Error())
+		fmt.Println("publicKey DecodeString", ethPubkey, "error:", err.Error())
 		return
 	}
-	if sigAddress.Hex() != address {
-		fmt.Println("Signer address must match message address")
+	if strings.ToLower(sigAddress.Hex()) != strings.ToLower(address) {
+		fmt.Println("Signer address must match message address", sigAddress.Hex(), address)
 		return
 	}
 

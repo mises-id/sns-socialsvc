@@ -26,7 +26,7 @@ type Env struct {
 	StorageSalt                 string        `env:"STORAGE_SALT" envDefault:""`
 	StorageProvider             string        `env:"STORAGE_PROVIDER" envDefault:"local"`
 	JWTSecret                   string        `env:"JWT_SECRET" envDefault:"jwt secret"`
-	TokenDuration               time.Duration `env:"TOKEN_DURATION" envDefault:"24h"`
+	TokenDuration               time.Duration `env:"TOKEN_DURATION" envDefault:"720h"`
 	AllowOrigins                string        `env:"ALLOW_ORIGINS" envDefault:""`
 	MisesEndpoint               string        `env:"MISES_ENDPOINT" envDefault:""`
 	MisesChainID                string        `env:"MISES_CHAIN_ID" envDefault:""`
