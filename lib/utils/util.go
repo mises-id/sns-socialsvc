@@ -135,3 +135,20 @@ func WirteLogDay(path string) error {
 	}
 	return nil
 }
+
+func AddHexPrefix(val string) string {
+	prefix := "0x"
+	if !strings.HasPrefix(val, prefix) {
+		val = prefix + val
+	}
+
+	return val
+}
+func RemoveHexPrefix(val string) string {
+	prefix := "0x"
+	if strings.HasPrefix(val, prefix) {
+		val = strings.TrimPrefix(val, prefix)
+	}
+
+	return val
+}

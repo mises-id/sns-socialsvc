@@ -1,10 +1,9 @@
 module github.com/mises-id/sns-socialsvc
 
-go 1.17
+go 1.18
 
 require (
 	github.com/caarlos0/env v3.5.0+incompatible
-	github.com/cosmos/go-bip39 v1.0.0
 	github.com/go-kit/kit v0.12.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/gogo/protobuf v1.3.3
@@ -19,7 +18,6 @@ require (
 	github.com/mises-id/sns-storagesvc/sdk v0.0.0-20220623061854-3cb69fa867f2
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
-	github.com/tendermint/tendermint v0.34.16
 	go.mongodb.org/mongo-driver v1.9.1
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa
@@ -29,8 +27,10 @@ require (
 require (
 	github.com/alexflint/go-filemutex v1.2.0 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.1.2 // indirect
+	github.com/cosmos/go-bip39 v1.0.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
+	github.com/tendermint/tendermint v0.34.16 // indirect
 )
 
 require (
@@ -45,7 +45,7 @@ require (
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/confio/ics23/go v0.6.6 // indirect
-	github.com/cosmos/btcutil v1.0.4 // indirect
+	github.com/cosmos/btcutil v1.0.4
 	github.com/cosmos/cosmos-sdk v0.44.6 // indirect
 	github.com/cosmos/iavl v0.17.3 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.11.1 // indirect
@@ -132,7 +132,7 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	github.com/zondax/hid v0.9.0 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
-	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
+	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20220114195835-da31bd327af9 // indirect

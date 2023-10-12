@@ -152,6 +152,7 @@ func FindUser(ctx context.Context, uid uint64) (*User, error) {
 }
 
 func FindOrCreateUserByMisesid(ctx context.Context, misesid, pubkey string) (*User, bool, error) {
+
 	user := &User{}
 	result := db.DB().Collection("users").FindOne(ctx, &bson.M{
 		"misesid": misesid,
@@ -164,7 +165,14 @@ func FindOrCreateUserByMisesid(ctx context.Context, misesid, pubkey string) (*Us
 	if err != nil {
 		return nil, false, err
 	}
-	return user, false, result.Decode(user)
+	if err := result.Decode(user); err != nil {
+		return nil, false, err
+	}
+	if user.EthAddress == "" {
+		UpdateUserEthAdressByPubkey(ctx, user, pubkey)
+	}
+
+	return user, false, nil
 }
 
 func UpdateUserProfile(ctx context.Context, user *User) error {
@@ -184,6 +192,34 @@ func UpdateUserProfile(ctx context.Context, user *User) error {
 			"intro":      user.Intro,
 			"updated_at": time.Now(),
 		}}})
+	return err
+}
+
+func UpdateUserEthAdressByPubkey(ctx context.Context, user *User, pubkey string) error {
+
+	if user.EthAddress != "" {
+		return nil
+	}
+	err := user.BeforeUpdate(ctx)
+	if err != nil {
+		return err
+	}
+	address, err := PubkeyToEthAddress(pubkey)
+	if err != nil {
+		return err
+	}
+	user.EthAddress = address
+	user.Pubkey = pubkey
+	_, err = db.DB().Collection("users").UpdateOne(ctx, &bson.M{
+		"_id": user.UID,
+	}, bson.D{{
+		Key: "$set",
+		Value: bson.M{
+			"pubkey":      user.Pubkey,
+			"eth_address": user.EthAddress,
+			"updated_at":  time.Now(),
+		}}})
+
 	return err
 }
 func UpdateUserEthAdress(ctx context.Context, user *User) error {
@@ -274,7 +310,7 @@ func createMisesUser(ctx context.Context, misesid, pubkey string) (*User, error)
 	}
 	address, err := PubkeyToEthAddress(pubkey)
 	if err == nil {
-		user.EthAddress = address
+		user.EthAddress = strings.ToLower(address)
 	}
 	_, err = db.DB().Collection("users").InsertOne(ctx, user)
 	return user, err

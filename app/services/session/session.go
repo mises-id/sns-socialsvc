@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -68,10 +69,11 @@ func SignIn(ctx context.Context, params *SignInParams) (string, bool, error) {
 		}
 	}
 	at := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"uid":      user.UID,
-		"misesid":  user.Misesid,
-		"username": user.Username,
-		"exp":      time.Now().Add(env.Envs.TokenDuration).Unix(),
+		"uid":         user.UID,
+		"misesid":     user.Misesid,
+		"username":    user.Username,
+		"eth_address": strings.ToLower(user.EthAddress),
+		"exp":         time.Now().Add(env.Envs.TokenDuration).Unix(),
 	})
 	token, err := at.SignedString([]byte(secret))
 	return token, created, err
@@ -93,9 +95,10 @@ func Auth(ctx context.Context, authToken string) (*models.User, error) {
 	}
 	mapClaims := claim.Claims.(jwt.MapClaims)
 	return &models.User{
-		UID:      uint64(mapClaims["uid"].(float64)),
-		Misesid:  mapClaims["misesid"].(string),
-		Username: mapClaims["username"].(string),
+		UID:        uint64(mapClaims["uid"].(float64)),
+		Misesid:    mapClaims["misesid"].(string),
+		Username:   mapClaims["username"].(string),
+		EthAddress: mapClaims["eth_address"].(string),
 	}, nil
 }
 
